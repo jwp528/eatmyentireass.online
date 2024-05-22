@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject ILocalStorageService _localstorage;
 
 <PageTitle>Eat my entire ass</PageTitle>
 
@@ -78,6 +79,20 @@
         "chunk12.png",
         "hole.png",
     };
+
+    async Task LoadDataAsync(string username)
+    {
+        var localAssesEaten = await _localstorage.GetItemAsStringAsync($"{username}_assesEaten");
+        if (!string.IsNullOrWhiteSpace(localAssesEaten))
+        {
+            assesEaten = Int32.Parse(localAssesEaten);
+        }
+    }
+
+    async Task SaveDataAsync(string username)
+    {
+        _localstorage.SetItemAsync($"{username}_assesEaten", assesEaten);
+    }
 
     void EatPiece()
     {
