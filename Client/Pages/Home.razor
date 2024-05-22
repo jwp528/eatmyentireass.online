@@ -1,7 +1,59 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Eat my entire ass</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="hstack justify-content-center gap-5 p-3 bg-light">
+    <p class="fs-1 mb-0 text-center">
+        Entire asses eaten: 
+        <strong>
+            @assesEaten
+        </strong>
+    </p>
+</div>
 
-Welcome to your new app.
+<div class="container-fluid">
+    <div class="vstack  justify-content-center align-content-center vh-100 text-center">
+        <p class="display-4 fw-light text-center">
+            Eat my entire ass!
+            <br/>
+            <img class="img-fluid" src="/images/@pieces[piecesEaten]" @onclick="EatPiece" width="600" />
+        </p>
+    </div>
+</div>
+
+@code {
+    int assesEaten = 0;
+
+    int piecesEaten = 0;
+    List<string> pieces = new()
+    {
+        "entire_ass.png",
+        "chunk1.png",
+        "chunk2.png",
+        "chunk3.png",
+        "chunk4.png",
+        "chunk5.png",
+        "chunk6.png",
+        "chunk7.png",
+        "chunk8.png",
+        "chunk9.png",
+        "chunk10.png",
+        "chunk11.png",
+        "chunk12.png",
+        "hole.png",
+
+    };
+
+    void EatPiece()
+    {
+        if(piecesEaten == 13)
+        {
+            piecesEaten = 0;
+            ++assesEaten;
+        }
+        else
+        {
+            ++piecesEaten;
+        }
+    }
+}
