@@ -3,25 +3,30 @@
 
 <PageTitle>Eat my entire ass</PageTitle>
 
-<div class="hstack justify-content-center gap-5 p-3 bg-light">
-    <p class="fs-1 mb-0 text-center">
-        Entire asses eaten: 
-        <strong>
-            @assesEaten
-        </strong>
-    </p>
-    <button class="float-end btn btn-primary" title="What the hell is this?" @onclick="OnShowModalClick">
-        What is this?
-    </button>
+<div class="row p-3 bg-light bg-body-secondary">
+    <div class="col-12 col-lg-6 text-center text-lg-end">
+        <p class="fs-1 mb-0">
+            Entire asses eaten:
+            <strong>
+                @assesEaten
+            </strong>
+        </p>
+    </div>
+    <div class="col-12 col-lg-6 text-center text-lg-start">
+        <p class="fs-1 mb-0">
+            <button class="btn btn-primary" title="What the hell is this?" @onclick="OnShowModalClick">
+                What is this?
+            </button>
+        </p>
+    </div>
 </div>
 
-<div class="container-fluid h-100" @onclick="EatPiece">
-    <div class="vstack justify-content-center align-content-center h-100 text-center">
+<div class="vstack justify-content-center align-content-center text-center py-5 my-5" @onclick="EatPiece">
         <p class="display-4 fw-light text-center mb-0">
             Eat my entire ass!
         </p>
         <p class="fs-6">
-            @if(piecesEaten < pieces.Count())
+            @if(piecesEaten < pieces.Count()-1)
             {
                 @: (click to <strong>eat</strong> ass)
             }
@@ -33,7 +38,7 @@
             <img class="img-fluid" src="/images/@pieces[piecesEaten]" width="600" />
         </p>
     </div>
-</div>
+
 
 <Modal @ref="modal"IsVerticallyCentered="true">
     <HeaderTemplate>
