@@ -1,29 +1,46 @@
-﻿@page "/"
+﻿@using System.Timers;
+@page "/"
 @inject ILocalStorageService _localstorage;
 
 <PageTitle>Eat my entire ass</PageTitle>
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <h1>
+            <a class="navbar-brand" href="#">
+                <img class="img-fluid" src="/icon-192.png" width="25" />
+                EMEA
+            </a>
+        </h1>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav justify-content-end gap-3 w-100">
+                <Tooltip Title="What the hell is this?" Placement="TooltipPlacement.Auto">
+                    <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle px-3" @onclick="ShowHelpDialog">
+                        ?
+                    </Button>
+                </Tooltip>
 
-<div class="row p-3 bg-light bg-body-secondary">
-    <div class="col-12 col-lg-6 text-center text-lg-end">
-        <p class="fs-1 mb-0">
-            Entire asses eaten:
-            <strong>
-                @assesEaten
-            </strong>
-        </p>
+                <Tooltip Title="Who is responsible for this?" Placement="TooltipPlacement.Auto">
+                    <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle" @onclick="ShowAboutDialog">
+                        <i class="fas fa-user"></i>
+                    </Button>
+                </Tooltip>
+            </div>
+        </div>
     </div>
-    <div class="col-12 col-lg-6 text-center text-lg-start">
-        <p class="fs-1 mb-0">
-            <button class="btn btn-primary" title="What the hell is this?" @onclick="OnShowModalClick">
-                What is this?
-            </button>
-        </p>
-    </div>
-</div>
+</nav>
 
 <div class="vstack justify-content-center align-content-center text-center py-5 my-5" @onclick="EatPiece">
         <p class="display-4 fw-light text-center mb-0">
             Eat my entire ass!
+        </p>
+        <p class="fs-6 mb-5">
+            You have 1 minute to eat as much ass as you can. Your score is based on how many whole asses you consume. Unfinished portions do not count
+        </p>
+        <p class="display-1 mb-0">
+            @TimerDisplay
         </p>
         <p class="fs-6">
             @if(piecesEaten < pieces.Count()-1)
@@ -40,7 +57,7 @@
     </div>
 
 
-<Modal @ref="modal"IsVerticallyCentered="true">
+<Modal @ref="HelpDialog" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body">
     <HeaderTemplate>
         <h5 class="modal-title text-peach">
             <span class="fa-layers fa-fw me-3">
@@ -54,18 +71,78 @@
     <BodyTemplate>
         Don't ask. Eat ass.
         <div class="hstack justify-content-end">
-            <Button Color="ButtonColor.Primary" @onclick="CloseThanEatPiece">
-                Ok <i class="fas fa-teeth-open ms-3"></i>
+            <Button Color="ButtonColor.Primary" @onclick="HideHelpDialog">
+                Ok! <i class="fas fa-face-grin-wide ms-3"></i>
+            </Button>
+        </div>
+    </BodyTemplate>
+</Modal>
+
+<Modal @ref="AboutDialog" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body">
+    <HeaderTemplate>
+        <h5 class="modal-title">
+            <i class="fas fa-user"></i>
+            Who's responsible for this?
+        </h5>
+    </HeaderTemplate>
+    <BodyTemplate>
+        Some dude behind a keyboard with way too much time on his hands.
+        <div class="hstack justify-content-end">
+            <Button Color="ButtonColor.Primary" @onclick="HideAboutDialog">
+                Makes Sense <i class="fas fa-check ms-3"></i>
+            </Button>
+        </div>
+    </BodyTemplate>
+</Modal>
+
+<Modal @ref="ResultsDialog" IsVerticallyCentered="true" HeaderCssClass="bg-primary text-white">
+    <HeaderTemplate>
+        <h5 class="modal-title">
+            <i class="fas fa-flag-checkered"></i>
+            Results: @assesEaten ass(es)
+        </h5>
+    </HeaderTemplate>
+    <BodyTemplate>
+        <p class="display-1 text-center fw-bold">
+            @assesEaten
+        </p>
+        <p class="lead text-center">
+            @scoreText
+        </p>
+        <div class="hstack justify-content-end">
+            <Button Color="ButtonColor.Primary" @onclick="TryAgain">
+                Try again <i class="fas fa-rotate ms-3"></i>
             </Button>
         </div>
     </BodyTemplate>
 </Modal>
 
 @code {
-    Modal modal;
+    Modal HelpDialog;
+    Modal AboutDialog;
+    Modal ResultsDialog;
+
+    bool gamePlaying;
+    Timer GameTimer;
+    int GameTimeInSeconds = 60; // 1 minute
+    string TimerDisplay => $"{GameTimeInSeconds / 60:D2}:{GameTimeInSeconds % 60:D2}";
 
     int assesEaten = 0;
     int piecesEaten = 0;
+
+    string scoreText => assesEaten switch
+    {
+        0 => "Come on, let's get started!",
+        >= 100 => "Legendary! You've reached the pinnacle of ass-eating with 100 or more! You're a true champion!",
+        >= 75 => "Incredible! 75 asses devoured! You're in a league of your own!",
+        >= 50 => "Fantastic! You've eaten 50 asses! That's a monumental achievement!",
+        >= 40 => "Amazing! 40 asses down the hatch! You're unstoppable!",
+        >= 30 => "30 rumps! did you even taste them?",
+        >= 20 => "20 asses. A hearty meal.",
+        >= 10 => "10 asses eaten! Maybe you're just not hungry right now",
+        >= 5 => "Only 5 asses? It's not for everyone, at least you tried.",
+        _ => "How did you even get this? I default the number to 0..."
+    };
 
     List<string> pieces = new()
     {
@@ -87,11 +164,44 @@
 
     async Task LoadDataAsync(string username)
     {
-        var localAssesEaten = await _localstorage.GetItemAsStringAsync($"{username}_assesEaten");
-        if (!string.IsNullOrWhiteSpace(localAssesEaten))
+        assesEaten = await _localstorage.GetItemAsync<int>($"{username}_assesEaten");
+    }
+
+    void ResetGame()
+    {
+        assesEaten = 0;
+        piecesEaten = 0;
+        GameTimeInSeconds = 60;
+    }
+
+    void StartGame()
+    {
+        ResetGame();
+
+        GameTimer = new Timer(1000);
+        GameTimer.Elapsed += OnTimerTick;
+        GameTimer.AutoReset = true;
+        GameTimer.Enabled = true;
+
+        gamePlaying = true;
+    }
+
+    void OnTimerTick(object sender, EventArgs e)
+    {
+        if(GameTimeInSeconds > 0)
         {
-            assesEaten = Int32.Parse(localAssesEaten);
+            GameTimeInSeconds--;
+            InvokeAsync(() => StateHasChanged());
+            return;
         }
+
+        GameTimer.Stop();
+        gamePlaying = false;
+
+        InvokeAsync(async () => {
+            await ShowResultsDialog();
+            StateHasChanged();
+        });
     }
 
     async Task SaveDataAsync(string username)
@@ -101,6 +211,11 @@
 
     void EatPiece()
     {
+        if (!gamePlaying)
+        {
+            StartGame();
+        }
+
         if(piecesEaten == 13)
         {
             piecesEaten = 0;
@@ -112,19 +227,40 @@
         }
     }
 
-    async Task OnShowModalClick()
+    async Task ShowHelpDialog()
     {
-        await modal?.ShowAsync();
+        await HelpDialog?.ShowAsync();
     }
 
-    async Task OnHideModalClick()
+    async Task HideHelpDialog()
     {
-        await modal?.HideAsync();
+        await HelpDialog?.HideAsync();
     }
 
-    async Task CloseThanEatPiece()
+
+    async Task ShowAboutDialog()
     {
-        await modal?.HideAsync();
-        EatPiece();
+        await AboutDialog?.ShowAsync();
+    }
+
+    async Task HideAboutDialog()
+    {
+        await AboutDialog?.HideAsync();
+    }
+
+    async Task ShowResultsDialog()
+    {
+        await ResultsDialog?.ShowAsync();
+    }
+
+    async Task TryAgain()
+    {
+        ResetGame();
+        await ResultsDialog?.HideAsync();
+    }
+
+    async Task HideResultsDialog()
+    {
+        await ResultsDialog?.HideAsync();
     }
 }
