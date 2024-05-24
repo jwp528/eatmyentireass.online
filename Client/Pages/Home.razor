@@ -133,14 +133,14 @@
     string scoreText => assesEaten switch
     {
         0 => "Come on, let's get started!",
-        >= 100 => "Legendary! You've reached the pinnacle of ass-eating with 100 or more! You're a true champion!",
-        >= 75 => "Incredible! 75 asses devoured! You're in a league of your own!",
-        >= 50 => "Fantastic! You've eaten 50 asses! That's a monumental achievement!",
-        >= 40 => "Amazing! 40 asses down the hatch! You're unstoppable!",
-        >= 30 => "30 rumps! did you even taste them?",
-        >= 20 => "20 asses. A hearty meal.",
-        >= 10 => "10 asses eaten! Maybe you're just not hungry right now",
-        >= 5 => "Only 5 asses? It's not for everyone, at least you tried.",
+        >= 100 => $"Legendary! You've reached the pinnacle of ass-eating with {assesEaten} or more! You're a true champion!",
+        >= 75 => $"Incredible! {assesEaten} asses devoured! You're in a league of your own!",
+        >= 50 => $"Fantastic! You've eaten {assesEaten} asses! That's a monumental achievement!",
+        >= 40 => $"Amazing! {assesEaten} asses down the hatch! You're unstoppable!",
+        >= 30 => $"{assesEaten} rumps! did you even taste them?",
+        >= 20 => $"{assesEaten} asses. A hearty meal.",
+        >= 10 => $"{assesEaten} asses eaten! Maybe you're just not hungry right now",
+        >= 5 => $"Only {assesEaten} asses? It's not for everyone, at least you tried.",
         _ => "How did you even get this? I default the number to 0..."
     };
 
