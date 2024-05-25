@@ -1,4 +1,5 @@
 ﻿@using System.Timers;
+@using static BlazorApp.Shared.Assets
 @page "/"
 @inject ILocalStorageService _localstorage
 @inject IJSRuntime js
@@ -34,11 +35,8 @@
 </nav>
 
 <div class="vstack justify-content-center align-content-center text-center py-5 my-5" @onclick="EatPiece">
-        <p class="display-4 fw-light text-center mb-0">
+        <p class="display-4 fw-light text-center">
             Eat my entire ass!
-        </p>
-        <p class="fs-6 mb-5">
-            You have 1 minute to eat as much ass as you can. Your score is based on how many whole asses you consume. Unfinished portions do not count
         </p>
         <p class="display-1 mb-0">
             @TimerDisplay
@@ -70,7 +68,41 @@
         </h5>
     </HeaderTemplate>
     <BodyTemplate>
-        Don't ask. Eat ass.
+        <ul>
+            <li>
+                You have 1 minute to eat as much ass as you can.
+            </li> 
+            <li>
+                Your score is based on how many whole asses you consume. Unfinished portions do not count.
+            </li>
+            <li>
+                Certain asses are worth more points than others.
+            </li>
+        </ul>
+        <p class="my-3 fw-bold">
+            There are NO half points. Fractions are for pussies, we only deal in whole numbers.
+        </p>
+        <p>
+            There are @Enum.GetValues(typeof(AssTypeEnum)).Length different kinds of asses.
+        </p>
+        <p class="fw-bold fs-4">
+            <img src="/images/Boney/entire_ass.png" width="100" />
+            : 0.5 point
+        </p>
+        <p class="fw-bold fs-4">
+            <img src="/images/Cartoon/entire_ass.png" width="100" />
+            <img src="/images/Flat/entire_ass.png" width="100" />
+            <img src="/images/Hairy/entire_ass.png" width="100" />
+            : 1 point
+        </p>
+        <p class="fw-bold fs-4">
+            <img src="/images/GYAT/entire_ass.png" width="100" />
+            : 2 points
+        </p>
+        <p class="fw-bold fs-4">
+            <img src="/images/Golden/entire_ass.png" width="100" />
+            : 10 points
+        </p>
         <div class="hstack justify-content-end">
             <Button Color="ButtonColor.Primary" @onclick="HideHelpDialog">
                 Ok! <i class="fas fa-face-grin-wide ms-3"></i>
