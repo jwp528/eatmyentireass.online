@@ -1,6 +1,7 @@
 ﻿@using System.Timers;
 @page "/"
-@inject ILocalStorageService _localstorage;
+@inject ILocalStorageService _localstorage
+@inject IJSRuntime js
 
 <PageTitle>Eat my entire ass</PageTitle>
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -43,7 +44,7 @@
             @TimerDisplay
         </p>
         <p class="fs-6">
-            @if(piecesEaten < pieces.Count()-1)
+            @if(piecesEaten < AssFrames.Count()-2)
             {
                 @: (click to <strong>eat</strong> ass)
             }
@@ -52,7 +53,7 @@
                 @: (click to <strong>finish</strong> ass)
             }
             <br/>
-            <img class="img-fluid" src="/images/@pieces[piecesEaten]" width="600" />
+            <img class="img-fluid" src="/images/@CurrentAssType.ToString()/@AssFrames[piecesEaten]" width="600" />
         </p>
     </div>
 
@@ -99,16 +100,74 @@
     <HeaderTemplate>
         <h5 class="modal-title">
             <i class="fas fa-flag-checkered"></i>
-            Results: @assesEaten ass(es)
+            Results: @Math.Truncate(assesEaten) ass(es)
         </h5>
     </HeaderTemplate>
     <BodyTemplate>
         <p class="display-1 text-center fw-bold">
-            @assesEaten
+            @Math.Truncate(assesEaten)
         </p>
         <p class="lead text-center">
             @scoreText
         </p>
+
+        <p>Breakdown:</p>
+        <div class="row">
+            <div class="col">
+                <p class="text-center">
+                    <img src="/images/Boney/entire_ass.png" width="50" />
+                    <br/>
+                    <span class="fw-bold">
+                        @Breakdown[Shared.Assets.AssTypeEnum.Boney]
+                    </span>
+                </p>
+            </div>
+            <div class="col">
+                <p class="text-center">
+                    <img src="/images/Cartoon/entire_ass.png" width="50" />
+                    <br />
+                    <span class="fw-bold">
+                        @Breakdown[Shared.Assets.AssTypeEnum.Cartoon]
+                    </span>
+                </p>
+            </div>
+            <div class="col">
+                <p class="text-center">
+                    <img src="/images/Flat/entire_ass.png" width="50" />
+                    <br />
+                    <span class="fw-bold">
+                        @Breakdown[Shared.Assets.AssTypeEnum.Flat]
+                    </span>
+                </p>
+            </div>
+            <div class="col">
+                <p class="text-center">
+                    <img src="/images/Golden/entire_ass.png" width="50" />
+                    <br/>
+                    <span class="fw-bold">
+                        @Breakdown[Shared.Assets.AssTypeEnum.Golden]
+                    </span>
+                </p>
+            </div>
+            <div class="col">
+                <p class="text-center">
+                    <img src="/images/GYAT/entire_ass.png" width="50" />
+                    <br />
+                    <span class="fw-bold">
+                        @Breakdown[Shared.Assets.AssTypeEnum.GYAT]
+                    </span>
+                </p>
+            </div>
+            <div class="col">
+                <p class="text-center">
+                    <img src="/images/Hairy/entire_ass.png" width="50" />
+                    <br />
+                    <span class="fw-bold">
+                        @Breakdown[Shared.Assets.AssTypeEnum.Hairy]
+                    </span>
+                </p>
+            </div>
+        </div>
         <div class="hstack justify-content-end">
             <Button Color="ButtonColor.Primary" @onclick="TryAgain">
                 Try again <i class="fas fa-rotate ms-3"></i>
@@ -117,150 +176,3 @@
     </BodyTemplate>
 </Modal>
 
-@code {
-    Modal HelpDialog;
-    Modal AboutDialog;
-    Modal ResultsDialog;
-
-    bool gamePlaying;
-    Timer GameTimer;
-    int GameTimeInSeconds = 60; // 1 minute
-    string TimerDisplay => $"{GameTimeInSeconds / 60:D2}:{GameTimeInSeconds % 60:D2}";
-
-    int assesEaten = 0;
-    int piecesEaten = 0;
-
-    string scoreText => assesEaten switch
-    {
-        0 => "Come on, let's get started!",
-        >= 100 => $"Legendary! You've reached the pinnacle of ass-eating with {assesEaten} or more! You're a true champion!",
-        >= 75 => $"Incredible! {assesEaten} asses devoured! You're in a league of your own!",
-        >= 50 => $"Fantastic! You've eaten {assesEaten} asses! That's a monumental achievement!",
-        >= 40 => $"Amazing! {assesEaten} asses down the hatch! You're unstoppable!",
-        >= 30 => $"{assesEaten} rumps! did you even taste them?",
-        >= 20 => $"{assesEaten} asses. A hearty meal.",
-        >= 10 => $"{assesEaten} asses eaten! Maybe you're just not hungry right now",
-        >= 5 => $"Only {assesEaten} asses? It's not for everyone, at least you tried.",
-        _ => "How did you even get this? I default the number to 0..."
-    };
-
-    List<string> pieces = new()
-    {
-        "entire_ass.png",
-        "chunk1.png",
-        "chunk2.png",
-        "chunk3.png",
-        "chunk4.png",
-        "chunk5.png",
-        "chunk6.png",
-        "chunk7.png",
-        "chunk8.png",
-        "chunk9.png",
-        "chunk10.png",
-        "chunk11.png",
-        "chunk12.png",
-        "hole.png",
-    };
-
-    async Task LoadDataAsync(string username)
-    {
-        assesEaten = await _localstorage.GetItemAsync<int>($"{username}_assesEaten");
-    }
-
-    void ResetGame()
-    {
-        assesEaten = 0;
-        piecesEaten = 0;
-        GameTimeInSeconds = 60;
-    }
-
-    void StartGame()
-    {
-        ResetGame();
-
-        GameTimer = new Timer(1000);
-        GameTimer.Elapsed += OnTimerTick;
-        GameTimer.AutoReset = true;
-        GameTimer.Enabled = true;
-
-        gamePlaying = true;
-    }
-
-    void OnTimerTick(object sender, EventArgs e)
-    {
-        if(GameTimeInSeconds > 0)
-        {
-            GameTimeInSeconds--;
-            InvokeAsync(() => StateHasChanged());
-            return;
-        }
-
-        GameTimer.Stop();
-        gamePlaying = false;
-
-        InvokeAsync(async () => {
-            await ShowResultsDialog();
-            StateHasChanged();
-        });
-    }
-
-    async Task SaveDataAsync(string username)
-    {
-        _localstorage.SetItemAsync($"{username}_assesEaten", assesEaten);
-    }
-
-    void EatPiece()
-    {
-        if (!gamePlaying)
-        {
-            StartGame();
-        }
-
-        if(piecesEaten == 13)
-        {
-            piecesEaten = 0;
-            ++assesEaten;
-        }
-        else
-        {
-            ++piecesEaten;
-        }
-    }
-
-    async Task ShowHelpDialog()
-    {
-        await HelpDialog?.ShowAsync();
-    }
-
-    async Task HideHelpDialog()
-    {
-        await HelpDialog?.HideAsync();
-    }
-
-
-    async Task ShowAboutDialog()
-    {
-        await AboutDialog?.ShowAsync();
-    }
-
-    async Task HideAboutDialog()
-    {
-        await AboutDialog?.HideAsync();
-    }
-
-    async Task ShowResultsDialog()
-    {
-        await ResultsDialog?.ShowAsync();
-    }
-
-    async Task TryAgain()
-    {
-        ResetGame();
-        await ResultsDialog?.HideAsync();
-    }
-
-    async Task HideResultsDialog()
-    {
-        await ResultsDialog?.HideAsync();
-    }
-}

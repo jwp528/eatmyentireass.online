@@ -2,6 +2,8 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     height:100vh;
     overflow:hidden !important;
+    background: url("/images/bg.png");
+    background-size:contain;
 }
 
 h1:focus {
