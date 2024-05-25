@@ -70,6 +70,15 @@ public partial class Home
         assesEaten = 0;
         piecesEaten = 0;
         GameTimeInSeconds = 60;
+        Breakdown = new()
+        {
+            { AssTypeEnum.Boney, 0 },
+            { AssTypeEnum.Cartoon, 0 },
+            { AssTypeEnum.Flat, 0 },
+            { AssTypeEnum.Golden, 0 },
+            { AssTypeEnum.GYAT, 0 },
+            { AssTypeEnum.Hairy, 0 }
+        };
     }
 
     void StartGame()
