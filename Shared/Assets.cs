@@ -185,4 +185,34 @@ public class Assets
                 return 1;
         }
     }
+
+    public static string GetBiteSoundForAssType(AssTypeEnum assType)
+    {
+        var baseDirectory = "sounds/Bites";
+        var sound = assType switch
+        {
+            AssTypeEnum.Boney => "light_crunch.mp3",
+            AssTypeEnum.Golden => "metal_crunch.mp3",
+            _ => "bite.mp3",
+        };
+
+        return $"/{baseDirectory}/{sound}";
+    }
+
+    public static string GetRandomGameOverSound()
+    {
+        List<string> gameOverSounds = new()
+        {
+            "burp1.mp3",
+            "burp2.mp3",
+            "satisfied.mp3"
+        };
+
+        Random random = new();
+
+        var randomIdx = random.Next(gameOverSounds.Count());
+
+        string baseDirectory = "sounds/TimeUp";
+        return $"/{baseDirectory}/{gameOverSounds[randomIdx]}";
+    }
 }

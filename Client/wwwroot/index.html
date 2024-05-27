@@ -78,15 +78,9 @@
     <script src="_content/Blazor.Bootstrap/blazor.bootstrap.js"></script>
     <script>
         window.playSound = (src) => {
-            var audio = document.getElementById('player');
-            if (audio != null) {
-                var audioSource = document.getElementById('playerSource');
-                if (audioSource != null) {
-                    audioSource.src = src;
-                    audio.load();
-                    audio.play();
-                }
-            }
+            console.log(`playing sound ${src}`);
+            var audio = new Audio(src);
+            audio.play();
         }
     </script>
 </body>

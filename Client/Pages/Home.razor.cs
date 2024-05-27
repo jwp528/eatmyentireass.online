@@ -109,6 +109,8 @@ public partial class Home
         InvokeAsync(async () =>
         {
             await ShowResultsDialog();
+            string gameOverSound = Assets.GetRandomGameOverSound();
+            await js.InvokeVoidAsync("playSound", gameOverSound);
             StateHasChanged();
         });
     }
@@ -136,8 +138,9 @@ public partial class Home
         else
         {
             ++piecesEaten;
+            var sound = Assets.GetBiteSoundForAssType(CurrentAssType);
+            await js.InvokeVoidAsync("playSound", sound);
         }
-        await js.InvokeVoidAsync("playSound", "/sounds/bite.mp3");
     }
 
     async Task ShowHelpDialog()
