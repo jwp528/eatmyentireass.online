@@ -12,6 +12,9 @@ public partial class Home
     Modal AboutDialog;
     Modal ResultsDialog;
 
+    bool playSounds = true;
+    double volume = 1;
+
     bool gamePlaying;
     Timer GameTimer;
     int GameTimeInSeconds = 60; // 1 minute
@@ -52,6 +55,12 @@ public partial class Home
     {
         base.OnInitialized();
         GetNewAss();
+    }
+
+    void ToggleSound()
+    {
+        playSounds = !playSounds;
+        volume = playSounds? 1 : 0;
     }
 
     void GetNewAss()
@@ -110,7 +119,8 @@ public partial class Home
         {
             await ShowResultsDialog();
             string gameOverSound = Assets.GetRandomGameOverSound();
-            await js.InvokeVoidAsync("playSound", gameOverSound);
+
+            await js.InvokeVoidAsync("playSound", gameOverSound, volume);
             StateHasChanged();
         });
     }
@@ -139,7 +149,7 @@ public partial class Home
         {
             ++piecesEaten;
             var sound = Assets.GetBiteSoundForAssType(CurrentAssType);
-            await js.InvokeVoidAsync("playSound", sound);
+            await js.InvokeVoidAsync("playSound", sound, volume);
         }
     }
 
