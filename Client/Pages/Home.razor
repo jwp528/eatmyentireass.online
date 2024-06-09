@@ -1,4 +1,5 @@
 ﻿@using System.Timers;
+@using BlazorApp.Shared
 @using static BlazorApp.Shared.Assets
 @page "/"
 @inject ILocalStorageService _localstorage
@@ -86,21 +87,21 @@
             There are @Enum.GetValues(typeof(AssTypeEnum)).Length different kinds of asses.
         </p>
         <p class="fw-bold fs-4">
-            <img src="/images/Boney/entire_ass.png" width="100" />
+            <img src="/images/Asses/Boney/entire_ass.png" width="100" />
             : 0.5 point
         </p>
         <p class="fw-bold fs-4">
-            <img src="/images/Cartoon/entire_ass.png" width="100" />
-            <img src="/images/Flat/entire_ass.png" width="100" />
-            <img src="/images/Hairy/entire_ass.png" width="100" />
+            <img src="/images/Asses/Cartoon/entire_ass.png" width="100" />
+            <img src="/images/Asses/Flat/entire_ass.png" width="100" />
+            <img src="/images/Asses/Hairy/entire_ass.png" width="100" />
             : 1 point
         </p>
         <p class="fw-bold fs-4">
-            <img src="/images/GYAT/entire_ass.png" width="100" />
+            <img src="/images/Asses/GYAT/entire_ass.png" width="100" />
             : 2 points
         </p>
         <p class="fw-bold fs-4">
-            <img src="/images/Golden/entire_ass.png" width="100" />
+            <img src="/images/Asses/Golden/entire_ass.png" width="100" />
             : 10 points
         </p>
         <div class="hstack justify-content-end">
@@ -145,16 +146,18 @@
 
         <p>Breakdown:</p>
         <div class="row">
-            <div class="col">
-                <p class="text-center">
-                    <img src="/images/Asses/Boney/entire_ass.png" width="50" />
-                    <br/>
-                    <span class="fw-bold">
-                        @Breakdown[Shared.Assets.AssTypeEnum.Boney]
-                    </span>
-                </p>
-            </div> 
-            <div class="col">
+            @foreach(var ass in AssTypes){
+                <div class="col">
+                    <p class="text-center">
+                        <img src="@Frames[ass.ToString()][0]" width="50" />
+                        <br />
+                        <span class="fw-bold">
+                            @Breakdown[ass]
+                        </span>
+                    </p>
+                </div>
+            }
+           @*  <div class="col">
                 <p class="text-center">
                     <img src="/images/Asses/Cartoon/entire_ass.png" width="50" />
                     <br />
@@ -198,7 +201,7 @@
                         @Breakdown[Shared.Assets.AssTypeEnum.Hairy]
                     </span>
                 </p>
-            </div>
+            </div> *@
         </div>
         <div class="hstack justify-content-end">
             <Button Color="ButtonColor.Primary" @onclick="TryAgain">

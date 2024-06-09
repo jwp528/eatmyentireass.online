@@ -18,6 +18,16 @@ public class Assets
         Hairy
     }
 
+    public static List<AssTypeEnum> AssTypes = new()
+    {
+        AssTypeEnum.Boney,
+        AssTypeEnum.Cartoon,
+        AssTypeEnum.Flat,
+        AssTypeEnum.Golden,
+        AssTypeEnum.GYAT,
+        AssTypeEnum.Hairy
+    };
+
     public static Dictionary<string, List<string>> Frames = new Dictionary<string, List<string>>()
     {
         { 
