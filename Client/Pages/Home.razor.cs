@@ -1,3 +1,4 @@
+using BlazorApp.Client.Components.BootstrapCarousel;
 using BlazorApp.Shared;
 using BlazorBootstrap;
 using Microsoft.JSInterop;
@@ -22,6 +23,52 @@ public partial class Home
 
     double assesEaten = 0;
     int piecesEaten = 0;
+
+    List<CarouselItem> CarouselItems = new()
+    {
+        new()
+        {
+            ImageUrl = "/images/Asses/Boney/entire_ass.png",
+            AltText = "Boney Ass",
+            Title = "Boney",
+            Description = "0.5 point. 0 nutritional value, weirdly crunchy."
+        },
+        new()
+        {
+            ImageUrl = "/images/Asses/Cartoon/entire_ass.png",
+            AltText = "Cartoon Ass",
+            Title = "Cartoon",
+            Description = "1 point. Hand drawn, full of life, Tastes like MS Paint because it is."
+        },
+        new()
+        {
+            ImageUrl = "/images/Asses/Flat/entire_ass.png",
+            AltText = "Flat Ass",
+            Title = "Flat",
+            Description = "1 point. Deflated rump. Flatter and straighter than most boards at home depot."
+        },
+        new()
+        {
+            ImageUrl = "/images/Asses/Hairy/entire_ass.png",
+            AltText = "Hairy Ass",
+            Title = "Hairy",
+            Description = "1 point. Never shaven, letting it all hang out. The way god intended"
+        },
+        new()
+        {
+            ImageUrl = "/images/Asses/GYAT/entire_ass.png",
+            AltText = "GYAT Ass",
+            Title = "GYAT",
+            Description = "2 point. GYAT damn that's one thicc juicy thang."
+        },
+        new()
+        {
+            ImageUrl = "/images/Asses/Golden/entire_ass.png",
+            AltText = "Golden Ass",
+            Title = "Golden",
+            Description = "10 point. The holy grail of asses. Forces you to savour each sweet metallic bite."
+        },
+    };
 
     // breakdown
     Dictionary<AssTypeEnum, int> Breakdown = new()
@@ -188,5 +235,9 @@ public partial class Home
     async Task HideResultsDialog()
     {
         await ResultsDialog?.HideAsync();
+    }
+
+    void ShowOptions(){
+
     }
 }

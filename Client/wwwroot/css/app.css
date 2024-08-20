@@ -2,7 +2,7 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     height:100vh;
     overflow:hidden !important;
-    background: url("/images/bg.png");
+    background: radial-gradient(circle, #333, #000);
     background-size:contain;
 }
 

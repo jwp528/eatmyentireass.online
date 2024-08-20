@@ -1,4 +1,5 @@
 ﻿@using System.Timers;
+@using BlazorApp.Client.Components.BootstrapCarousel
 @using BlazorApp.Shared
 @using static BlazorApp.Shared.Assets
 @page "/"
@@ -28,6 +29,12 @@
                 <Tooltip Title="Who is responsible for this?" Placement="TooltipPlacement.Auto">
                     <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle" @onclick="ShowAboutDialog">
                         <i class="fas fa-user"></i>
+                    </Button>
+                </Tooltip>
+
+                <Tooltip Title="Options" Placement="TooltipPlacement.Auto">
+                    <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle" @onclick="ShowOptions">
+                        <i class="fas fa-gear"></i>
                     </Button>
                 </Tooltip>
             </div>
@@ -86,24 +93,19 @@
         <p>
             There are @Enum.GetValues(typeof(AssTypeEnum)).Length different kinds of asses.
         </p>
-        <p class="fw-bold fs-4">
-            <img src="/images/Asses/Boney/entire_ass.png" width="100" />
-            : 0.5 point
-        </p>
-        <p class="fw-bold fs-4">
-            <img src="/images/Asses/Cartoon/entire_ass.png" width="100" />
-            <img src="/images/Asses/Flat/entire_ass.png" width="100" />
-            <img src="/images/Asses/Hairy/entire_ass.png" width="100" />
-            : 1 point
-        </p>
-        <p class="fw-bold fs-4">
-            <img src="/images/Asses/GYAT/entire_ass.png" width="100" />
-            : 2 points
-        </p>
-        <p class="fw-bold fs-4">
-            <img src="/images/Asses/Golden/entire_ass.png" width="100" />
-            : 10 points
-        </p>
+        <BootstrapCarousel Items="CarouselItems" ShowIndicators="false">
+            <ItemTemplate>
+                <div class="hstack gap-3">
+                    <img src="@context.ImageUrl" 
+                         class="d-block w-50" 
+                         alt="@context.AltText" />
+                    <div class="text-light">
+                        <h5>@context.Title</h5>
+                        <p>@context.Description</p>
+                    </div>
+                </div>
+            </ItemTemplate>
+        </BootstrapCarousel>
         <div class="hstack justify-content-end">
             <Button Color="ButtonColor.Primary" @onclick="HideHelpDialog">
                 Ok! <i class="fas fa-face-grin-wide ms-3"></i>
