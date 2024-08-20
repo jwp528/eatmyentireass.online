@@ -31,10 +31,17 @@
 </div>
 
 @code {
-    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString();
-    [Parameter] public bool ShowIndicators { get; set; } = true;
-    [Parameter] public List<TItem> Items { get; set; }
-    [Parameter] public RenderFragment<TItem> ItemTemplate { get; set; }
+    [Parameter] 
+    public string Id { get; set; }
+
+    [Parameter] 
+    public bool ShowIndicators { get; set; } = true;
+
+    [Parameter]
+    public List<TItem> Items { get; set; }
+
+    [Parameter] 
+    public RenderFragment<TItem> ItemTemplate { get; set; }
 
     protected override void OnInitialized()
     {

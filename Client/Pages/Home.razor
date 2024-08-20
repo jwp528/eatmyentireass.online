@@ -33,7 +33,7 @@
                 </Tooltip>
 
                 <Tooltip Title="Options" Placement="TooltipPlacement.Auto">
-                    <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle" @onclick="ShowOptions">
+                    <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle" @onclick="ShowOptionsDialog">
                         <i class="fas fa-gear"></i>
                     </Button>
                 </Tooltip>
@@ -93,7 +93,7 @@
         <p>
             There are @Enum.GetValues(typeof(AssTypeEnum)).Length different kinds of asses.
         </p>
-        <BootstrapCarousel Items="CarouselItems" ShowIndicators="false">
+        <BootstrapCarousel Items="CarouselItems" ShowIndicators="false" Id="AssCarousel">
             <ItemTemplate>
                 <div class="hstack gap-3">
                     <img src="@context.ImageUrl" 
@@ -168,3 +168,26 @@
     </BodyTemplate>
 </Modal>
 
+<Modal @ref="OptionsDialog" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body">
+    <HeaderTemplate>
+        <h5 class="modal-title">
+            <i class="fas fa-gear"></i>
+            Settings
+        </h5>
+    </HeaderTemplate>
+    <BodyTemplate>
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="playSoundsCheck" @bind="playSounds">
+            <label class="form-check-label" for="playSoundsCheck">
+                <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute")"></i>
+                Play Sounds
+            </label>
+        </div>
+        <div class="mb-3">
+            <label for="volumeSlider" class="form-label">
+                <i class="fas fa-volume-down"></i> Volume: @volume.ToString("0.0")
+            </label>
+            <input type="range" class="form-range" id="volumeSlider" min="0" max="1" step="0.1" @bind="volume">
+        </div>
+    </BodyTemplate>
+</Modal>

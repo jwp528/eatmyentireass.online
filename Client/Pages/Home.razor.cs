@@ -12,6 +12,7 @@ public partial class Home
     Modal HelpDialog;
     Modal AboutDialog;
     Modal ResultsDialog;
+    Modal OptionsDialog;
 
     bool playSounds = true;
     double volume = 1;
@@ -167,7 +168,11 @@ public partial class Home
             await ShowResultsDialog();
             string gameOverSound = Assets.GetRandomGameOverSound();
 
-            await js.InvokeVoidAsync("playSound", gameOverSound, volume);
+            if (playSounds)
+            {
+                await js.InvokeVoidAsync("playSound", gameOverSound, volume);
+            }
+            
             StateHasChanged();
         });
     }
@@ -196,7 +201,11 @@ public partial class Home
         {
             ++piecesEaten;
             var sound = Assets.GetBiteSoundForAssType(CurrentAssType);
-            await js.InvokeVoidAsync("playSound", sound, volume);
+
+            if (playSounds)
+            {
+                await js.InvokeVoidAsync("playSound", sound, volume);
+            }
         }
     }
 
@@ -237,7 +246,12 @@ public partial class Home
         await ResultsDialog?.HideAsync();
     }
 
-    void ShowOptions(){
+    async Task ShowOptionsDialog(){
+        await OptionsDialog?.ShowAsync();
+    }
 
+    async Task HideOptionsDialog()
+    {
+        await OptionsDialog?.HideAsync();
     }
 }
