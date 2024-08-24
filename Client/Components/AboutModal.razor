@@ -1,0 +1,20 @@
+@code{
+    public Modal Modal;
+}
+
+<Modal @ref="Modal" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body" Visible="IsVisible">
+    <HeaderTemplate>
+        <h5 class="modal-title">
+            <i class="fas fa-user"></i>
+            Who's responsible for this?
+        </h5>
+    </HeaderTemplate>
+    <BodyTemplate>
+        Some dude behind a keyboard with way too much time on his hands.
+        <div class="hstack justify-content-end">
+            <Button Color="ButtonColor.Primary" @onclick="async () => await Modal.HideAsync()">
+                Makes Sense <i class="fas fa-check ms-3"></i>
+            </Button>
+        </div>
+    </BodyTemplate>
+</Modal>

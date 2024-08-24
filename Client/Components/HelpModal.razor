@@ -1,0 +1,46 @@
+@using BlazorApp.Client.Components.BootstrapCarousel
+@using static BlazorApp.Shared.Assets
+
+@code {
+    [Parameter] public List<CarouselItem> CarouselItems { get; set; } = new();
+    
+    public Modal Modal;
+}
+
+<Modal @ref="Modal" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body" Visible="IsVisible">
+    <HeaderTemplate>
+        <h5 class="modal-title text-peach">
+            <span class="fa-layers fa-fw me-3">
+                <i class="fas fa-circle" data-fa-transform="left-3"></i>
+                <i class="fas fa-circle" data-fa-transform="right-3"></i>
+                <i class="fas fa-circle text-dark" data-fa-transform="shrink-12"></i>
+            </span>
+            Butt why?
+        </h5>
+    </HeaderTemplate>
+    <BodyTemplate>
+        <ul>
+            <li>You have 1 minute to eat as much ass as you can.</li>
+            <li>Your score is based on how many whole asses you consume. Unfinished portions do not count.</li>
+            <li>Certain asses are worth more points than others.</li>
+        </ul>
+        <p class="my-3 fw-bold">There are NO half points. Fractions are for pussies, we only deal in whole numbers.</p>
+        <p>There are @Enum.GetValues(typeof(AssTypeEnum)).Length different kinds of asses.</p>
+        <BootstrapCarousel Items="CarouselItems" ShowIndicators="false" Id="AssCarousel">
+            <ItemTemplate>
+                <div class="hstack gap-3">
+                    <img src="@context.ImageUrl" class="d-block w-50" alt="@context.AltText" />
+                    <div class="text-light">
+                        <h5>@context.Title</h5>
+                        <p>@context.Description</p>
+                    </div>
+                </div>
+            </ItemTemplate>
+        </BootstrapCarousel>
+        <div class="hstack justify-content-end">
+            <Button Color="ButtonColor.Primary" @onclick="async () => await Modal.HideAsync()">
+                Ok! <i class="fas fa-face-grin-wide ms-3"></i>
+            </Button>
+        </div>
+    </BodyTemplate>
+</Modal>

@@ -1,0 +1,51 @@
+@code {
+    [Parameter] public bool playSounds { get; set; }
+    [Parameter] public double volume { get; set; }
+    [Parameter] public EventCallback<bool> OnToggleSound { get; set; }
+    [Parameter] public EventCallback<double> OnVolumeChange { get; set; }
+}
+
+<Modal @ref="Modal" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body" Visible="IsVisible">
+    <HeaderTemplate>
+        <h5 class="modal-title">
+            <i class="fas fa-gear"></i>
+            Settings
+        </h5>
+    </HeaderTemplate>
+    <BodyTemplate>
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="playSoundsCheck" checked="@playSounds" @onchange="ToggleSound">
+            <label class="form-check-label" for="playSoundsCheck">
+                <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute")"></i>
+                Play Sounds
+            </label>
+        </div>
+        <div class="mb-3">
+            <label for="volumeSlider" class="form-label">
+                <i class="fas fa-volume-down"></i> Volume: @volume.ToString("0.0")
+            </label>
+            <input type="range" class="form-range" id="volumeSlider" min="0" max="1" step="0.1" value="@volume" @oninput="ChangeVolume">
+        </div>
+        <div class="hstack justify-content-end">
+            <Button Color="ButtonColor.Primary" @onclick="async() => await Modal.HideAsync()">
+                Close <i class="fas fa-times ms-3"></i>
+            </Button>
+        </div>
+    </BodyTemplate>
+</Modal>
+
+@code {
+
+    public Modal Modal;
+    private void ToggleSound(ChangeEventArgs e)
+    {
+        playSounds = (bool)e.Value;
+        OnToggleSound.InvokeAsync(playSounds);
+    }
+
+    private void ChangeVolume(ChangeEventArgs e)
+    {
+        volume = Convert.ToDouble(e.Value);
+        OnVolumeChange.InvokeAsync(volume);
+    }
+}

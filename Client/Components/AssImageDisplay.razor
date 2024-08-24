@@ -1,0 +1,20 @@
+@using static BlazorApp.Shared.Assets
+
+@code {
+    [Parameter] public int piecesEaten { get; set; }
+    [Parameter] public List<string> AssFrames { get; set; }
+    [Parameter] public AssTypeEnum CurrentAssType { get; set; }
+}
+
+<p class="fs-6">
+    @if(piecesEaten < AssFrames.Count() - 2)
+    {
+        <span>(click to <strong>eat</strong> ass)</span>
+    }
+    else
+    {
+        <span>(click to <strong>finish</strong> ass)</span>
+    }
+    <br />
+    <img class="img-fluid" src="/images/Asses/@CurrentAssType.ToString()/@AssFrames[piecesEaten]" width="600" />
+</p>
