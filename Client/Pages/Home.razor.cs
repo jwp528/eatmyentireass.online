@@ -13,6 +13,8 @@ namespace BlazorApp.Client.Pages
         ResultsModal ResultsDialog;
 
         bool gamePlaying;
+        bool playSounds = true;
+        double volume = 1;
         Timer GameTimer;
         int GameTimeInSeconds = 60; // 1 minute
         string TimerDisplay => $"{GameTimeInSeconds / 60:D2}:{GameTimeInSeconds % 60:D2}";
