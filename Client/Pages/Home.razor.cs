@@ -1,9 +1,6 @@
 using BlazorApp.Client.Components;
 using BlazorApp.Client.Components.BootstrapCarousel;
-using BlazorApp.Shared;
 using Microsoft.JSInterop;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using static BlazorApp.Shared.Assets;
 using Timer = System.Timers.Timer;
 
@@ -114,8 +111,8 @@ namespace BlazorApp.Client.Pages
 
         void GetNewAss()
         {
-            CurrentAssType = Assets.GetRandomAssType();
-            AssFrames = Assets.GetAssFrames(CurrentAssType);
+            CurrentAssType = BlazorApp.Shared.Assets.GetRandomAssType();
+            AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
         }
 
         async Task LoadDataAsync(string username)
@@ -165,7 +162,7 @@ namespace BlazorApp.Client.Pages
             InvokeAsync(async () =>
             {
                 ShowResultsDialog();
-                string gameOverSound = Assets.GetRandomGameOverSound();
+                string gameOverSound = BlazorApp.Shared.Assets.GetRandomGameOverSound();
 
                 if (playSounds)
                 {
@@ -191,7 +188,7 @@ namespace BlazorApp.Client.Pages
             if (piecesEaten == AssFrames.Count() - 1)
             {
                 piecesEaten = 0;
-                assesEaten += Assets.GetPointsForAssType(CurrentAssType);
+                assesEaten += BlazorApp.Shared.Assets.GetPointsForAssType(CurrentAssType);
 
                 Breakdown[CurrentAssType]++;
                 GetNewAss();
@@ -199,7 +196,7 @@ namespace BlazorApp.Client.Pages
             else
             {
                 ++piecesEaten;
-                var sound = Assets.GetBiteSoundForAssType(CurrentAssType);
+                var sound = BlazorApp.Shared.Assets.GetBiteSoundForAssType(CurrentAssType);
 
                 if (playSounds)
                 {
