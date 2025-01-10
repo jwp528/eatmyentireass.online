@@ -2,30 +2,31 @@
 @using static BlazorApp.Shared.Assets
 
 @code {
-    [Parameter] public List<CarouselItem> CarouselItems { get; set; } = new();
+    [Parameter] public List<BlazorApp.Client.Components.BootstrapCarousel.CarouselItem> CarouselItems { get; set; } = new();
     
-    public Modal Modal;
+    public BSModal? Modal;
 }
 
-<Modal @ref="Modal" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body" Visible="IsVisible">
-    <HeaderTemplate>
+<BSModal @ref="Modal" Id="helpModal" IsVerticallyCentered="true">
+    <Header>
         <h5 class="modal-title text-peach">
-            <span class="fa-layers fa-fw me-3">
-                <i class="fas fa-circle" data-fa-transform="left-3"></i>
-                <i class="fas fa-circle" data-fa-transform="right-3"></i>
-                <i class="fas fa-circle text-dark" data-fa-transform="shrink-12"></i>
-            </span>
-            Butt why?
+            <i class="fas fa-book-open me-3"></i>
+            How to Play
         </h5>
-    </HeaderTemplate>
-    <BodyTemplate>
+    </Header>
+    <Body>
+        <h6 class="mb-3">Game Rules:</h6>
         <ul>
-            <li>You have 1 minute to eat as much ass as you can.</li>
-            <li>Your score is based on how many whole asses you consume. Unfinished portions do not count.</li>
-            <li>Certain asses are worth more points than others.</li>
+            <li>You have exactly <strong>60 seconds</strong> to eat as much ass as possible</li>
+            <li>Click rapidly to devour ass</li>
+            <li>Each ass type has a different point value</li>
+            <li>You must finish eating an ass completely to score points</li>
+            <li>Partially eaten asses don't count - get to the core if you want to score.</li>
+            <li>Final scores will round down. No half points. Fractions are for pussy's!</li>
         </ul>
-        <p class="my-3 fw-bold">There are NO half points. Fractions are for pussies, we only deal in whole numbers.</p>
-        <p>There are @Enum.GetValues(typeof(AssTypeEnum)).Length different kinds of asses.</p>
+        
+        <h6 class="mt-4 mb-3">Scoring Guide:</h6>
+        <p>There are @Enum.GetValues(typeof(AssTypeEnum)).Length different types of asses to discover:</p>
         <BootstrapCarousel Items="CarouselItems" ShowIndicators="false" Id="AssCarousel">
             <ItemTemplate>
                 <div class="hstack gap-3">
@@ -37,10 +38,10 @@
                 </div>
             </ItemTemplate>
         </BootstrapCarousel>
-        <div class="hstack justify-content-end">
-            <Button Color="ButtonColor.Primary" @onclick="async () => await Modal.HideAsync()">
-                Ok! <i class="fas fa-face-grin-wide ms-3"></i>
-            </Button>
+        <div class="hstack justify-content-end mt-4">
+            <button type="button" class="btn btn-primary" @onclick="async () => await Modal?.Hide()">
+                Got it! <i class="fas fa-play ms-2"></i>
+            </button>
         </div>
-    </BodyTemplate>
-</Modal>
+    </Body>
+</BSModal>

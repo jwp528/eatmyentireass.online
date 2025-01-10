@@ -1,0 +1,41 @@
+.game-navbar {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(82, 109, 255, 0.1);
+}
+
+.game-logo {
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+}
+
+.game-logo a:hover {
+    opacity: 0.9;
+}
+
+.nav-button {
+    background: rgba(82, 109, 255, 0.1);
+    border: 2px solid rgba(82, 109, 255, 0.2);
+    color: white;
+    width: clamp(35px, 8vw, 40px);
+    height: clamp(35px, 8vw, 40px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.nav-button:hover {
+    background: rgba(82, 109, 255, 0.2);
+    border-color: rgba(82, 109, 255, 0.4);
+    transform: scale(1.1);
+    color: #fff;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 380px) {
+    .nav-button {
+        border-width: 1px;
+    }
+} 

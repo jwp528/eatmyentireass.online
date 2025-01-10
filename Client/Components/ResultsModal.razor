@@ -7,38 +7,43 @@
     [Parameter] public Dictionary<AssTypeEnum, int> Breakdown { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
 
-    public Modal Modal;
+    public BSModal? Modal;
 }
 
-<Modal @ref="Modal" IsVerticallyCentered="true" HeaderCssClass="bg-primary text-white" Visible="IsVisible" UseStaticBackdrop="true">
-    <HeaderTemplate>
+<BSModal @ref="Modal" Id="resultsModal" IsVerticallyCentered="true" Title="Results">
+    <Header>
         <h5 class="modal-title">
-            <i class="fas fa-flag-checkered"></i>
-            Results: @Math.Truncate(assesEaten) ass(es)
+            <i class="fas fa-flag-checkered me-2"></i>
+            Game Over!
         </h5>
-    </HeaderTemplate>
-    <BodyTemplate>
-        <p class="display-1 text-center fw-bold">@Math.Truncate(assesEaten)</p>
-        <p class="lead text-center">@scoreText</p>
-
-        <p>Breakdown:</p>
-        <div class="row">
-            @foreach(var ass in AssTypes)
-            {
-                <div class="col">
-                    <p class="text-center">
-                        <img src="/images/Asses/@ass.ToString()/entire_ass.png" width="50" />
-                        <br />
-                        <span class="fw-bold">@Breakdown[ass]</span>
-                    </p>
-                </div>
-            }
+    </Header>
+    <Body>
+        <div class="text-center mb-4">
+            <h2 class="display-2 display-md-1 fw-bold mb-0">@Math.Truncate(assesEaten)</h2>
+            <p class="lead text-muted">Asses Devoured</p>
+            <p class="fs-6 fs-md-5 mt-3">@scoreText</p>
         </div>
 
-        <div class="hstack justify-content-end">
-            <Button Color="ButtonColor.Primary" @onclick="() => OnTryAgain.InvokeAsync()">
-                Try again <i class="fas fa-rotate ms-3"></i>
-            </Button>
+        <div class="stats-section">
+            <h4 class="mb-3 fs-5"><i class="fas fa-chart-pie me-2"></i>Breakdown</h4>
+            <div class="row g-2 g-md-3 justify-content-center">
+                @foreach(var ass in AssTypes)
+                {
+                    <div class="col-4">
+                        <div class="stat-card text-center p-2 rounded">
+                            <img src="/images/Asses/@ass.ToString()/entire_ass.png" width="40" class="mb-1 mb-md-2" alt="@ass" />
+                            <div class="stat-value fw-bold fs-5">@Breakdown[ass]</div>
+                            <div class="stat-label small text-muted d-none d-md-block">@ass</div>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
-    </BodyTemplate>
-</Modal>
+
+        <div class="hstack justify-content-center mt-4">
+            <button type="button" class="btn btn-primary" @onclick="() => OnTryAgain.InvokeAsync()">
+                <i class="fas fa-rotate me-2"></i>Try Again
+            </button>
+        </div>
+    </Body>
+</BSModal>

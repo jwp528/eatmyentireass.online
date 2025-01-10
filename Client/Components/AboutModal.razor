@@ -1,20 +1,20 @@
 @code{
-    public Modal Modal;
+    public BSModal? Modal;
 }
 
-<Modal @ref="Modal" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body" Visible="IsVisible">
-    <HeaderTemplate>
+<BSModal @ref="Modal" Id="aboutModal" IsVerticallyCentered="true">
+    <Header>
         <h5 class="modal-title">
             <i class="fas fa-user"></i>
             Who's responsible for this?
         </h5>
-    </HeaderTemplate>
-    <BodyTemplate>
+    </Header>
+    <Body>
         Some dude behind a keyboard with way too much time on his hands.
         <div class="hstack justify-content-end">
-            <Button Color="ButtonColor.Primary" @onclick="async () => await Modal.HideAsync()">
+            <button type="button" class="btn btn-primary" @onclick="async () => await Modal?.Hide()">
                 Makes Sense <i class="fas fa-check ms-3"></i>
-            </Button>
+            </button>
         </div>
-    </BodyTemplate>
-</Modal>
+    </Body>
+</BSModal>

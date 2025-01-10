@@ -1,0 +1,23 @@
+.stat-card {
+    background-color: rgba(0,0,0,0.03);
+    transition: transform 0.2s;
+    padding: 0.5rem;
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+}
+
+.stats-section {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 0.25rem;
+    }
+    .modal-body {
+        padding: 1rem;
+    }
+} 

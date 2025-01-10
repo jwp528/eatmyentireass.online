@@ -5,15 +5,55 @@
 
 <PageTitle>Eat my entire ass</PageTitle>
 
-<Navbar OnShowHelpDialog="ShowHelpDialog" OnShowAboutDialog="ShowAboutDialog" OnShowOptionsDialog="ShowOptionsDialog" />
+<div class="game-container">
+    <Navbar OnShowHelpDialog="ShowHelpDialog" OnShowAboutDialog="ShowAboutDialog" />
 
-<div class="vstack justify-content-center align-content-center text-center py-5 my-5" @onclick="EatPiece">
-    <p class="display-4 fw-light text-center">Eat my entire ass!</p>
-    <p class="display-1 mb-0">@TimerDisplay</p>
-    <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
+    <div class="container-fluid px-0">
+        <div class="row p-5 min-vh-100 align-items-center justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8 text-center py-4">
+                <div class="game-header mb-4">
+                    <h1 class="game-title display-3 fw-bold mb-3">Eat my entire ass!</h1>
+                    <div class="timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "timer-warning" : "")">@TimerDisplay</div>
+                </div>
+                
+                <div class="game-display p-3 p-md-4 mx-0 mx-md-2" @onclick="EatPiece" role="button" tabindex="0">
+                    <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
+                </div>
+                
+                @if (!gamePlaying)
+                {
+                    @if (assesEaten > 0)
+                    {
+                        <div class="game-results mt-4">
+                            <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 gap-md-3">
+                                <p class="fs-4 mb-2 mb-md-0">Final Score: @Math.Truncate(assesEaten)</p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-primary btn-sm btn-md" @onclick="() => ResultsDialog?.Modal?.Show()">
+                                        <i class="fas fa-trophy me-2"></i>View Details
+                                    </button>
+                                    <button class="btn btn-primary btn-sm btn-md" @onclick="TryAgain">
+                                        <i class="fas fa-rotate me-2"></i>Play Again
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="start-prompt mt-4">
+                            <p class="fs-4">Click the ass to start!</p>
+                        </div>
+                    }
+                }else{
+                    <div class="start-prompt mt-4">
+                        <p class="fs-4">CONSUME!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
 <HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" />
 <AboutModal @ref="AboutDialog" />
 <ResultsModal @ref="ResultsDialog" assesEaten="@assesEaten" scoreText="@scoreText" AssTypes="@Breakdown.Keys.ToList()" Breakdown="@Breakdown" OnTryAgain="TryAgain" />
-<OptionsModal @ref="OptionsDialog" playSounds="@playSounds" volume="@volume" OnToggleSound="ToggleSound" />

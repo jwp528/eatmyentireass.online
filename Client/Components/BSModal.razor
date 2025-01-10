@@ -1,0 +1,51 @@
+@inject IJSRuntime Js
+
+<div class="modal fade" id="@Id" tabindex="-1" aria-labelledby="@Id" aria-hidden="true">
+    <div class="modal-dialog @(IsVerticallyCentered ? "modal-dialog-centered" : "")">
+        <div class="modal-content">
+            @if(Header is not null){
+                <div class="modal-header">
+                    @Header
+                </div>
+            }
+            <div class="modal-body">
+                @Body
+            </div>
+            @if(Footer is not null){
+                <div class="modal-footer">
+                    @Footer
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = "exampleModal";
+
+    [Parameter]
+    public string Title { get; set; } = "Modal title";
+
+    [Parameter]
+    public RenderFragment Header { get; set; }
+
+    [Parameter]
+    public RenderFragment Body { get; set; }
+
+    [Parameter]
+    public RenderFragment Footer {get ;set;}
+
+    [Parameter]
+    public bool IsVerticallyCentered { get; set; }
+
+    public async Task Show(){
+        await Js.InvokeVoidAsync("showModal", Id);
+        StateHasChanged();
+    }
+
+    public async Task Hide(){
+        await Js.InvokeVoidAsync("hideModal", Id);
+        StateHasChanged();
+    }   
+} 

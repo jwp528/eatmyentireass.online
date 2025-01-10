@@ -1,38 +1,25 @@
 @code {
     [Parameter] public EventCallback OnShowHelpDialog { get; set; }
     [Parameter] public EventCallback OnShowAboutDialog { get; set; }
-    [Parameter] public EventCallback OnShowOptionsDialog { get; set; }
 }
 
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
-    <div class="container-fluid">
-        <h1>
-            <a class="navbar-brand" href="#">
-                <img class="img-fluid" src="/icon-192.png" width="25" />
-                EMEA
+<nav class="navbar navbar-expand game-navbar">
+    <div class="container-fluid px-2 px-md-3">
+        <h1 class="navbar-brand game-logo m-0">
+            <a href="#" class="d-flex align-items-center gap-2 text-white text-decoration-none">
+                <img src="/icon-192.png" alt="EMEA" width="35" class="d-inline-block" />
+                <span>EMEA</span>
             </a>
         </h1>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav justify-content-end gap-3 w-100">
-                <Tooltip Title="What the hell is this?" Placement="TooltipPlacement.Auto">
-                    <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle px-3" @onclick="() => OnShowHelpDialog.InvokeAsync()">
-                        ?
-                    </Button>
-                </Tooltip>
-                <Tooltip Title="Who is responsible for this?" Placement="TooltipPlacement.Auto">
-                    <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle" @onclick="() => OnShowAboutDialog.InvokeAsync()">
-                        <i class="fas fa-user"></i>
-                    </Button>
-                </Tooltip>
-                <Tooltip Title="Options" Placement="TooltipPlacement.Auto">
-                    <Button Color="ButtonColor.Light" Outline="true" Class="rounded-circle" @onclick="() => OnShowOptionsDialog.InvokeAsync()">
-                        <i class="fas fa-gear"></i>
-                    </Button>
-                </Tooltip>
-            </div>
+        
+        <div class="navbar-nav ms-auto gap-2">
+            <button class="nav-button" @onclick="() => OnShowHelpDialog.InvokeAsync()">
+                <i class="fas fa-book-open"></i>
+            </button>
+            
+            <button class="nav-button" @onclick="() => OnShowAboutDialog.InvokeAsync()">
+                <i class="fas fa-user"></i>
+            </button>
         </div>
     </div>
 </nav>

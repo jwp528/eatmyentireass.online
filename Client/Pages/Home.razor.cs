@@ -11,10 +11,6 @@ namespace BlazorApp.Client.Pages
         HelpModal HelpDialog;
         AboutModal AboutDialog;
         ResultsModal ResultsDialog;
-        OptionsModal OptionsDialog;
-
-        bool playSounds = true;
-        double volume = 1;
 
         bool gamePlaying;
         Timer GameTimer;
@@ -161,7 +157,7 @@ namespace BlazorApp.Client.Pages
 
             InvokeAsync(async () =>
             {
-                ShowResultsDialog();
+                await ShowResultsDialog();
                 string gameOverSound = BlazorApp.Shared.Assets.GetRandomGameOverSound();
 
                 if (playSounds)
@@ -207,28 +203,23 @@ namespace BlazorApp.Client.Pages
 
         async Task ShowHelpDialog()
         {
-            await HelpDialog?.Modal.ShowAsync();
+            await HelpDialog?.Modal?.Show();
         }
 
         async Task ShowAboutDialog()
         {
-            await AboutDialog?.Modal.ShowAsync();
+            await AboutDialog?.Modal?.Show();
         }
 
         async Task ShowResultsDialog()
         {
-            await ResultsDialog?.Modal.ShowAsync();
+            await ResultsDialog?.Modal?.Show();
         }
 
         async Task TryAgain()
         {
             ResetGame();
-            await ResultsDialog?.Modal.HideAsync();
-        }
-
-        async Task ShowOptionsDialog()
-        {
-            await OptionsDialog?.Modal.ShowAsync();
+            await ResultsDialog?.Modal?.Hide();
         }
     }
 }

@@ -5,47 +5,68 @@
     [Parameter] public EventCallback<double> OnVolumeChange { get; set; }
 }
 
-<Modal @ref="Modal" IsVerticallyCentered="true" HeaderCssClass="bg-body-secondary text-body" Visible="IsVisible">
-    <HeaderTemplate>
-        <h5 class="modal-title">
-            <i class="fas fa-gear"></i>
-            Settings
-        </h5>
-    </HeaderTemplate>
-    <BodyTemplate>
-        <div class="form-check form-switch mb-3">
-            <input class="form-check-input" type="checkbox" id="playSoundsCheck" checked="@playSounds" @onchange="ToggleSound">
-            <label class="form-check-label" for="playSoundsCheck">
-                <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute")"></i>
-                Play Sounds
-            </label>
+<BSModal @ref="Modal" Id="optionsModal" IsVerticallyCentered="true">
+    <Header>
+        <div class="d-flex align-items-center">
+            <i class="fas fa-gear fs-4 me-2"></i>
+            <h5 class="modal-title mb-0">Settings</h5>
         </div>
-        <div class="mb-3">
-            <label for="volumeSlider" class="form-label">
-                <i class="fas fa-volume-down"></i> Volume: @volume.ToString("0.0")
-            </label>
-            <input type="range" class="form-range" id="volumeSlider" min="0" max="1" step="0.1" value="@volume" @oninput="ChangeVolume">
+    </Header>
+    <Body>
+        <div class="container p-3">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h6 class="text-muted mb-3">Sound Settings</h6>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-check form-switch d-flex align-items-center mb-4">
+                                <input class="form-check-input me-3" type="checkbox" id="playSoundsCheck" 
+                                       @bind="playSounds" 
+                                       @bind:after="async () => await OnToggleSound.InvokeAsync(playSounds)">
+                                <label class="form-check-label user-select-none" for="playSoundsCheck">
+                                    <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute") me-2"></i>
+                                    Enable Sound Effects
+                                </label>
+                            </div>
+                            
+                            <div class="volume-control @(playSounds ? "" : "opacity-50")">
+                                <label for="volumeSlider" class="form-label d-flex align-items-center mb-2">
+                                    <i class="fas fa-volume-down me-2"></i>
+                                    <span>Volume: @((volume * 100).ToString("0"))%</span>
+                                </label>
+                                <input type="range" class="form-range" id="volumeSlider" 
+                                       min="0" max="100" step="1" 
+                                       disabled="@(!playSounds)"
+                                       value="@((volume * 100).ToString("0"))"
+                                       @oninput="async (e) => { 
+                                           volume = double.Parse(e.Value.ToString()) / 100.0;
+                                           await OnVolumeChange.InvokeAsync(volume);
+                                       }">
+                                <div class="d-flex justify-content-between px-2 mt-1">
+                                    <small class="text-muted">0</small>
+                                    <small class="text-muted">100</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="hstack justify-content-end">
-            <Button Color="ButtonColor.Primary" @onclick="async() => await Modal.HideAsync()">
-                Close <i class="fas fa-times ms-3"></i>
-            </Button>
-        </div>
-    </BodyTemplate>
-</Modal>
+    </Body>
+    <Footer>
+        <button type="button" class="btn btn-primary" @onclick="async() => await Modal?.Hide()">
+            <span>Save Changes</span>
+            <i class="fas fa-check ms-2"></i>
+        </button>
+    </Footer>
+</BSModal>
+
+<style>
+    .volume-control {
+        transition: opacity 0.3s ease;
+    }
+</style>
 
 @code {
-
-    public Modal Modal;
-    private void ToggleSound(ChangeEventArgs e)
-    {
-        playSounds = (bool)e.Value;
-        OnToggleSound.InvokeAsync(playSounds);
-    }
-
-    private void ChangeVolume(ChangeEventArgs e)
-    {
-        volume = Convert.ToDouble(e.Value);
-        OnVolumeChange.InvokeAsync(volume);
-    }
+    public BSModal? Modal;
 }
