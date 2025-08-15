@@ -1,65 +1,120 @@
-# Blazor Starter Application
+# Eat My Entire Ass 🍑
 
-This template contains an example .NET 8 [Blazor WebAssembly](https://docs.microsoft.com/aspnet/core/blazor/?view=aspnetcore-6.0#blazor-webassembly) client application, a .NET 8 C# [Azure Functions](https://docs.microsoft.com/azure/azure-functions/functions-overview), and a C# class library with shared code.
+A deliciously irreverent web-based clicking game where you race against time to devour cartoon posterior delicacies. Built with .NET 9 Blazor WebAssembly and Azure Functions for the modern connoisseur of absurd browser entertainment.
 
-## Getting Started
+## 🎮 What Is This?
 
-1. Create a repository from the [GitHub template](https://docs.github.com/en/enterprise/2.22/user/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) and then clone it locally to your machine.
+"Eat My Entire Ass" is a satirical 60-second clicking game that challenges players to consume as many cartoon asses as possible before time runs out. Each ass type has different point values and visual/audio feedback, making for a surprisingly engaging (and ridiculous) gaming experience.
 
-1. In the **Api** folder, copy `local.settings.example.json` to `local.settings.json`
+### Game Features
 
-1. Continue using either Visual Studio or Visual Studio Code.
+- **6 Unique Ass Types** with different point values:
+  - 🦴 **Boney** (0.5 pts) - Weirdly crunchy, zero nutritional value
+  - 🎨 **Cartoon** (1 pt) - Hand-drawn with MS Paint flavor  
+  - 📏 **Flat** (1 pt) - Flatter than Home Depot lumber
+  - 🌿 **Hairy** (1 pt) - Natural and unshaven, as intended
+  - 🍑 **GYAT** (2 pts) - Thicc and juicy goodness
+  - 🏆 **Golden** (10 pts) - The holy grail of posterior consumption
 
-### Visual Studio 2022
+- **60-Second Timer** - Race against the clock!
+- **Visual Feedback** - Watch each ass get consumed piece by piece
+- **Sound Effects** - Different crunch sounds for each type
+- **Score Tracking** - Local storage keeps your high scores
+- **Responsive Design** - Works on desktop and mobile
 
-Once you clone the project, open the solution in the latest release of [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) with the Azure workload installed, and follow these steps:
+## 🚀 Quick Start (For Players)
 
-1. Right-click on the solution and select **Configure Startup Projects...**.
+Just visit **[eatmyentireass.online](https://eatmyentireass.online)** and start clicking! No installation required.
 
-1. Select **Multiple startup projects** and set the following actions for each project:
-    - *Api* - **Start**
-    - *Client* - **Start**
-    - *Shared* - None
+## 🛠️ Development Setup
 
-1. Press **F5** to launch both the client application and the Functions API app.
+Want to contribute to this masterpiece of modern web development? Here's how to get started:
 
-### Visual Studio Code with Azure Static Web Apps CLI for a better development experience (Optional)
+### Prerequisites
 
-1. Install (or update) the [Azure Static Web Apps CLI](https://www.npmjs.com/package/@azure/static-web-apps-cli) and [Azure Functions Core Tools CLI](https://www.npmjs.com/package/azure-functions-core-tools).
+- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) (recommended) or [Visual Studio Code](https://code.visualstudio.com/)
+- [Azure Functions Core Tools](https://docs.microsoft.com/azure/azure-functions/functions-run-local) (for API development)
 
-1. Open the folder in Visual Studio Code.
+### Development with Visual Studio 2022
 
-1. Delete file `Client/wwwroot/appsettings.Development.json`
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/jwp528/eatmyentireass.online.git
+   cd eatmyentireass.online
+   ```
 
-1. In the VS Code terminal, run the following command to start the Static Web Apps CLI, along with the Blazor WebAssembly client application and the Functions API app:
+2. Open `EMEAOnline.sln` in Visual Studio 2022
 
-    In the Client folder, run:
-    ```bash
-    dotnet run
-    ```
+3. Set up multiple startup projects:
+   - Right-click the solution → **Configure Startup Projects**
+   - Select **Multiple startup projects**
+   - Set both **Api** and **Client** to **Start**
 
-    In the API folder, run:
-    ```bash
-    func start
-    ```
+4. Press **F5** to launch both the client and API
 
-    In another terminal, run:
-    ```bash
-    swa start http://localhost:5000 --api-location http://localhost:7071
-    ```
+5. Navigate to the displayed URL (typically `https://localhost:5001`)
 
-    The Static Web Apps CLI (`swa`) starts a proxy on port 4280 that will forward static site requests to the Blazor server on port 5000 and requests to the `/api` endpoint to the Functions server. 
+### Development with Visual Studio Code + Azure SWA CLI
 
-1. Open a browser and navigate to the Static Web Apps CLI's address at `http://localhost:4280`. You'll be able to access both the client application and the Functions API app in this single address. When you navigate to the "Fetch Data" page, you'll see the data returned by the Functions API app.
+1. Clone and navigate to the repository (same as above)
 
-1. Enter Ctrl-C to stop the Static Web Apps CLI.
+2. Install required tools:
+   ```bash
+   npm install -g @azure/static-web-apps-cli
+   npm install -g azure-functions-core-tools
+   ```
 
-## Template Structure
+3. Open the folder in VS Code
 
-- **Client**: The Blazor WebAssembly sample application
-- **Api**: A C# Azure Functions API, which the Blazor application will call
-- **Shared**: A C# class library with a shared data model between the Blazor and Functions application
+4. Start the development servers:
 
-## Deploy to Azure Static Web Apps
+   **Terminal 1** - Start the Blazor client:
+   ```bash
+   cd Client
+   dotnet run
+   ```
 
-This application can be deployed to [Azure Static Web Apps](https://docs.microsoft.com/azure/static-web-apps), to learn how, check out [our quickstart guide](https://aka.ms/blazor-swa/quickstart).
+   **Terminal 2** - Start the Azure Functions API:
+   ```bash
+   cd Api
+   func start
+   ```
+
+   **Terminal 3** - Start the SWA CLI proxy:
+   ```bash
+   swa start http://localhost:5000 --api-location http://localhost:7071
+   ```
+
+5. Open your browser to `http://localhost:4280`
+
+### Project Structure
+
+- **Client/** - Blazor WebAssembly frontend with the game UI and logic
+- **Api/** - Azure Functions backend API (currently minimal, ready for features like leaderboards)
+- **Shared/** - Common models and enums shared between client and API
+
+## 🎯 Contributing
+
+We welcome contributions to make this game even more absurdly entertaining! Whether it's:
+
+- New ass types with unique mechanics
+- Visual improvements and animations  
+- Sound effect enhancements
+- Performance optimizations
+- New game modes
+- Leaderboard functionality
+
+Please feel free to submit issues and pull requests.
+
+## 🚀 Deployment
+
+This application is designed to be deployed to [Azure Static Web Apps](https://docs.microsoft.com/azure/static-web-apps). The main branch automatically deploys to the production site at [eatmyentireass.online](https://eatmyentireass.online).
+
+## ⚖️ Legal & Content Warning
+
+This is a satirical web application intended for mature audiences. The content is intentionally absurd and not meant to be taken seriously. Please consume responsibly.
+
+---
+
+*Built with ❤️ and questionable humor using .NET 9, Blazor WebAssembly, and Azure Static Web Apps.*
