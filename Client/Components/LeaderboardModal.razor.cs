@@ -48,5 +48,10 @@ namespace BlazorApp.Client.Components
         {
             await LoadScores();
         }
+
+        private async Task CloseModal()
+        {
+            await Modal?.Hide();
+        }
     }
-} 
+}

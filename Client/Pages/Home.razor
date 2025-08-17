@@ -106,7 +106,8 @@
 
     async Task OnScoreSaved()
     {
-        // Optionally refresh leaderboard or show success message
+        // After score is saved, show the results dialog
+        await ResultsDialog?.Modal?.Show();
         StateHasChanged();
     }
 }

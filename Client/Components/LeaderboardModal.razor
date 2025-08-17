@@ -29,12 +29,12 @@
         {
             <div class="leaderboard-container">
                 <div class="row fw-bold border-bottom pb-2 mb-3 text-muted small text-uppercase">
-                    <div class="col-1">#</div>
-                    <div class="col-3">Player</div>
-                    <div class="col-2">Score</div>
-                    <div class="col-2">Clicks</div>
-                    <div class="col-2">Efficiency</div>
-                    <div class="col-2">Date</div>
+                    <div class="col-2 col-md-1">#</div>
+                    <div class="col-4 col-md-3">Player</div>
+                    <div class="col-2 col-md-2">Score</div>
+                    <div class="col-2 col-md-2">Clicks</div>
+                    <div class="col-2 col-md-2 d-none d-md-block">Efficiency</div>
+                    <div class="col-2 col-md-2">Date</div>
                 </div>
                 
                 @for (int i = 0; i < topScores.Count; i++)
@@ -42,8 +42,8 @@
                     var entry = topScores[i];
                     var rank = i + 1;
                     
-                    <div class="row align-items-center py-2 @(rank <= 3 ? "top-score" : "") border-bottom">
-                        <div class="col-1">
+                    <div class="row align-items-center py-3 my-2 @(rank <= 3 ? "top-score" : "") border-bottom">
+                        <div class="col-2 col-md-1">
                             @if (rank == 1)
                             {
                                 <i class="fas fa-crown text-warning"></i>
@@ -58,22 +58,22 @@
                             }
                             else
                             {
-                                <span class="text-muted">#@rank</span>
+                                <span class="text-muted small">#@rank</span>
                             }
                         </div>
-                        <div class="col-3">
-                            <span class="fw-semibold">@entry.PlayerName</span>
+                        <div class="col-4 col-md-3">
+                            <span class="fw-semibold small">@entry.PlayerName</span>
                         </div>
-                        <div class="col-2">
+                        <div class="col-2 col-md-2">
                             <span class="badge bg-primary">@Math.Truncate(entry.Score)</span>
                         </div>
-                        <div class="col-2">
+                        <div class="col-2 col-md-2">
                             <small class="text-muted">@entry.TotalClicks</small>
                         </div>
-                        <div class="col-2">
+                        <div class="col-2 col-md-2 d-none d-md-block">
                             <small class="text-success fw-semibold">@entry.ClickEfficiency</small>
                         </div>
-                        <div class="col-2">
+                        <div class="col-2 col-md-2">
                             <small class="text-muted">@entry.GameDate.ToString("MM/dd")</small>
                         </div>
                     </div>
@@ -87,7 +87,7 @@
                 <i class="fas fa-refresh me-2"></i>Refresh
             </button>
             <div class="vr"></div>
-            <button type="button" class="btn btn-secondary ms-auto" @onclick="() => Modal?.Hide()">
+            <button type="button" class="btn btn-secondary ms-auto" @onclick="CloseModal">
                 Close
             </button>
         </div>

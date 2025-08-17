@@ -220,7 +220,31 @@ namespace BlazorApp.Client.Pages
 
         async Task ShowResultsDialog()
         {
-            await ResultsDialog?.Modal?.Show();
+            // Check if score qualifies for top 10 and prompt to save first
+            await CheckAndPromptScoreSave();
+        }
+
+        async Task CheckAndPromptScoreSave()
+        {
+            try
+            {
+                var topScores = await LeaderboardService.GetTopScoresAsync(10);
+                bool qualifiesForTop10 = topScores.Count < 10 || assesEaten > topScores.LastOrDefault()?.Score;
+                
+                if (qualifiesForTop10)
+                {
+                    await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);
+                }
+                else
+                {
+                    await ResultsDialog?.Modal?.Show();
+                }
+            }
+            catch (Exception)
+            {
+                // If there's an error checking scores, just show results dialog
+                await ResultsDialog?.Modal?.Show();
+            }
         }
 
         async Task TryAgain()

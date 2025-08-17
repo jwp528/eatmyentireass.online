@@ -87,6 +87,16 @@ namespace BlazorApp.Client.Components
             }
         }
 
+        private async Task SkipSave()
+        {
+            Modal?.Hide();
+            
+            if (OnScoreSaved.HasDelegate)
+            {
+                await OnScoreSaved.InvokeAsync();
+            }
+        }
+
         private async Task HandleKeyPress(KeyboardEventArgs e)
         {
             if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(playerName) && !isSaving)
@@ -95,4 +105,4 @@ namespace BlazorApp.Client.Components
             }
         }
     }
-} 
+}

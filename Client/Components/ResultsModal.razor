@@ -57,11 +57,11 @@
 
                     <!-- Action Buttons -->
                     <div class="action-buttons">
-                        <button type="button" class="btn btn-outline-warning btn-sm" @onclick="() => OnSaveScore.InvokeAsync()">
+                        <button type="button" class="btn btn-success btn-sm me-2" @onclick="() => OnSaveScore.InvokeAsync()">
                             <i class="fas fa-save me-1"></i>Save Score
                         </button>
-                        <button type="button" class="btn btn-primary btn-sm" @onclick="() => OnTryAgain.InvokeAsync()">
-                            <i class="fas fa-redo me-1"></i>Play Again
+                        <button type="button" class="btn btn-secondary btn-sm" @onclick="() => Modal?.Hide()">
+                            <i class="fas fa-times me-1"></i>Close
                         </button>
                     </div>
                 </div>
