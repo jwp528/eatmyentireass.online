@@ -12,46 +12,94 @@
     public BSModal? Modal;
 }
 
-<BSModal @ref="Modal" Id="resultsModal" IsVerticallyCentered="true" Title="Results">
+<BSModal @ref="Modal" Id="resultsModal" IsVerticallyCentered="true" Title="Results" Size="ModalSize.Large">
     <Header>
         <h5 class="modal-title">
-            <i class="fas fa-flag-checkered me-2"></i>
-            Game Over!
+            <i class="fas fa-trophy me-2 text-warning"></i>
+            Game Complete!
         </h5>
     </Header>
     <Body>
-        <div class="text-center mb-4">
-            <h2 class="display-2 display-md-1 fw-bold mb-0">@Math.Truncate(assesEaten)</h2>
-            <p class="lead text-muted">Asses Devoured</p>
-            <div class="text-muted mb-2">
-                @totalClicks clicks • @(totalClicks > 0 ? Math.Round(assesEaten / totalClicks, 3) : 0) efficiency
-            </div>
-            <p class="fs-6 fs-md-5 mt-3">@scoreText</p>
-        </div>
-
-        <div class="stats-section">
-            <h4 class="mb-3 fs-5"><i class="fas fa-chart-pie me-2"></i>Breakdown</h4>
-            <div class="row g-2 g-md-3 justify-content-center">
-                @foreach(var ass in AssTypes)
-                {
-                    <div class="col-4">
-                        <div class="stat-card text-center p-2 rounded">
-                            <img src="/images/Asses/@ass.ToString()/entire_ass.png" width="40" class="mb-1 mb-md-2" alt="@ass" />
-                            <div class="stat-value fw-bold fs-5">@Breakdown[ass]</div>
-                            <div class="stat-label small text-muted d-none d-md-block">@ass</div>
+        <div class="results-container">
+            <!-- Score Summary Card -->
+            <div class="score-summary-card">
+                <div class="text-center">
+                    <div class="score-display mb-2">
+                        <span class="score-number">@Math.Truncate(assesEaten)</span>
+                        <span class="score-label">Asses Devoured</span>
+                    </div>
+                    
+                    <!-- Compact Performance Stats -->
+                    <div class="performance-stats-compact mb-3">
+                        <div class="stat-compact">
+                            <i class="fas fa-mouse-pointer text-primary"></i>
+                            <span class="stat-value">@totalClicks</span>
+                            <span class="stat-label">Clicks</span>
+                        </div>
+                        <div class="stat-compact">
+                            <i class="fas fa-bullseye text-success"></i>
+                            <span class="stat-value">@(totalClicks > 0 ? Math.Round(assesEaten / totalClicks, 3) : 0)</span>
+                            <span class="stat-label">Efficiency</span>
+                        </div>
+                        <div class="stat-compact">
+                            <i class="fas fa-star text-warning"></i>
+                            <span class="stat-value">@(totalClicks > 0 ? Math.Round((assesEaten / totalClicks) * 100, 1) : 0)%</span>
+                            <span class="stat-label">Success</span>
                         </div>
                     </div>
-                }
-            </div>
-        </div>
+                    
+                    @if (!string.IsNullOrEmpty(scoreText))
+                    {
+                        <div class="score-message mb-3">
+                            <em>@scoreText</em>
+                        </div>
+                    }
 
-        <div class="hstack justify-content-center gap-2 mt-4">
-            <button type="button" class="btn btn-outline-warning" @onclick="() => OnSaveScore.InvokeAsync()">
-                <i class="fas fa-save me-2"></i>Save Score
-            </button>
-            <button type="button" class="btn btn-primary" @onclick="() => OnTryAgain.InvokeAsync()">
-                <i class="fas fa-rotate me-2"></i>Try Again
-            </button>
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-outline-warning btn-sm" @onclick="() => OnSaveScore.InvokeAsync()">
+                            <i class="fas fa-save me-1"></i>Save Score
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" @onclick="() => OnTryAgain.InvokeAsync()">
+                            <i class="fas fa-redo me-1"></i>Play Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compact Breakdown Section -->
+            <div class="breakdown-section-compact">
+                <h6 class="section-title mb-2">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Breakdown by Type
+                </h6>
+                
+                <div class="breakdown-grid-compact">
+                    @foreach(var ass in AssTypes.OrderByDescending(a => Breakdown[a]))
+                    {
+                        var totalConsumed = AssTypes.Sum(a => Breakdown[a]);
+                        var percentage = totalConsumed > 0 ? Math.Round((double)Breakdown[ass] / totalConsumed * 100, 1) : 0;
+                        
+                        <div class="breakdown-item-compact">
+                            <div class="breakdown-content">
+                                <img src="/images/Asses/@ass.ToString()/entire_ass.png" class="breakdown-icon-compact" alt="@ass" />
+                                <div class="breakdown-details">
+                                    <div class="breakdown-name-compact">@ass</div>
+                                    <div class="breakdown-stats-compact">
+                                        <span class="badge bg-primary badge-sm">@Breakdown[ass]</span>
+                                        <span class="percentage-text">@percentage%</span>
+                                    </div>
+                                </div>
+                                <div class="breakdown-bar-compact">
+                                    <div class="progress progress-thin">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @percentage%" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
     </Body>
 </BSModal>

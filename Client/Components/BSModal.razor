@@ -1,7 +1,7 @@
 @inject IJSRuntime Js
 
 <div class="modal fade" id="@Id" tabindex="-1" aria-labelledby="@Id" aria-hidden="true">
-    <div class="modal-dialog @(IsVerticallyCentered ? "modal-dialog-centered" : "")">
+    <div class="modal-dialog @(IsVerticallyCentered ? "modal-dialog-centered" : "") @GetSizeClass()">
         <div class="modal-content">
             @if(Header is not null){
                 <div class="modal-header">
@@ -39,6 +39,21 @@
     [Parameter]
     public bool IsVerticallyCentered { get; set; }
 
+    [Parameter]
+    public ModalSize Size { get; set; } = ModalSize.Default;
+
+    private string GetSizeClass()
+    {
+        return Size switch
+        {
+            ModalSize.Small => "modal-sm",
+            ModalSize.Large => "modal-lg",
+            ModalSize.ExtraLarge => "modal-xl",
+            ModalSize.Default => "",
+            _ => ""
+        };
+    }
+
     public async Task Show(){
         await Js.InvokeVoidAsync("showModal", Id);
         StateHasChanged();
@@ -48,4 +63,4 @@
         await Js.InvokeVoidAsync("hideModal", Id);
         StateHasChanged();
     }   
-} 
+}

@@ -8,11 +8,25 @@
 <PageTitle>Eat my entire ass</PageTitle>
 
 <div class="game-container">
-    <Navbar OnShowHelpDialog="ShowHelpDialog" OnShowAboutDialog="ShowAboutDialog" OnShowLeaderboardDialog="ShowLeaderboardDialog" />
+    <Navbar OnShowAboutDialog="ShowAboutDialog" />
 
     <div class="container-fluid px-0">
-        <div class="row p-5 min-vh-100 align-items-center justify-content-center">
+        <div class="row p-3 min-vh-100 align-items-center justify-content-center">
             <div class="col-12 col-md-10 col-lg-8 text-center py-4">
+                
+                <!-- Actions Bar -->
+                <div class="actions-bar mb-4 d-flex justify-content-center align-items-center gap-3">
+                    <button class="btn-fab" @onclick="ShowHelpDialog" title="How to Play">
+                        <i class="fas fa-book-open"></i>
+                    </button>
+                    <button class="btn-fab" @onclick="ShowLeaderboardDialog" title="Leaderboard">
+                        <i class="fas fa-trophy"></i>
+                    </button>
+                    <button class="btn-fab @(playSounds ? "btn-fab-active" : "")" @onclick="ToggleSound" title="@(playSounds ? "Sound On" : "Sound Off")">
+                        <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute")"></i>
+                    </button>
+                </div>
+
                 <div class="game-header mb-4">
                     <h1 class="game-title display-3 fw-bold mb-3">Eat my entire ass!</h1>
                     <div class="timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "timer-warning" : "")">@TimerDisplay</div>
@@ -51,6 +65,17 @@
                         <p class="fs-4">CONSUME!</p>
                     </div>
                 }
+
+                <!-- Built By line -->
+                <div class="built-by mt-3 text-center">
+                    <small class="text-muted d-flex align-items-center justify-content-center gap-2">
+                        Built By: 
+                        <a href="https://joshparsons.ca" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-flex align-items-center gap-1">
+                            <img src="https://www.joshparsons.ca/img/Logo.svg" alt="Josh Parsons Logo" width="20" height="20" />
+                            <span class="text-white">Josh Parsons</span>
+                        </a>
+                    </small>
+                </div>
             </div>
         </div>
     </div>

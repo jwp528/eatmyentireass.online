@@ -1,7 +1,5 @@
 @code {
-    [Parameter] public EventCallback OnShowHelpDialog { get; set; }
     [Parameter] public EventCallback OnShowAboutDialog { get; set; }
-    [Parameter] public EventCallback OnShowLeaderboardDialog { get; set; }
 }
 
 <nav class="navbar navbar-expand game-navbar">
@@ -14,17 +12,9 @@
         </h1>
         
         <div class="navbar-nav ms-auto gap-2">
-            <button class="nav-button" @onclick="() => OnShowLeaderboardDialog.InvokeAsync()">
-                <i class="fas fa-trophy"></i>
-            </button>
-            
             <a href="https://github.com/jwp528/eatmyentireass.online" target="_blank" rel="noopener noreferrer" class="nav-button text-decoration-none" title="View Source Code">
                 <i class="fab fa-github"></i>
             </a>
-            
-            <button class="nav-button" @onclick="() => OnShowHelpDialog.InvokeAsync()">
-                <i class="fas fa-book-open"></i>
-            </button>
             
             <button class="nav-button" @onclick="() => OnShowAboutDialog.InvokeAsync()">
                 <i class="fas fa-user"></i>

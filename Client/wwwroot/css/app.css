@@ -109,3 +109,47 @@ code {
 .text-peach {
     color: #e89477;
 }
+
+/* FAB (Floating Action Button) Styles */
+.btn-fab {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.btn-fab:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+}
+
+.btn-fab:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-fab-active {
+    background: rgba(28, 110, 194, 0.8) !important;
+    color: #ffffff !important;
+}
+
+.btn-fab-active:hover {
+    background: rgba(28, 110, 194, 0.9) !important;
+}
+
+.actions-bar {
+    position: relative;
+    z-index: 10;
+}

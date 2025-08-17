@@ -7,41 +7,192 @@
     public BSModal? Modal;
 }
 
-<BSModal @ref="Modal" Id="helpModal" IsVerticallyCentered="true">
+<BSModal @ref="Modal" Id="helpModal" IsVerticallyCentered="true" Size="ModalSize.Large">
     <Header>
-        <h5 class="modal-title text-peach">
-            <i class="fas fa-book-open me-3"></i>
+        <h5 class="modal-title">
+            <i class="fas fa-gamepad me-2 text-primary"></i>
             How to Play
         </h5>
     </Header>
     <Body>
-        <h6 class="mb-3">Game Rules:</h6>
-        <ul>
-            <li>You have exactly <strong>60 seconds</strong> to eat as much ass as possible</li>
-            <li>Click rapidly to devour ass</li>
-            <li>Each ass type has a different point value</li>
-            <li>You must finish eating an ass completely to score points</li>
-            <li>Partially eaten asses don't count - get to the core if you want to score.</li>
-            <li>Final scores will round down. No half points. Fractions are for pussy's!</li>
-        </ul>
-        
-        <h6 class="mt-4 mb-3">Scoring Guide:</h6>
-        <p>There are @Enum.GetValues(typeof(AssTypeEnum)).Length different types of asses to discover:</p>
-        <BootstrapCarousel Items="CarouselItems" ShowIndicators="false" Id="AssCarousel">
-            <ItemTemplate>
-                <div class="hstack gap-3">
-                    <img src="@context.ImageUrl" class="d-block w-50" alt="@context.AltText" />
-                    <div class="text-light">
-                        <h5>@context.Title</h5>
-                        <p>@context.Description</p>
+        <div class="help-container">
+            <!-- Quick Start Section -->
+            <div class="help-section">
+                <div class="section-header">
+                    <i class="fas fa-rocket section-icon"></i>
+                    <h6 class="section-title">Quick Start</h6>
+                </div>
+                <div class="quick-start-card">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <div class="step-list">
+                                <div class="step-item">
+                                    <span class="step-number">1</span>
+                                    <span class="step-text">Click the ass to start the 60-second timer</span>
+                                </div>
+                                <div class="step-item">
+                                    <span class="step-number">2</span>
+                                    <span class="step-text">Keep clicking to devour each ass completely</span>
+                                </div>
+                                <div class="step-item">
+                                    <span class="step-number">3</span>
+                                    <span class="step-text">Finish eating to score points and get a new ass</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="timer-demo">
+                                <i class="fas fa-stopwatch timer-icon"></i>
+                                <div class="timer-text">01:00</div>
+                                <div class="timer-label">Game Time</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </ItemTemplate>
-        </BootstrapCarousel>
-        <div class="hstack justify-content-end mt-4">
-            <button type="button" class="btn btn-primary" @onclick="async () => await Modal?.Hide()">
-                Got it! <i class="fas fa-play ms-2"></i>
-            </button>
+            </div>
+
+            <!-- Scoring Rules Section -->
+            <div class="help-section">
+                <div class="section-header">
+                    <i class="fas fa-trophy section-icon"></i>
+                    <h6 class="section-title">Scoring Rules</h6>
+                </div>
+                <div class="rules-grid">
+                    <div class="rule-card rule-important">
+                        <i class="fas fa-exclamation-triangle rule-icon"></i>
+                        <div class="rule-content">
+                            <strong>Complete to Score</strong>
+                            <p class="mb-0">You must finish eating an ass completely to earn points. Partial asses don't count!</p>
+                        </div>
+                    </div>
+                    <div class="rule-card">
+                        <i class="fas fa-mouse-pointer rule-icon"></i>
+                        <div class="rule-content">
+                            <strong>Click Efficiency</strong>
+                            <p class="mb-0">Every click counts toward your efficiency rating, even incomplete asses.</p>
+                        </div>
+                    </div>
+                    <div class="rule-card">
+                        <i class="fas fa-calculator rule-icon"></i>
+                        <div class="rule-content">
+                            <strong>Final Score</strong>
+                            <p class="mb-0">Scores round down to whole numbers. No participation awards!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ass Types Section -->
+            <div class="help-section">
+                <div class="section-header">
+                    <i class="fas fa-star section-icon"></i>
+                    <h6 class="section-title">Ass Types & Point Values</h6>
+                </div>
+                <div class="ass-types-grid">
+                    @foreach(var item in CarouselItems.OrderByDescending(x => GetPointValueFromDescription(x.Description)))
+                    {
+                        var pointValue = GetPointValueFromDescription(item.Description);
+                        var rarity = GetRarityFromPoints(pointValue);
+                        
+                        <div class="ass-type-card @GetRarityClass(rarity)">
+                            <div class="ass-type-header">
+                                <img src="@item.ImageUrl" class="ass-type-image" alt="@item.AltText" />
+                                <div class="ass-type-info">
+                                    <div class="ass-type-name">@item.Title</div>
+                                    <div class="ass-type-points">
+                                        <span class="points-value">@pointValue</span>
+                                        <span class="points-text">point@(pointValue == 1 ? "" : "s")</span>
+                                    </div>
+                                    @if (rarity != "Common")
+                                    {
+                                        <div class="ass-type-rarity">@rarity</div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="ass-type-description">
+                                @GetCleanDescription(item.Description)
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Pro Tips Section -->
+            <div class="help-section">
+                <div class="section-header">
+                    <i class="fas fa-lightbulb section-icon"></i>
+                    <h6 class="section-title">Pro Tips</h6>
+                </div>
+                <div class="tips-grid">
+                    <div class="tip-item">
+                        <i class="fas fa-tachometer-alt tip-icon text-success"></i>
+                        <div class="tip-content">
+                            <strong>Speed is Key</strong>
+                            <p>Click rapidly to maximize your score in 60 seconds</p>
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-gem tip-icon text-warning"></i>
+                        <div class="tip-content">
+                            <strong>Golden Opportunity</strong>
+                            <p>Golden asses are rare (1% chance) but worth 10 points each!</p>
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-chart-line tip-icon text-info"></i>
+                        <div class="tip-content">
+                            <strong>Efficiency Matters</strong>
+                            <p>Your click efficiency is tracked - make every click count!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </Body>
+    <Footer>
+        <div class="d-flex justify-content-center">
+            <button type="button" class="btn btn-primary btn-lg px-5" @onclick="async () => await Modal?.Hide()">
+                <i class="fas fa-play me-2"></i>Let's Play!
+            </button>
+        </div>
+    </Footer>
 </BSModal>
+
+@code {
+    private double GetPointValueFromDescription(string description)
+    {
+        if (description.StartsWith("10 point")) return 10;
+        if (description.StartsWith("2 point")) return 2;
+        if (description.StartsWith("1 point")) return 1;
+        if (description.StartsWith("0.5 point")) return 0.5;
+        return 1;
+    }
+
+    private string GetRarityFromPoints(double points)
+    {
+        return points switch
+        {
+            10 => "Legendary",
+            2 => "Rare",
+            0.5 => "Common",
+            _ => "Common"
+        };
+    }
+
+    private string GetRarityClass(string rarity)
+    {
+        return rarity switch
+        {
+            "Legendary" => "legendary-card",
+            "Rare" => "rare-card",
+            _ => ""
+        };
+    }
+
+    private string GetCleanDescription(string description)
+    {
+        // Remove the point value from the beginning of the description
+        var parts = description.Split(". ", 2);
+        return parts.Length > 1 ? parts[1] : description;
+    }
+}
