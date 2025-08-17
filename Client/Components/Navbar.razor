@@ -1,6 +1,7 @@
 @code {
     [Parameter] public EventCallback OnShowHelpDialog { get; set; }
     [Parameter] public EventCallback OnShowAboutDialog { get; set; }
+    [Parameter] public EventCallback OnShowLeaderboardDialog { get; set; }
 }
 
 <nav class="navbar navbar-expand game-navbar">
@@ -13,6 +14,10 @@
         </h1>
         
         <div class="navbar-nav ms-auto gap-2">
+            <button class="nav-button" @onclick="() => OnShowLeaderboardDialog.InvokeAsync()">
+                <i class="fas fa-trophy"></i>
+            </button>
+            
             <button class="nav-button" @onclick="() => OnShowHelpDialog.InvokeAsync()">
                 <i class="fas fa-book-open"></i>
             </button>

@@ -2,10 +2,12 @@
 
 @code {
     [Parameter] public double assesEaten { get; set; }
+    [Parameter] public int totalClicks { get; set; }
     [Parameter] public string scoreText { get; set; } = string.Empty;
     [Parameter] public List<AssTypeEnum> AssTypes { get; set; } = new();
     [Parameter] public Dictionary<AssTypeEnum, int> Breakdown { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
+    [Parameter] public EventCallback OnSaveScore { get; set; }
 
     public BSModal? Modal;
 }
@@ -21,6 +23,9 @@
         <div class="text-center mb-4">
             <h2 class="display-2 display-md-1 fw-bold mb-0">@Math.Truncate(assesEaten)</h2>
             <p class="lead text-muted">Asses Devoured</p>
+            <div class="text-muted mb-2">
+                @totalClicks clicks • @(totalClicks > 0 ? Math.Round(assesEaten / totalClicks, 3) : 0) efficiency
+            </div>
             <p class="fs-6 fs-md-5 mt-3">@scoreText</p>
         </div>
 
@@ -40,7 +45,10 @@
             </div>
         </div>
 
-        <div class="hstack justify-content-center mt-4">
+        <div class="hstack justify-content-center gap-2 mt-4">
+            <button type="button" class="btn btn-outline-warning" @onclick="() => OnSaveScore.InvokeAsync()">
+                <i class="fas fa-save me-2"></i>Save Score
+            </button>
             <button type="button" class="btn btn-primary" @onclick="() => OnTryAgain.InvokeAsync()">
                 <i class="fas fa-rotate me-2"></i>Try Again
             </button>

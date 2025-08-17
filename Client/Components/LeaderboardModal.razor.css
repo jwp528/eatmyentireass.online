@@ -1,0 +1,27 @@
+::deep .modal-dialog {
+    max-width: 800px;
+}
+
+.leaderboard-container {
+    min-height: 300px;
+}
+
+.top-score {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-radius: 8px;
+    margin: 0 -8px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+}
+
+.top-score:hover {
+    background-color: rgba(255, 193, 7, 0.15);
+}
+
+.row.align-items-center:hover:not(.top-score) {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    margin: 0 -4px;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+} 

@@ -1,5 +1,7 @@
 using BlazorApp.Client.Components;
 using BlazorApp.Client.Components.BootstrapCarousel;
+using BlazorApp.Client.Services;
+using BlazorApp.Shared;
 using Microsoft.JSInterop;
 using static BlazorApp.Shared.Assets;
 using Timer = System.Timers.Timer;
@@ -122,6 +124,7 @@ namespace BlazorApp.Client.Pages
         {
             assesEaten = 0;
             piecesEaten = 0;
+            totalClicks = 0;
             GameTimeInSeconds = 60;
             Breakdown = new()
             {
@@ -182,6 +185,8 @@ namespace BlazorApp.Client.Pages
             {
                 StartGame();
             }
+
+            totalClicks++; // Track every click
 
             if (piecesEaten == AssFrames.Count() - 1)
             {

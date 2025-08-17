@@ -1,12 +1,14 @@
 ﻿@page "/"
 @using BlazorApp.Client.Components
+@using BlazorApp.Client.Services
 @inject ILocalStorageService _localstorage
 @inject IJSRuntime js
+@inject ILeaderboardService LeaderboardService
 
 <PageTitle>Eat my entire ass</PageTitle>
 
 <div class="game-container">
-    <Navbar OnShowHelpDialog="ShowHelpDialog" OnShowAboutDialog="ShowAboutDialog" />
+    <Navbar OnShowHelpDialog="ShowHelpDialog" OnShowAboutDialog="ShowAboutDialog" OnShowLeaderboardDialog="ShowLeaderboardDialog" />
 
     <div class="container-fluid px-0">
         <div class="row p-5 min-vh-100 align-items-center justify-content-center">
@@ -56,4 +58,30 @@
 
 <HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" />
 <AboutModal @ref="AboutDialog" />
-<ResultsModal @ref="ResultsDialog" assesEaten="@assesEaten" scoreText="@scoreText" AssTypes="@Breakdown.Keys.ToList()" Breakdown="@Breakdown" OnTryAgain="TryAgain" />
+<ResultsModal @ref="ResultsDialog" assesEaten="@assesEaten" totalClicks="@totalClicks" scoreText="@scoreText" AssTypes="@Breakdown.Keys.ToList()" Breakdown="@Breakdown" OnTryAgain="TryAgain" OnSaveScore="ShowSaveScoreDialog" />
+<LeaderboardModal @ref="LeaderboardDialog" />
+<SaveScoreModal @ref="SaveScoreDialog" OnScoreSaved="OnScoreSaved" />
+
+@code {
+    LeaderboardModal? LeaderboardDialog;
+    SaveScoreModal? SaveScoreDialog;
+    
+    // Make totalClicks accessible in the template
+    public int totalClicks = 0;
+
+    async Task ShowLeaderboardDialog()
+    {
+        await LeaderboardDialog?.Show();
+    }
+
+    async Task ShowSaveScoreDialog()
+    {
+        await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);
+    }
+
+    async Task OnScoreSaved()
+    {
+        // Optionally refresh leaderboard or show success message
+        StateHasChanged();
+    }
+}
