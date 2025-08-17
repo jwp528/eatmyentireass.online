@@ -1,7 +1,6 @@
 using BlazorApp.Shared;
 using System.Text.Json;
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.SignalR.Client;
 using System.Text;
 
 namespace BlazorApp.Client.Services
@@ -12,17 +11,18 @@ namespace BlazorApp.Client.Services
         Task SaveScoreAsync(LeaderboardEntry entry);
         Task<List<LeaderboardEntry>> GetAllScoresAsync();
         event EventHandler<List<LeaderboardEntry>>? LeaderboardUpdated;
-        Task StartConnectionAsync();
-        Task StopConnectionAsync();
+        void StartPolling();
+        void StopPolling();
     }
 
-    public class LeaderboardService : ILeaderboardService, IAsyncDisposable
+    public class LeaderboardService : ILeaderboardService, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localStorage;
         private readonly ILogger<LeaderboardService> _logger;
-        private HubConnection? _hubConnection;
+        private Timer? _pollingTimer;
         private const string LEADERBOARD_KEY = "leaderboard_scores";
+        private const int POLLING_INTERVAL_MS = 5000; // Poll every 5 seconds
 
         public event EventHandler<List<LeaderboardEntry>>? LeaderboardUpdated;
 
@@ -33,45 +33,28 @@ namespace BlazorApp.Client.Services
             _logger = logger;
         }
 
-        public async Task StartConnectionAsync()
+        public void StartPolling()
+        {
+            _pollingTimer?.Dispose();
+            _pollingTimer = new Timer(PollLeaderboard, null, 0, POLLING_INTERVAL_MS);
+        }
+
+        public void StopPolling()
+        {
+            _pollingTimer?.Dispose();
+            _pollingTimer = null;
+        }
+
+        private async void PollLeaderboard(object? state)
         {
             try
             {
-                if (_hubConnection == null)
-                {
-                    _hubConnection = new HubConnectionBuilder()
-                        .WithUrl(_httpClient.BaseAddress + "leaderboardHub")
-                        .Build();
-
-                    _hubConnection.On<List<LeaderboardEntry>>("LeaderboardUpdated", (scores) =>
-                    {
-                        LeaderboardUpdated?.Invoke(this, scores);
-                    });
-
-                    await _hubConnection.StartAsync();
-                    await _hubConnection.InvokeAsync("JoinLeaderboardGroup");
-                }
+                var scores = await GetTopScoresAsync(10);
+                LeaderboardUpdated?.Invoke(this, scores);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to start SignalR connection, falling back to HTTP polling");
-                // Continue without real-time updates if SignalR fails
-            }
-        }
-
-        public async Task StopConnectionAsync()
-        {
-            if (_hubConnection != null)
-            {
-                try
-                {
-                    await _hubConnection.InvokeAsync("LeaveLeaderboardGroup");
-                    await _hubConnection.StopAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error stopping SignalR connection");
-                }
+                _logger.LogWarning(ex, "Error polling leaderboard");
             }
         }
 
@@ -141,7 +124,9 @@ namespace BlazorApp.Client.Services
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Successfully saved to API, no need to save locally
+                    // Successfully saved to API, trigger immediate update
+                    var updatedScores = await GetTopScoresAsync(10);
+                    LeaderboardUpdated?.Invoke(this, updatedScores);
                     return;
                 }
             }
@@ -168,13 +153,9 @@ namespace BlazorApp.Client.Services
             LeaderboardUpdated?.Invoke(this, topScores.Take(10).ToList());
         }
 
-        public async ValueTask DisposeAsync()
+        public void Dispose()
         {
-            if (_hubConnection != null)
-            {
-                await StopConnectionAsync();
-                await _hubConnection.DisposeAsync();
-            }
+            StopPolling();
         }
     }
 } 

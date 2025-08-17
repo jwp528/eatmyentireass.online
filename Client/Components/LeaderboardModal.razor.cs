@@ -18,9 +18,6 @@ namespace BlazorApp.Client.Components
             // Subscribe to real-time updates
             LeaderboardService.LeaderboardUpdated += OnLeaderboardUpdated;
             
-            // Start SignalR connection
-            await LeaderboardService.StartConnectionAsync();
-            
             await LoadScores();
         }
 
@@ -36,6 +33,8 @@ namespace BlazorApp.Client.Components
         public async Task Show()
         {
             await LoadScores();
+            // Start polling when modal is shown
+            LeaderboardService.StartPolling();
             Modal?.Show();
         }
 
@@ -66,12 +65,15 @@ namespace BlazorApp.Client.Components
 
         private async Task CloseModal()
         {
+            // Stop polling when modal is closed
+            LeaderboardService.StopPolling();
             await Modal?.Hide();
         }
 
         public void Dispose()
         {
             LeaderboardService.LeaderboardUpdated -= OnLeaderboardUpdated;
+            LeaderboardService.StopPolling();
         }
     }
 }
