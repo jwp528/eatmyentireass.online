@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace BlazorApp.Client.Components
 {
-    public partial class LeaderboardModal : ComponentBase
+    public partial class LeaderboardModal : ComponentBase, IDisposable
     {
         [Inject] public ILeaderboardService LeaderboardService { get; set; } = default!;
         
@@ -15,7 +15,22 @@ namespace BlazorApp.Client.Components
 
         protected override async Task OnInitializedAsync()
         {
+            // Subscribe to real-time updates
+            LeaderboardService.LeaderboardUpdated += OnLeaderboardUpdated;
+            
+            // Start SignalR connection
+            await LeaderboardService.StartConnectionAsync();
+            
             await LoadScores();
+        }
+
+        private void OnLeaderboardUpdated(object? sender, List<LeaderboardEntry> scores)
+        {
+            InvokeAsync(() =>
+            {
+                topScores = scores;
+                StateHasChanged();
+            });
         }
 
         public async Task Show()
@@ -52,6 +67,11 @@ namespace BlazorApp.Client.Components
         private async Task CloseModal()
         {
             await Modal?.Hide();
+        }
+
+        public void Dispose()
+        {
+            LeaderboardService.LeaderboardUpdated -= OnLeaderboardUpdated;
         }
     }
 }
