@@ -25,14 +25,14 @@ namespace Api
             {
                 var leaderboard = await GetLeaderboardFromFile();
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                
+
                 // Return top 10 scores
                 var topScores = leaderboard.Entries
                     .OrderByDescending(x => x.Score)
                     .ThenByDescending(x => x.GameDate)
                     .Take(10)
                     .ToList();
-                
+
                 await response.WriteAsJsonAsync(topScores);
                 return response;
             }
@@ -53,7 +53,7 @@ namespace Api
                 // Read the score entry from request body
                 var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 var entry = JsonSerializer.Deserialize<LeaderboardEntry>(requestBody);
-                
+
                 if (entry == null || string.IsNullOrWhiteSpace(entry.PlayerName))
                 {
                     var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -63,7 +63,7 @@ namespace Api
 
                 // Save to leaderboard (this will handle top 10 logic)
                 await SaveScoreToFile(entry);
-                
+
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 await response.WriteStringAsync("Score saved successfully");
                 return response;
@@ -83,7 +83,7 @@ namespace Api
             try
             {
                 var filePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP") ?? "/tmp", LEADERBOARD_FILE);
-                
+
                 if (!File.Exists(filePath))
                 {
                     return new Leaderboard { Entries = new List<LeaderboardEntry>() };
@@ -106,7 +106,7 @@ namespace Api
             {
                 var leaderboard = await GetLeaderboardFromFileUnsafe();
                 leaderboard.Entries.Add(newEntry);
-                
+
                 // Keep only top 10 scores
                 var topScores = leaderboard.Entries
                     .OrderByDescending(x => x.Score)
@@ -119,7 +119,7 @@ namespace Api
                 var filePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP") ?? "/tmp", LEADERBOARD_FILE);
                 var json = JsonSerializer.Serialize(leaderboard, new JsonSerializerOptions { WriteIndented = true });
                 await File.WriteAllTextAsync(filePath, json);
-                
+
                 _logger.LogInformation($"Saved score {newEntry.Score} for {newEntry.PlayerName}. Leaderboard now has {leaderboard.Entries.Count} entries");
             }
             finally
@@ -131,7 +131,7 @@ namespace Api
         private async Task<Leaderboard> GetLeaderboardFromFileUnsafe()
         {
             var filePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP") ?? "/tmp", LEADERBOARD_FILE);
-            
+
             if (!File.Exists(filePath))
             {
                 return new Leaderboard { Entries = new List<LeaderboardEntry>() };

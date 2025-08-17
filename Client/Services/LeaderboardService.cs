@@ -55,7 +55,7 @@ namespace BlazorApp.Client.Services
             {
                 var json = JsonSerializer.Serialize(entry);
                 var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-                
+
                 var response = await _httpClient.PostAsync("api/leaderboard", content);
                 // Don't throw on failure, just log it silently (matches original behavior)
             }
@@ -65,4 +65,4 @@ namespace BlazorApp.Client.Services
             }
         }
     }
-} 
+}

@@ -18,4 +18,4 @@ namespace BlazorApp.Shared
     {
         public List<LeaderboardEntry> Entries { get; set; } = new();
     }
-} 
+}

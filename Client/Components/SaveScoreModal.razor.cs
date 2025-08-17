@@ -9,12 +9,12 @@ namespace BlazorApp.Client.Components
     public partial class SaveScoreModal : ComponentBase
     {
         [Inject] public ILeaderboardService LeaderboardService { get; set; } = default!;
-        
+
         [Parameter] public double Score { get; set; }
         [Parameter] public int TotalClicks { get; set; }
         [Parameter] public Dictionary<AssTypeEnum, int> AssBreakdown { get; set; } = new();
         [Parameter] public EventCallback OnScoreSaved { get; set; }
-        
+
         public BSModal? Modal { get; set; }
 
         private string playerName = string.Empty;
@@ -29,9 +29,9 @@ namespace BlazorApp.Client.Components
             playerName = string.Empty;
             errorMessage = string.Empty;
             isSaving = false;
-            
+
             Modal?.Show();
-            
+
             // Focus the input after a short delay
             await Task.Delay(100);
             await InvokeAsync(() =>
@@ -61,16 +61,16 @@ namespace BlazorApp.Client.Components
                     TotalClicks = TotalClicks,
                     GameDate = DateTime.Now,
                     AssTypeBreakdown = AssBreakdown.ToDictionary(
-                        kvp => kvp.Key.ToString(), 
+                        kvp => kvp.Key.ToString(),
                         kvp => kvp.Value
                     ),
                     GameDurationSeconds = 60
                 };
 
                 await LeaderboardService.SaveScoreAsync(entry);
-                
+
                 Modal?.Hide();
-                
+
                 if (OnScoreSaved.HasDelegate)
                 {
                     await OnScoreSaved.InvokeAsync();
@@ -90,7 +90,7 @@ namespace BlazorApp.Client.Components
         private async Task SkipSave()
         {
             Modal?.Hide();
-            
+
             if (OnScoreSaved.HasDelegate)
             {
                 await OnScoreSaved.InvokeAsync();

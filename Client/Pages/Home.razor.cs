@@ -230,7 +230,7 @@ namespace BlazorApp.Client.Pages
             {
                 var topScores = await LeaderboardService.GetTopScoresAsync(10);
                 bool qualifiesForTop10 = topScores.Count < 10 || assesEaten > topScores.LastOrDefault()?.Score;
-                
+
                 if (qualifiesForTop10)
                 {
                     await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);

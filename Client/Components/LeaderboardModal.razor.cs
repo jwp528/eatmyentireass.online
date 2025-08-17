@@ -7,7 +7,7 @@ namespace BlazorApp.Client.Components
     public partial class LeaderboardModal : ComponentBase
     {
         [Inject] public ILeaderboardService LeaderboardService { get; set; } = default!;
-        
+
         public BSModal? Modal { get; set; }
 
         private List<LeaderboardEntry> topScores = new();
