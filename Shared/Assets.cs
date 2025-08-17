@@ -30,19 +30,19 @@ public class Assets
 
     public static Dictionary<string, List<string>> Frames = new Dictionary<string, List<string>>()
     {
-        { 
-            AssTypeEnum.Boney.ToString(), new List<string> 
+        {
+            AssTypeEnum.Boney.ToString(), new List<string>
             {
                 "entire_ass.png",
                 "chunk1.png",
                 "chunk2.png",
                 "chunk3.png",
                 "chunk4.png",
-            } 
+            }
         },
 
-        { 
-            AssTypeEnum.Cartoon.ToString(), new List<string> 
+        {
+            AssTypeEnum.Cartoon.ToString(), new List<string>
             {
                 "entire_ass.png",
                 "chunk1.png",
@@ -58,11 +58,11 @@ public class Assets
                 "chunk11.png",
                 "chunk12.png",
                 "hole.png",
-            } 
+            }
         },
-        { 
-            AssTypeEnum.Flat.ToString(), new List<string> 
-            {                 
+        {
+            AssTypeEnum.Flat.ToString(), new List<string>
+            {
                 "entire_ass.png",
                 "chunk1.png",
                 "chunk2.png",
@@ -73,11 +73,11 @@ public class Assets
                 "chunk7.png",
                 "chunk8.png",
                 "hole.png"
-            } 
+            }
         },
-        { 
-            AssTypeEnum.Golden.ToString(), new List<string> 
-            { 
+        {
+            AssTypeEnum.Golden.ToString(), new List<string>
+            {
                 "entire_ass.png",
                 "chunk1.png",
                 "chunk2.png",
@@ -109,11 +109,11 @@ public class Assets
                 "hole.png",
                 "hole.png",
                 "hole.png"
-            } 
+            }
         },
-        { 
-            AssTypeEnum.GYAT.ToString(), new List<string> 
-            { 
+        {
+            AssTypeEnum.GYAT.ToString(), new List<string>
+            {
                 "entire_ass.png",
                 "chunk1.png",
                 "chunk2.png",
@@ -130,11 +130,11 @@ public class Assets
                 "chunk13.png",
                 "hole.png"
 
-            } 
+            }
         },
-        { 
-            AssTypeEnum.Hairy.ToString(), new List<string> 
-            { 
+        {
+            AssTypeEnum.Hairy.ToString(), new List<string>
+            {
                 "entire_ass.png",
                 "chunk1.png",
                 "chunk2.png",
@@ -144,7 +144,7 @@ public class Assets
                 "chunk6.png",
                 "chunk7.png",
                 "hole.png"
-            } 
+            }
         }
     };
 
