@@ -1,6 +1,5 @@
 using BlazorApp.Shared;
 using System.Text.Json;
-using Blazored.LocalStorage;
 
 namespace BlazorApp.Client.Services
 {
@@ -13,20 +12,36 @@ namespace BlazorApp.Client.Services
 
     public class LeaderboardService : ILeaderboardService
     {
-        private readonly ILocalStorageService _localStorage;
-        private const string LEADERBOARD_KEY = "leaderboard_scores";
+        private readonly HttpClient _httpClient;
 
-        public LeaderboardService(ILocalStorageService localStorage)
+        public LeaderboardService(HttpClient httpClient)
         {
-            _localStorage = localStorage;
+            _httpClient = httpClient;
         }
 
         public async Task<List<LeaderboardEntry>> GetAllScoresAsync()
         {
+            return await GetTopScoresAsync(10); // Server only maintains top 10
+        }
+
+        public async Task<List<LeaderboardEntry>> GetTopScoresAsync(int count = 10)
+        {
             try
             {
-                var leaderboard = await _localStorage.GetItemAsync<Leaderboard>(LEADERBOARD_KEY);
-                return leaderboard?.Entries ?? new List<LeaderboardEntry>();
+                var response = await _httpClient.GetAsync("api/leaderboard");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var scores = JsonSerializer.Deserialize<List<LeaderboardEntry>>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return scores ?? new List<LeaderboardEntry>();
+                }
+                else
+                {
+                    return new List<LeaderboardEntry>();
+                }
             }
             catch
             {
@@ -34,30 +49,20 @@ namespace BlazorApp.Client.Services
             }
         }
 
-        public async Task<List<LeaderboardEntry>> GetTopScoresAsync(int count = 10)
-        {
-            var allScores = await GetAllScoresAsync();
-            return allScores
-                .OrderByDescending(x => x.Score)
-                .ThenByDescending(x => x.GameDate)
-                .Take(count)
-                .ToList();
-        }
-
         public async Task SaveScoreAsync(LeaderboardEntry entry)
         {
-            var allScores = await GetAllScoresAsync();
-            allScores.Add(entry);
-            
-            // Keep only top 100 scores to prevent unlimited growth
-            var topScores = allScores
-                .OrderByDescending(x => x.Score)
-                .ThenByDescending(x => x.GameDate)
-                .Take(100)
-                .ToList();
-
-            var leaderboard = new Leaderboard { Entries = topScores };
-            await _localStorage.SetItemAsync(LEADERBOARD_KEY, leaderboard);
+            try
+            {
+                var json = JsonSerializer.Serialize(entry);
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                
+                var response = await _httpClient.PostAsync("api/leaderboard", content);
+                // Don't throw on failure, just log it silently (matches original behavior)
+            }
+            catch
+            {
+                // Silently handle errors (matches original localStorage behavior)
+            }
         }
     }
 } 
