@@ -9,14 +9,28 @@
     color: #fff;
 }
 
+.game-info-bar {
+    gap: 2rem;
+    margin-top: 1rem;
+    /* Always keep flex-direction: row (default) to maintain side-by-side layout */
+}
+
+.timer-container, .stats-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .timer {
-    font-size: clamp(2rem, 6vw, 3rem);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
     background: rgba(82, 109, 255, 0.1);
     border: 2px solid rgba(82, 109, 255, 0.2);
     border-radius: 1rem;
     transition: all 0.3s ease;
-    padding: 0.5rem 2rem;
+    padding: 0.5rem 1.5rem;
     color: #fff;
+    display: flex;
+    align-items: center;
 }
 
 .timer-warning {
@@ -24,6 +38,20 @@
     border-color: rgba(255, 71, 87, 0.4);
     background: rgba(255, 71, 87, 0.1);
     animation: pulse 1s infinite;
+}
+
+.cps-display {
+    font-size: clamp(1.2rem, 3.5vw, 2rem);
+    background: rgba(34, 139, 34, 0.1);
+    border: 2px solid rgba(34, 139, 34, 0.2);
+    border-radius: 1rem;
+    padding: 0.4rem 1.2rem;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.cps-display .stat-value {
+    color: #32CD32;
 }
 
 .game-display {
@@ -63,9 +91,52 @@
     50% { transform: translateY(-10px); }
 }
 
-/* Mobile-specific adjustments */
+/* Mobile-specific adjustments - Keep side by side but reduce spacing and sizes */
 @media (max-width: 768px) {
+    .game-info-bar {
+        gap: 1rem;
+        /* Removed flex-direction: column to keep side-by-side layout */
+    }
+    
     .timer {
-        padding: 0.4rem 1.5rem;
+        padding: 0.4rem 1rem;
+        font-size: clamp(1.2rem, 3.5vw, 2rem);
+    }
+    
+    .cps-display {
+        padding: 0.3rem 0.8rem;
+        font-size: clamp(1rem, 3vw, 1.5rem);
+    }
+}
+
+/* Small mobile adjustments - Even more compact but still side by side */
+@media (max-width: 480px) {
+    .game-info-bar {
+        gap: 0.5rem;
+    }
+    
+    .timer {
+        padding: 0.3rem 0.8rem;
+        font-size: clamp(1rem, 3vw, 1.5rem);
+    }
+    
+    .cps-display {
+        padding: 0.25rem 0.6rem;
+        font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+    }
+}
+
+/* Extra small screens - Ultra compact side by side */
+@media (max-width: 320px) {
+    .game-info-bar {
+        gap: 0.25rem;
+    }
+    
+    .timer {
+        padding: 0.25rem 0.6rem;
+    }
+    
+    .cps-display {
+        padding: 0.2rem 0.5rem;
     }
 }
