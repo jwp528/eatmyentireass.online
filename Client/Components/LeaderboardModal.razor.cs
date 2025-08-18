@@ -31,10 +31,13 @@ namespace BlazorApp.Client.Components
 
             try
             {
+                Console.WriteLine("[LeaderboardModal] Loading scores...");
                 topScores = await LeaderboardService.GetTopScoresAsync(10);
+                Console.WriteLine($"[LeaderboardModal] Loaded {topScores.Count} scores");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"[LeaderboardModal] Error loading scores: {ex.Message}");
                 topScores = new List<LeaderboardEntry>();
             }
             finally
@@ -46,6 +49,7 @@ namespace BlazorApp.Client.Components
 
         private async Task RefreshScores()
         {
+            Console.WriteLine("[LeaderboardModal] Manually refreshing scores...");
             await LoadScores();
         }
 

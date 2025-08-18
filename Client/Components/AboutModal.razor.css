@@ -1,0 +1,211 @@
+.about-container {
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 16px;
+}
+
+.josh-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.josh-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatar-container {
+    position: relative;
+}
+
+.josh-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(83, 74, 171) 0%, rgba(33,37,41,1) 100%);
+    padding: 10px;
+    box-shadow: 0 4px 20px rgba(83, 74, 171, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.josh-avatar:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.josh-info {
+    flex: 1;
+}
+
+.josh-name {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #ffffff, #e0e0e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.josh-title {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.josh-social {
+    display: flex;
+    gap: 1rem;
+}
+
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.social-link:hover {
+    background: #302b63;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.josh-content {
+    display: grid;
+    gap: 2rem;
+}
+
+.josh-description {
+    line-height: 1.6;
+}
+
+.josh-description .lead {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.josh-description p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0;
+}
+
+.skills-title {
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.skill-badge {
+    background: linear-gradient(135deg, #302b63, #24243e);
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.skill-badge:hover {
+    transform: translateY(-2px);
+}
+
+.josh-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+.stat-item i {
+    font-size: 1.1rem;
+}
+
+.josh-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.btn-cosmic {
+    background: linear-gradient(135deg, #302b63, #0f0c29);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(48, 43, 99, 0.3);
+}
+
+.btn-cosmic:hover {
+    background: linear-gradient(135deg, #3d3470, #1a1635);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(48, 43, 99, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .josh-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .josh-avatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .josh-name {
+        font-size: 1.5rem;
+    }
+
+    .josh-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .skills-grid {
+        justify-content: center;
+    }
+}

@@ -8,14 +8,16 @@
 }
 
 <BSModal @ref="Modal" Id="helpModal" IsVerticallyCentered="true" Size="ModalSize.Large">
-    <Header>
-        <h5 class="modal-title">
-            <i class="fas fa-gamepad me-2 text-primary"></i>
-            How to Play
-        </h5>
-    </Header>
     <Body>
         <div class="help-container">
+            <!-- Header integrated into body -->
+            <div class="help-modal-header">
+                <h5 class="help-modal-title">
+                    <i class="fas fa-gamepad me-2"></i>
+                    How to Play
+                </h5>
+            </div>
+
             <!-- Quick Start Section -->
             <div class="help-section">
                 <div class="section-header">
@@ -147,15 +149,16 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Action Button integrated into body -->
+            <div class="help-modal-footer">
+                <button type="button" class="btn btn-play" @onclick="async () => await Modal?.Hide()">
+                    <i class="fas fa-play me-2"></i>
+                    Let's Play!
+                </button>
+            </div>
         </div>
     </Body>
-    <Footer>
-        <div class="d-flex justify-content-center">
-            <button type="button" class="btn btn-primary btn-lg px-5" @onclick="async () => await Modal?.Hide()">
-                <i class="fas fa-play me-2"></i>Let's Play!
-            </button>
-        </div>
-    </Footer>
 </BSModal>
 
 @code {

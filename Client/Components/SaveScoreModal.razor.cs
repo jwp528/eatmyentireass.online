@@ -9,6 +9,7 @@ namespace BlazorApp.Client.Components
     public partial class SaveScoreModal : ComponentBase
     {
         [Inject] public ILeaderboardService LeaderboardService { get; set; } = default!;
+        [Inject] public ISettingsService SettingsService { get; set; } = default!;
 
         [Parameter] public double Score { get; set; }
         [Parameter] public int TotalClicks { get; set; }
@@ -26,7 +27,10 @@ namespace BlazorApp.Client.Components
             Score = score;
             TotalClicks = totalClicks;
             AssBreakdown = breakdown;
-            playerName = string.Empty;
+            
+            // Load the last used player name
+            playerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
+
             errorMessage = string.Empty;
             isSaving = false;
 
@@ -43,13 +47,10 @@ namespace BlazorApp.Client.Components
         private async Task SaveScore()
         {
             if (string.IsNullOrWhiteSpace(playerName))
-            {
-                errorMessage = "Please enter your name.";
                 return;
-            }
 
-            errorMessage = string.Empty;
             isSaving = true;
+            errorMessage = string.Empty;
             StateHasChanged();
 
             try
@@ -69,8 +70,13 @@ namespace BlazorApp.Client.Components
 
                 await LeaderboardService.SaveScoreAsync(entry);
 
+                // Save the player name for next time
+                await SettingsService.SetLastPlayerNameAsync(playerName.Trim());
+
+                // Close modal immediately after successful save
                 Modal?.Hide();
 
+                // Trigger callback to update parent component
                 if (OnScoreSaved.HasDelegate)
                 {
                     await OnScoreSaved.InvokeAsync();
@@ -78,7 +84,8 @@ namespace BlazorApp.Client.Components
             }
             catch (Exception ex)
             {
-                errorMessage = "Failed to save score. Please try again.";
+                Console.WriteLine($"[SaveScoreModal] Error saving score: {ex.Message}");
+                errorMessage = $"Failed to save score: {ex.Message}";
             }
             finally
             {
