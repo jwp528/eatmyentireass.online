@@ -29,34 +29,42 @@
 
                 <div class="game-header mb-4">
                     <h1 class="game-title display-3 fw-bold mb-3">Eat my entire ass!</h1>
-                    <div class="timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "timer-warning" : "")">@TimerDisplay</div>
                     
-                    @if (gamePlaying)
-                    {
-                        <div class="game-stats mt-2">
-                            @{
-                                var elapsed = DateTime.Now - gameStartTime;
-                                var showStats = elapsed.TotalSeconds >= 1.0; // Wait 1 second before showing stats
-                            }
-                            
-                            @if (showStats)
-                            {
-                                <div class="stats-display d-flex justify-content-center align-items-center">
-                                    <div class="stat-item">
+                    <!-- Timer and Stats Side by Side -->
+                    <div class="game-info-bar d-flex justify-content-center align-items-center gap-4 flex-wrap">
+                        <!-- Timer Display -->
+                        <div class="timer-container">
+                            <div class="timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "timer-warning" : "")">
+                                <i class="fas fa-clock me-2"></i>@TimerDisplay
+                            </div>
+                        </div>
+                        
+                        <!-- CPS Display (only show when game is playing) -->
+                        @if (gamePlaying)
+                        {
+                            <div class="stats-container">
+                                @{
+                                    var elapsed = DateTime.Now - gameStartTime;
+                                    var showStats = elapsed.TotalSeconds >= 1.0; // Wait 1 second before showing stats
+                                }
+                                
+                                @if (showStats)
+                                {
+                                    <div class="cps-display d-flex align-items-center">
                                         <i class="fas fa-mouse text-primary me-2"></i>
                                         <span class="stat-value text-primary fw-bold fs-5">@CurrentClicksPerSecond</span>
-                                        <span class="stat-label text-muted">clicks/sec</span>
+                                        <span class="stat-label text-muted ms-1">clicks/sec</span>
                                     </div>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="text-muted">
-                                    <small><i class="fas fa-clock me-1"></i>Tracking clicks...</small>
-                                </div>
-                            }
-                        </div>
-                    }
+                                }
+                                else
+                                {
+                                    <div class="text-muted">
+                                        <small><i class="fas fa-hourglass-start me-1"></i>Warming up...</small>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
                 </div>
                 
                 <div class="game-display p-3 p-md-4 mx-0 mx-md-2" @onclick="EatPiece" role="button" tabindex="0">
