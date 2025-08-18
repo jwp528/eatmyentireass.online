@@ -6,21 +6,67 @@
     [Parameter] public string scoreText { get; set; } = string.Empty;
     [Parameter] public List<AssTypeEnum> AssTypes { get; set; } = new();
     [Parameter] public Dictionary<AssTypeEnum, int> Breakdown { get; set; } = new();
+    [Parameter] public bool hasScoreSaved { get; set; }
+    [Parameter] public List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
     [Parameter] public EventCallback OnSaveScore { get; set; }
+    [Parameter] public EventCallback OnShowLeaderboard { get; set; }
 
     public BSModal? Modal;
+    
+    // Collapsible section states
+    private bool breakdownExpanded = true;
+
+    private string GetChartPoints()
+    {
+        if (!clicksPerSecondPolls.Any()) return "";
+        
+        var maxCps = clicksPerSecondPolls.Max(p => p.clicksPerSecond);
+        var maxTime = clicksPerSecondPolls.Max(p => p.timeStamp);
+        
+        // Add 20% padding above max value for better visibility (same as in chart display)
+        if (maxCps > 0) maxCps = maxCps * 1.2;
+        
+        // Prevent division by zero
+        if (maxCps <= 0) maxCps = 1;
+        if (maxTime <= 0) maxTime = 1;
+        
+        var points = clicksPerSecondPolls.Select(poll => 
+        {
+            var x = maxTime > 0 ? (400.0 * poll.timeStamp) / maxTime : 0;
+            var y = maxCps > 0 ? 200 - ((200.0 * poll.clicksPerSecond) / maxCps) : 200;
+            return $"{x:F1},{y:F1}";
+        });
+        
+        return string.Join(" ", points);
+    }
+
+    private double GetClicksPerMinute()
+    {
+        if (!clicksPerSecondPolls.Any()) return 0;
+        var avgClicksPerSecond = clicksPerSecondPolls.Average(p => p.clicksPerSecond);
+        return Math.Round(avgClicksPerSecond * 60, 1);
+    }
+
+    private double GetTotalPointsForType(AssTypeEnum assType)
+    {
+        var count = Breakdown.ContainsKey(assType) ? Breakdown[assType] : 0;
+        var pointsPerAss = BlazorApp.Shared.Assets.GetPointsForAssType(assType);
+        return count * pointsPerAss;
+    }
 }
 
-<BSModal @ref="Modal" Id="resultsModal" IsVerticallyCentered="true" Title="Results" Size="ModalSize.Large">
-    <Header>
-        <h5 class="modal-title">
-            <i class="fas fa-trophy me-2 text-warning"></i>
-            Game Complete!
-        </h5>
-    </Header>
+<BSModal @ref="Modal" Id="resultsModal" IsVerticallyCentered="true" Size="ModalSize.Large">
     <Body>
         <div class="results-container">
+            <!-- Modal Title -->
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-white mb-0">
+                    <i class="fas fa-trophy me-2 text-warning"></i>
+                    Game Complete!
+                </h4>
+            </div>
+
             <!-- Score Summary Card -->
             <div class="score-summary-card">
                 <div class="text-center">
@@ -29,22 +75,27 @@
                         <span class="score-label">Asses Devoured</span>
                     </div>
                     
-                    <!-- Compact Performance Stats -->
+                    <!-- Enhanced Performance Stats -->
                     <div class="performance-stats-compact mb-3">
                         <div class="stat-compact">
                             <i class="fas fa-mouse-pointer text-primary"></i>
                             <span class="stat-value">@totalClicks</span>
-                            <span class="stat-label">Clicks</span>
+                            <span class="stat-label">Total Clicks</span>
                         </div>
                         <div class="stat-compact">
-                            <i class="fas fa-bullseye text-success"></i>
+                            <i class="fas fa-clock text-info"></i>
+                            <span class="stat-value">@(clicksPerSecondPolls.Any() ? Math.Round(clicksPerSecondPolls.Average(p => p.clicksPerSecond), 1) : 0)</span>
+                            <span class="stat-label">Clicks/Sec</span>
+                        </div>
+                        <div class="stat-compact">
+                            <i class="fas fa-stopwatch text-success"></i>
+                            <span class="stat-value">@GetClicksPerMinute()</span>
+                            <span class="stat-label">Clicks/Min</span>
+                        </div>
+                        <div class="stat-compact">
+                            <i class="fas fa-bullseye text-warning"></i>
                             <span class="stat-value">@(totalClicks > 0 ? Math.Round(assesEaten / totalClicks, 3) : 0)</span>
-                            <span class="stat-label">Efficiency</span>
-                        </div>
-                        <div class="stat-compact">
-                            <i class="fas fa-star text-warning"></i>
-                            <span class="stat-value">@(totalClicks > 0 ? Math.Round((assesEaten / totalClicks) * 100, 1) : 0)%</span>
-                            <span class="stat-label">Success</span>
+                            <span class="stat-label">Points/Click</span>
                         </div>
                     </div>
                     
@@ -55,51 +106,179 @@
                         </div>
                     }
 
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button type="button" class="btn btn-success btn-sm me-2" @onclick="() => OnSaveScore.InvokeAsync()">
-                            <i class="fas fa-save me-1"></i>Save Score
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @onclick="() => Modal?.Hide()">
-                            <i class="fas fa-times me-1"></i>Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Compact Breakdown Section -->
-            <div class="breakdown-section-compact">
-                <h6 class="section-title mb-2">
-                    <i class="fas fa-chart-bar me-1"></i>
-                    Breakdown by Type
-                </h6>
-                
-                <div class="breakdown-grid-compact">
-                    @foreach(var ass in AssTypes.OrderByDescending(a => Breakdown[a]))
+                    <!-- Performance Chart -->
+                    @if (clicksPerSecondPolls.Any() && clicksPerSecondPolls.Count > 0)
                     {
-                        var totalConsumed = AssTypes.Sum(a => Breakdown[a]);
-                        var percentage = totalConsumed > 0 ? Math.Round((double)Breakdown[ass] / totalConsumed * 100, 1) : 0;
-                        
-                        <div class="breakdown-item-compact">
-                            <div class="breakdown-content">
-                                <img src="/images/Asses/@ass.ToString()/entire_ass.png" class="breakdown-icon-compact" alt="@ass" />
-                                <div class="breakdown-details">
-                                    <div class="breakdown-name-compact">@ass</div>
-                                    <div class="breakdown-stats-compact">
-                                        <span class="badge bg-primary badge-sm">@Breakdown[ass]</span>
-                                        <span class="percentage-text">@percentage%</span>
+                        <div class="chart-container mb-3">
+                            <div class="chart-wrapper">
+                                <div class="chart-grid">
+                                    @{
+                                        var maxCps = clicksPerSecondPolls.Any() ? clicksPerSecondPolls.Max(p => p.clicksPerSecond) : 0;
+                                        var maxTime = clicksPerSecondPolls.Any() ? clicksPerSecondPolls.Max(p => p.timeStamp) : 0;
+                                        
+                                        // Add 20% padding above max value for better visibility
+                                        if (maxCps > 0) maxCps = maxCps * 1.2;
+                                        
+                                        // Ensure we have valid data for chart rendering
+                                        if (maxCps <= 0) maxCps = 1; // Prevent division by zero
+                                        if (maxTime <= 0) maxTime = 1; // Prevent division by zero
+                                        
+                                        // Create grid lines for better readability
+                                        var yGridLines = 5;
+                                        var xGridLines = Math.Min(6, Math.Max(1, clicksPerSecondPolls.Count));
+                                    }
+                                    
+                                    <!-- Y-axis labels -->
+                                    <div class="chart-y-axis">
+                                        @for (int i = yGridLines; i >= 0; i--)
+                                        {
+                                            var value = maxCps > 0 ? Math.Round((maxCps * i) / yGridLines, 1) : 0;
+                                            <div class="y-label">@value</div>
+                                        }
+                                    </div>
+                                    
+                                    <!-- Chart area -->
+                                    <div class="chart-area">
+                                        <svg viewBox="0 0 400 200" class="chart-svg">
+                                            <!-- Grid lines -->
+                                            @for (int i = 0; i <= yGridLines; i++)
+                                            {
+                                                var y = (200 * i) / yGridLines;
+                                                <line x1="0" y1="@y" x2="400" y2="@y" stroke="#e9ecef" stroke-width="1" opacity="0.5"/>
+                                            }
+                                            
+                                            @for (int i = 0; i <= xGridLines; i++)
+                                            {
+                                                var x = (400 * i) / xGridLines;
+                                                <line x1="@x" y1="0" x2="@x" y2="200" stroke="#e9ecef" stroke-width="1" opacity="0.3"/>
+                                            }
+                                            
+                                            <!-- Line chart -->
+                                            @if (clicksPerSecondPolls.Count > 1)
+                                            {
+                                                <polyline points="@GetChartPoints()" 
+                                                        fill="none" 
+                                                        stroke="#0d6efd" 
+                                                        stroke-width="3" 
+                                                        stroke-linecap="round" 
+                                                        stroke-linejoin="round"/>
+                                            }
+                                            
+                                            <!-- Data points -->
+                                            @foreach (var poll in clicksPerSecondPolls)
+                                            {
+                                                var x = maxTime > 0 ? (400.0 * poll.timeStamp) / maxTime : 0;
+                                                var y = maxCps > 0 ? 200 - ((200.0 * poll.clicksPerSecond) / maxCps) : 200;
+                                                
+                                                <circle cx="@x" cy="@y" r="4" fill="#0d6efd" stroke="#fff" stroke-width="2">
+                                                    <title>@(poll.timeStamp)s: @poll.clicksPerSecond clicks/sec</title>
+                                                </circle>
+                                            }
+                                        </svg>
+                                    </div>
+                                    
+                                    <!-- X-axis labels -->
+                                    <div class="chart-x-axis">
+                                        @for (int i = 0; i <= Math.Min(6, clicksPerSecondPolls.Count - 1); i++)
+                                        {
+                                            var divisor = Math.Max(1, Math.Min(6, clicksPerSecondPolls.Count - 1));
+                                            var timeValue = (maxTime * i) / divisor;
+                                            <div class="x-label">@((int)timeValue)s</div>
+                                        }
                                     </div>
                                 </div>
-                                <div class="breakdown-bar-compact">
-                                    <div class="progress progress-thin">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @percentage%" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
+                            </div>
+                            
+                            <!-- Chart Summary -->
+                            <div class="chart-summary mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    @if (clicksPerSecondPolls.Any())
+                                    {
+                                        <text>Peak: @Math.Round(clicksPerSecondPolls.Max(p => p.clicksPerSecond), 1) clicks/sec • 
+                                        Average: @Math.Round(clicksPerSecondPolls.Average(p => p.clicksPerSecond), 1) clicks/sec •
+                                        @clicksPerSecondPolls.Count data points</text>
+                                    }
+                                    else
+                                    {
+                                        <text>No performance data available</text>
+                                    }
+                                </small>
                             </div>
                         </div>
                     }
                 </div>
             </div>
+
+            <!-- Collapsible Breakdown Section -->
+            <div class="breakdown-section-compact">
+                <div class="collapsible-header" @onclick="() => breakdownExpanded = !breakdownExpanded">
+                    <h6 class="section-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Breakdown by Type
+                        <i class="fas @(breakdownExpanded ? "fa-chevron-up" : "fa-chevron-down") ms-auto"></i>
+                    </h6>
+                </div>
+                
+                <div class="collapse @(breakdownExpanded ? "show" : "")" id="breakdownCollapse">
+                    <div class="breakdown-grid-2x3 mt-3">
+                        @foreach(var ass in AssTypes.OrderByDescending(a => Breakdown[a]))
+                        {
+                            var totalConsumed = AssTypes.Sum(a => Breakdown[a]);
+                            var percentage = totalConsumed > 0 ? Math.Round((double)Breakdown[ass] / totalConsumed * 100, 1) : 0;
+                            var totalPoints = GetTotalPointsForType(ass);
+                            
+                            <div class="breakdown-item-compact">
+                                <div class="breakdown-content">
+                                    <img src="/images/Asses/@ass.ToString()/entire_ass.png" class="breakdown-icon-compact" alt="@ass" />
+                                    <div class="breakdown-details">
+                                        <div class="breakdown-name-compact">@ass</div>
+                                        <div class="breakdown-stats-compact">
+                                            <span class="badge bg-primary badge-sm">@Breakdown[ass]/@Math.Truncate(assesEaten)</span>
+                                            <span class="percentage-text">@percentage%</span>
+                                        </div>
+                                        <div class="breakdown-points">
+                                            <span class="points-text">@totalPoints pts</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons mt-4">
+                @if (hasScoreSaved)
+                {
+                    <button type="button" class="btn btn-success me-2" disabled>
+                        <i class="fas fa-check me-1"></i>Score Saved
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-success me-2" @onclick="() => OnSaveScore.InvokeAsync()">
+                        <i class="fas fa-save me-1"></i>Save Score
+                    </button>
+                }
+                <button type="button" class="btn btn-primary me-2" @onclick="() => OnShowLeaderboard.InvokeAsync()">
+                    <i class="fas fa-trophy me-1"></i>Leaderboard
+                </button>
+                <button type="button" class="btn btn-secondary" @onclick="() => Modal?.Hide()">
+                    <i class="fas fa-times me-1"></i>Close
+                </button>
+            </div>
+            
+            @if (hasScoreSaved)
+            {
+                <div class="text-center mt-3">
+                    <small class="text-success d-block">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Your score has been saved to the leaderboard!
+                    </small>
+                </div>
+            }
         </div>
     </Body>
 </BSModal>

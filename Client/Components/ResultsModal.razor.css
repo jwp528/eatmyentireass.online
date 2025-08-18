@@ -1,6 +1,6 @@
-/* Results Container */
+/* Results Container - More compact */
 .results-container {
-    max-height: 70vh;
+    max-height: 75vh;
     overflow-y: auto;
     padding-right: 0.25rem;
 }
@@ -10,8 +10,8 @@
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
+    padding: 1rem; /* Reduced from 1.25rem */
+    margin-bottom: 0.75rem; /* Reduced from 1rem */
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
@@ -21,7 +21,7 @@
 }
 
 .score-number {
-    font-size: 3.5rem;
+    font-size: 3rem; /* Reduced from 3.5rem */
     font-weight: 800;
     background: linear-gradient(135deg, #ffd700, #ffed4e);
     -webkit-background-clip: text;
@@ -32,19 +32,19 @@
 }
 
 .score-label {
-    font-size: 1rem;
+    font-size: 0.95rem; /* Reduced from 1rem */
     color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
     display: block;
     margin-top: 0.25rem;
 }
 
-/* Compact Performance Stats */
+/* Enhanced Performance Stats - 4 items layout */
 .performance-stats-compact {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    padding: 1rem 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem; /* Reduced from 1.5rem */
+    padding: 0.75rem 0; /* Reduced from 1rem */
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -57,17 +57,17 @@
 }
 
 .stat-compact i {
-    font-size: 1.25rem;
+    font-size: 1.1rem; /* Reduced from 1.25rem */
 }
 
 .stat-compact .stat-value {
-    font-size: 1.25rem;
+    font-size: 1.1rem; /* Reduced from 1.25rem */
     font-weight: 700;
     color: #ffffff;
 }
 
 .stat-compact .stat-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem; /* Reduced from 0.75rem */
     color: rgba(255, 255, 255, 0.7);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -78,9 +78,9 @@
 .score-message {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.75rem; /* Reduced from 0.75rem 1rem */
     color: rgba(255, 255, 255, 0.9);
-    font-size: 0.95rem;
+    font-size: 0.9rem; /* Reduced from 0.95rem */
     font-style: italic;
 }
 
@@ -97,36 +97,48 @@
     font-weight: 600;
 }
 
-/* Compact Breakdown Section */
+/* Breakdown Section - Compact */
 .breakdown-section-compact {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 12px;
-    padding: 1rem;
-}
-
-.section-title {
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
-}
-
-.section-title i {
-    color: #17a2b8;
+    padding: 0.75rem; /* Reduced from 1rem */
 }
 
 .breakdown-grid-compact {
     display: grid;
     gap: 0.5rem;
-    max-height: 300px;
+    max-height: 250px; /* Reduced from 300px */
     overflow-y: auto;
+}
+
+/* New 2x3 Grid Layout for Breakdown */
+.breakdown-grid-2x3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem; /* Reduced from 0.75rem */
+    max-height: 250px; /* Reduced from 300px */
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .breakdown-grid-2x3 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .breakdown-grid-2x3 {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
 }
 
 .breakdown-item-compact {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    padding: 0.75rem;
+    padding: 0.5rem; /* Reduced from 0.75rem */
     transition: all 0.2s ease;
 }
 
@@ -136,27 +148,40 @@
 }
 
 .breakdown-content {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 0.75rem;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: 0.4rem; /* Reduced from 0.5rem */
+    text-align: center;
 }
 
 .breakdown-icon-compact {
-    width: 32px;
-    height: 32px;
+    width: 35px; /* Reduced from 40px */
+    height: 35px; /* Reduced from 40px */
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.1);
     padding: 2px;
+    object-fit: contain;
 }
 
 .breakdown-details {
     min-width: 0;
+    width: 100%;
+}
+
+.breakdown-points {
+    margin-top: 0.25rem;
+}
+
+.points-text {
+    font-size: 0.7rem; /* Reduced from 0.75rem */
+    color: #ffd700;
+    font-weight: 600;
 }
 
 .breakdown-name-compact {
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem; /* Reduced from 0.9rem */
     color: #ffffff;
     margin-bottom: 0.25rem;
 }
@@ -164,16 +189,18 @@
 .breakdown-stats-compact {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 0.4rem; /* Reduced from 0.5rem */
+    margin-bottom: 0.25rem;
 }
 
 .badge-sm {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem; /* Reduced from 0.75rem */
+    padding: 0.2rem 0.4rem; /* Reduced from 0.25rem 0.5rem */
 }
 
 .percentage-text {
-    font-size: 0.8rem;
+    font-size: 0.75rem; /* Reduced from 0.8rem */
     color: rgba(255, 255, 255, 0.7);
     font-weight: 500;
 }
@@ -196,54 +223,238 @@
     transition: width 0.4s ease;
 }
 
-/* Modal Specific Styles */
-#resultsModal .modal-body {
-    padding: 1rem;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    color: #ffffff;
-    max-height: 80vh;
+/* Chart Section Styles - More compact */
+.chart-section-compact {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem; /* Reduced from 1rem */
+}
+
+.chart-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 0.75rem; /* Reduced from 1rem */
+    margin-bottom: 0.5rem; /* Reduced from 0.75rem */
+}
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 450px; /* Reduced from 500px */
+    margin: 0 auto;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: 35px 1fr; /* Reduced from 40px */
+    grid-template-rows: 1fr 25px; /* Reduced from 30px */
+    gap: 6px; /* Reduced from 8px */
+    align-items: stretch;
+}
+
+.chart-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-right: 6px; /* Reduced from 8px */
+    grid-row: 1;
+}
+
+.y-label {
+    font-size: 0.7rem; /* Reduced from 0.75rem */
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1;
+    font-weight: 500;
+}
+
+.chart-area {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    grid-row: 1;
+    grid-column: 2;
     overflow: hidden;
 }
 
-#resultsModal .modal-header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.chart-svg {
+    width: 100%;
+    height: 150px; /* Reduced from 200px */
+    display: block;
+}
+
+.chart-x-axis {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-top: 4px;
+    grid-row: 2;
+    grid-column: 2;
+}
+
+.x-label {
+    font-size: 0.7rem; /* Reduced from 0.75rem */
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    text-align: center;
+}
+
+.chart-summary {
+    text-align: center;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem; /* Reduced from 0.5rem 0.75rem */
+}
+
+.chart-summary .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.75rem; /* Reduced */
+}
+
+.chart-summary .fa-info-circle {
+    color: #17a2b8;
+}
+
+/* Collapsible Headers */
+.collapsible-header {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    padding: 0.6rem; /* Reduced from 0.75rem */
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0.4rem; /* Reduced from 0.5rem */
+}
+
+.collapsible-header:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.collapsible-header .section-title {
+    display: flex;
+    align-items: center;
+    margin: 0;
     color: #ffffff;
-    padding: 0.75rem 1rem;
-}
-
-#resultsModal .modal-title {
-    color: #ffffff !important;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 0.95rem; /* Reduced from 1rem */
 }
 
-#resultsModal .modal-content {
+.collapsible-header .fas.fa-chevron-up,
+.collapsible-header .fas.fa-chevron-down {
+    font-size: 0.7rem; /* Reduced from 0.75rem */
+    color: rgba(255, 255, 255, 0.7);
+    transition: transform 0.2s ease;
+}
+
+/* Collapse Transitions */
+.collapse {
+    transition: all 0.35s ease;
+    overflow: hidden;
+}
+
+.collapse:not(.show) {
+    display: none;
+}
+
+.collapse.show {
+    display: block;
+}
+
+/* Stats Summary Grid */
+.stats-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem; /* Reduced from 1rem */
+    padding: 0.75rem; /* Reduced from 1rem */
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stats-summary-grid .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.25rem;
+}
+
+.stats-summary-grid .stat-item i {
+    font-size: 1.1rem; /* Reduced from 1.25rem */
+}
+
+.stats-summary-grid .stat-item .stat-value {
+    font-size: 1rem; /* Reduced from 1.1rem */
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.stats-summary-grid .stat-item .stat-label {
+    font-size: 0.7rem; /* Reduced from 0.75rem */
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* Chart Hover Effects */
+.chart-svg circle {
+    transition: r 0.2s ease, stroke-width 0.2s ease;
+}
+
+.chart-svg circle:hover {
+    r: 5; /* Reduced from 6 */
+    stroke-width: 3;
+}
+
+/* Modal Specific Styles - Updated for modal-body only design */
+#resultsModal .modal-body,
+#leaderboardModal .modal-body,
+#saveScoreModal .modal-body,
+#aboutModal .modal-body {
+    padding: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #ffffff;
+    max-height: 85vh;
+    overflow: hidden;
+    border-radius: 0.5rem;
+}
+
+#resultsModal .modal-content,
+#leaderboardModal .modal-content,
+#saveScoreModal .modal-content,
+#aboutModal .modal-content {
     background: transparent;
     border: none;
-    max-height: 85vh;
+    max-height: 90vh;
 }
 
 /* Custom Scrollbar */
 .results-container::-webkit-scrollbar,
-.breakdown-grid-compact::-webkit-scrollbar {
+.breakdown-grid-compact::-webkit-scrollbar,
+.leaderboard-content::-webkit-scrollbar {
     width: 4px;
 }
 
 .results-container::-webkit-scrollbar-track,
-.breakdown-grid-compact::-webkit-scrollbar-track {
+.breakdown-grid-compact::-webkit-scrollbar-track,
+.leaderboard-content::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
 }
 
 .results-container::-webkit-scrollbar-thumb,
-.breakdown-grid-compact::-webkit-scrollbar-thumb {
+.breakdown-grid-compact::-webkit-scrollbar-thumb,
+.leaderboard-content::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 2px;
 }
 
 .results-container::-webkit-scrollbar-thumb:hover,
-.breakdown-grid-compact::-webkit-scrollbar-thumb:hover {
+.breakdown-grid-compact::-webkit-scrollbar-thumb:hover,
+.leaderboard-content::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
 }
 
@@ -254,20 +465,22 @@
     }
     
     .score-summary-card {
-        padding: 1rem;
+        padding: 0.75rem; /* Reduced from 1rem */
     }
     
     .performance-stats-compact {
-        gap: 1rem;
-        padding: 0.75rem 0;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem; /* Reduced from 1rem */
+        padding: 0.6rem 0; /* Reduced from 0.75rem */
     }
     
     .stat-compact .stat-value {
-        font-size: 1.1rem;
+        font-size: 1rem; /* Reduced from 1.1rem */
     }
     
     .action-buttons {
         gap: 0.5rem;
+        flex-wrap: wrap;
     }
     
     .action-buttons .btn {
@@ -276,19 +489,52 @@
     }
     
     .breakdown-content {
-        gap: 0.5rem;
+        gap: 0.4rem; /* Reduced from 0.5rem */
     }
     
     .breakdown-bar-compact {
         width: 40px;
     }
+
+    /* Stats grid responsive */
+    .stats-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem; /* Reduced from 0.75rem */
+        padding: 0.6rem; /* Reduced from 0.75rem */
+    }
+    
+    .stats-summary-grid .stat-item .stat-value {
+        font-size: 0.95rem; /* Reduced from 1rem */
+    }
+
+    /* Chart responsive styles */
+    .chart-grid {
+        grid-template-columns: 30px 1fr; /* Reduced from 35px */
+    }
+    
+    .y-label, .x-label {
+        font-size: 0.65rem; /* Reduced from 0.7rem */
+    }
+    
+    .chart-summary {
+        padding: 0.35rem 0.45rem; /* Reduced from 0.4rem 0.5rem */
+    }
+    
+    /* Collapsible headers responsive */
+    .collapsible-header {
+        padding: 0.45rem; /* Reduced from 0.5rem */
+    }
+    
+    .collapsible-header .section-title {
+        font-size: 0.9rem;
+    }
 }
 
 @media (max-width: 576px) {
     .performance-stats-compact {
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 0.5rem 0;
+        grid-template-columns: 1fr;
+        gap: 0.6rem; /* Reduced from 0.75rem */
+        padding: 0.4rem 0; /* Reduced from 0.5rem */
     }
     
     .stat-compact {
@@ -306,5 +552,41 @@
         grid-column: 1 / -1;
         width: 100%;
         margin-top: 0.5rem;
+    }
+
+    /* Stats grid mobile */
+    .stats-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 0.4rem; /* Reduced from 0.5rem */
+        padding: 0.4rem; /* Reduced from 0.5rem */
+    }
+    
+    .stats-summary-grid .stat-item {
+        flex-direction: row;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    /* Chart mobile styles */
+    .chart-grid {
+        grid-template-columns: 25px 1fr; /* Reduced from 30px */
+        grid-template-rows: 1fr 20px; /* Reduced from 25px */
+    }
+    
+    .chart-svg {
+        height: 120px; /* Reduced from 150px */
+    }
+    
+    .chart-container {
+        padding: 0.6rem; /* Reduced from 0.75rem */
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
     }
 }
