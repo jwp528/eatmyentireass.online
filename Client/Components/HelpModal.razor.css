@@ -1,8 +1,55 @@
 /* Help Modal Styles */
 .help-container {
-    max-height: 75vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 16px;
+    max-height: 80vh;
     overflow-y: auto;
-    padding-right: 0.5rem;
+}
+
+/* Modal Header integrated into body */
+.help-modal-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.help-modal-title {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Modal Footer integrated into body */
+.help-modal-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-play {
+    background: #0d6efd;
+    border: 1px solid #0d6efd;
+    color: #ffffff;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+    font-size: 1.1rem;
+}
+
+.btn-play:hover {
+    background: #0b5ed7;
+    border-color: #0a58ca;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
 }
 
 /* Section Styles */
@@ -37,10 +84,12 @@
 
 /* Quick Start Section */
 .quick-start-card {
-    background: linear-gradient(135deg, rgba(23, 162, 184, 0.1) 0%, rgba(23, 162, 184, 0.05) 100%);
-    border: 1px solid rgba(23, 162, 184, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .step-list {
@@ -67,6 +116,7 @@
     font-weight: 600;
     font-size: 0.9rem;
     flex-shrink: 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .step-text {
@@ -75,9 +125,10 @@
 }
 
 .timer-demo {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 12px;
     padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .timer-icon {
@@ -116,11 +167,13 @@
     align-items: flex-start;
     gap: 1rem;
     transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
 }
 
 .rule-card:hover {
     background: rgba(255, 255, 255, 0.08);
     transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .rule-important {
@@ -165,6 +218,7 @@
     border-radius: 12px;
     padding: 1rem;
     transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
 }
 
 .ass-type-card:hover {
@@ -274,16 +328,18 @@
     display: flex;
     align-items: flex-start;
     gap: 1rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     padding: 1rem;
     transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
 }
 
 .tip-item:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
     transform: translateX(4px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .tip-icon {
@@ -306,28 +362,11 @@
     margin: 0;
 }
 
-/* Modal Specific Styles */
+/* Remove old modal-specific styles */
 #helpModal .modal-body {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: transparent;
     color: #ffffff;
-    padding: 1.5rem;
-}
-
-#helpModal .modal-header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-}
-
-#helpModal .modal-footer {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1.5rem;
-}
-
-#helpModal .modal-title {
-    color: #ffffff !important;
-    font-weight: 600;
+    padding: 0;
 }
 
 #helpModal .modal-content {
@@ -356,6 +395,14 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .help-container {
+        padding: 1rem;
+    }
+    
+    .help-modal-title {
+        font-size: 1.5rem;
+    }
+    
     .help-section {
         margin-bottom: 1.5rem;
     }
@@ -395,6 +442,11 @@
     .ass-type-image {
         width: 40px;
         height: 40px;
+    }
+    
+    .btn-play {
+        padding: 0.6rem 1.5rem;
+        font-size: 1rem;
     }
 }
 

@@ -1,67 +1,96 @@
 @using BlazorApp.Shared
 
 <BSModal @ref="Modal" Id="saveScoreModal" IsVerticallyCentered="true">
-    <Header>
-        <h5 class="modal-title fw-bold">
-            <i class="fas fa-save text-success me-2"></i>
-            Save Your Score
-        </h5>
-    </Header>
     <Body>
-        <div class="mb-4 text-center">
-            <div class="display-6 text-primary fw-bold">@Math.Truncate(Score)</div>
-            <div class="text-muted">
-                @TotalClicks clicks • @(TotalClicks > 0 ? Math.Round(Score / TotalClicks, 3) : 0) efficiency
+        <div class="save-score-container">
+            <!-- Modal Title -->
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-white mb-0">
+                    <i class="fas fa-save text-success me-2"></i>
+                    Save Your Score
+                </h4>
             </div>
-            <p class="text-muted mb-0 mt-2">Awesome score! Enter your name to save it to the leaderboard.</p>
-        </div>
-        
-        <div class="mb-3">
-            <label for="playerName" class="form-label fw-semibold">Player Name</label>
-            <input type="text" 
-                   class="form-control form-control-lg" 
-                   id="playerName" 
-                   @bind="playerName" 
-                   @onkeypress="HandleKeyPress"
-                   placeholder="Enter your name"
-                   maxlength="50"
-                   disabled="@isSaving">
-        </div>
-        
-        @if (!string.IsNullOrWhiteSpace(errorMessage))
-        {
-            <div class="alert alert-danger" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                @errorMessage
-            </div>
-        }
-        
-        @if (isSaving)
-        {
-            <div class="text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Saving...</span>
+
+            <div class="mb-4 text-center">
+                <div class="display-6 text-primary fw-bold">@Math.Truncate(Score)</div>
+                <div class="text-muted">
+                    @TotalClicks clicks • @(TotalClicks > 0 ? Math.Round(Score / TotalClicks, 3) : 0) points/click
                 </div>
-                <p class="mt-2 text-muted">Saving your score...</p>
+                <p class="text-muted mb-0 mt-2">Awesome score! Enter your name to save it to the leaderboard.</p>
             </div>
-        }
-    </Body>
-    <Footer>
-        <div class="hstack gap-2">
-            <button type="button" 
-                    class="btn btn-outline-secondary" 
-                    @onclick="SkipSave"
-                    disabled="@isSaving">
-                Skip
-            </button>
-            <div class="vr"></div>
-            <button type="button" 
-                    class="btn btn-success ms-auto" 
-                    @onclick="SaveScore"
-                    disabled="@(isSaving || string.IsNullOrWhiteSpace(playerName))">
-                <i class="fas fa-save me-2"></i>
-                @(isSaving ? "Saving..." : "Save Score")
-            </button>
+            
+            <div class="mb-3">
+                <label for="playerName" class="form-label fw-semibold text-white">Player Name</label>
+                <input type="text" 
+                       class="form-control form-control-lg" 
+                       id="playerName" 
+                       @bind="playerName" 
+                       @onkeypress="HandleKeyPress"
+                       placeholder="Enter your name"
+                       maxlength="50"
+                       disabled="@isSaving">
+            </div>
+            
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div style="white-space: pre-line;">@errorMessage</div>
+                </div>
+            }
+            
+            @if (isSaving)
+            {
+                <div class="text-center mb-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Saving...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Saving your score...</p>
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between">
+                <button type="button" 
+                        class="btn btn-outline-secondary" 
+                        @onclick="SkipSave"
+                        disabled="@isSaving">
+                    <i class="fas fa-times me-1"></i>Skip
+                </button>
+                <button type="button" 
+                        class="btn btn-success" 
+                        @onclick="SaveScore"
+                        disabled="@(isSaving || string.IsNullOrWhiteSpace(playerName))">
+                    <i class="fas fa-save me-2"></i>
+                    @(isSaving ? "Saving..." : "Save Score")
+                </button>
+            </div>
         </div>
-    </Footer>
+    </Body>
 </BSModal>
+
+<style>
+    .save-score-container {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .save-score-container .form-control {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+
+    .save-score-container .form-control:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #0d6efd;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .save-score-container .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+</style>

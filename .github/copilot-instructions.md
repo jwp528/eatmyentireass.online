@@ -25,6 +25,17 @@ Install Azure SWA CLI (optional):
 npm install -g @azure/static-web-apps-cli
 ```
 
+## Modal Design Standards
+
+### Modal Structure
+- Use only `modal-body`, avoid `modal-header` and `modal-footer` for cleaner design
+- All content, including titles and actions, should be contained within the modal body
+- Use custom styling within the body for headers and action buttons
+
+### Modal Behavior
+- Action buttons should be integrated into the modal body design
+- Close functionality should be handled through custom buttons within the body
+
 ## Bootstrap and Build Process
 
 NEVER CANCEL builds or long-running commands. Set timeout to 120+ minutes for all operations.

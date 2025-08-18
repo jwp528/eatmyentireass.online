@@ -1,0 +1,23 @@
+.save-score-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.save-score-container .form-control {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+.save-score-container .form-control:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #0d6efd;
+    color: #ffffff;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.save-score-container .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}

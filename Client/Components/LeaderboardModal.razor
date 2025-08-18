@@ -1,95 +1,102 @@
 @using BlazorApp.Shared
 
-<BSModal @ref="Modal" Id="leaderboardModal" IsVerticallyCentered="true">
-    <Header>
-        <h5 class="modal-title fw-bold">
-            <i class="fas fa-trophy text-warning me-2"></i>
-            Leaderboard
-        </h5>
-    </Header>
+<BSModal @ref="Modal" Id="leaderboardModal" IsVerticallyCentered="true" Size="ModalSize.ExtraLarge">
     <Body>
-        @if (isLoading)
-        {
-            <div class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2 text-muted">Loading scores...</p>
+        <div class="leaderboard-container">
+            <!-- Modal Title -->
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-white mb-0">
+                    <i class="fas fa-trophy text-warning me-2"></i>
+                    Leaderboard
+                </h4>
             </div>
-        }
-        else if (!topScores.Any())
-        {
-            <div class="text-center py-5">
-                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-                <h6 class="text-muted">No scores yet!</h6>
-                <p class="text-muted mb-0">Be the first to set a high score!</p>
-            </div>
-        }
-        else
-        {
-            <div class="leaderboard-container">
-                <div class="row fw-bold border-bottom pb-2 mb-3 text-muted small text-uppercase">
-                    <div class="col-2 col-md-1">#</div>
-                    <div class="col-4 col-md-3">Player</div>
-                    <div class="col-2 col-md-2">Score</div>
-                    <div class="col-2 col-md-2">Clicks</div>
-                    <div class="col-2 col-md-2 d-none d-md-block">Efficiency</div>
-                    <div class="col-2 col-md-2">Date</div>
-                </div>
-                
-                @for (int i = 0; i < topScores.Count; i++)
-                {
-                    var entry = topScores[i];
-                    var rank = i + 1;
-                    
-                    <div class="row align-items-center py-3 my-2 @(rank <= 3 ? "top-score" : "") border-bottom">
-                        <div class="col-2 col-md-1">
-                            @if (rank == 1)
-                            {
-                                <i class="fas fa-crown text-warning"></i>
-                            }
-                            else if (rank == 2)
-                            {
-                                <i class="fas fa-medal text-secondary"></i>
-                            }
-                            else if (rank == 3)
-                            {
-                                <i class="fas fa-award text-warning"></i>
-                            }
-                            else
-                            {
-                                <span class="text-muted small">#@rank</span>
-                            }
-                        </div>
-                        <div class="col-4 col-md-3">
-                            <span class="fw-semibold small">@entry.PlayerName</span>
-                        </div>
-                        <div class="col-2 col-md-2">
-                            <span class="badge bg-primary">@Math.Truncate(entry.Score)</span>
-                        </div>
-                        <div class="col-2 col-md-2">
-                            <small class="text-muted">@entry.TotalClicks</small>
-                        </div>
-                        <div class="col-2 col-md-2 d-none d-md-block">
-                            <small class="text-success fw-semibold">@entry.ClickEfficiency</small>
-                        </div>
-                        <div class="col-2 col-md-2">
-                            <small class="text-muted">@entry.GameDate.ToString("MM/dd")</small>
-                        </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                }
+                    <p class="mt-2 text-muted">Loading scores...</p>
+                </div>
+            }
+            else if (!topScores.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <h6 class="text-muted">No scores yet!</h6>
+                    <p class="text-muted mb-0">Be the first to set a high score!</p>
+                </div>
+            }
+            else
+            {
+                <div class="leaderboard-content">
+                    <div class="row fw-bold border-bottom pb-2 mb-3 text-muted small text-uppercase">
+                        <div class="col-1">#</div>
+                        <div class="col-3">Player</div>
+                        <div class="col-2">Score</div>
+                        <div class="col-2">Clicks</div>
+                        <div class="col-2">CPS</div>
+                        <div class="col-2">Date</div>
+                    </div>
+                    
+                    @for (int i = 0; i < topScores.Count; i++)
+                    {
+                        var entry = topScores[i];
+                        var rank = i + 1;
+                        
+                        <div class="row align-items-center py-3 my-2 @(rank <= 3 ? "top-score" : "") border-bottom leaderboard-row">
+                            <div class="col-1">
+                                @if (rank == 1)
+                                {
+                                    <i class="fas fa-crown text-warning fs-5"></i>
+                                }
+                                else if (rank == 2)
+                                {
+                                    <i class="fas fa-medal text-secondary fs-5"></i>
+                                }
+                                else if (rank == 3)
+                                {
+                                    <i class="fas fa-award text-warning fs-5"></i>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small fw-bold">#@rank</span>
+                                }
+                            </div>
+                            <div class="col-3">
+                                <span class="fw-semibold text-white">@entry.PlayerName</span>
+                            </div>
+                            <div class="col-2">
+                                <span class="fw-bold text-success">@Math.Truncate(entry.Score)</span>
+                            </div>
+                            <div class="col-2">
+                                <span class="text-info">@entry.TotalClicks</span>
+                            </div>
+                            <div class="col-2">
+                                <span class="text-warning">@entry.CPS</span>
+                            </div>
+                            <div class="col-2">
+                                <span class="text-muted small">@entry.GameDate.ToString("MMM dd")</span>
+                                <br />
+                                <span class="text-muted" style="font-size: 0.7rem;">@entry.GameDate.ToString("HH:mm")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="leaderboard-actions mt-4">
+                <button type="button" class="btn btn-big-rounded btn-primary me-3" @onclick="RefreshScores">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    Refresh Scores
+                </button>
+                <button type="button" class="btn btn-big-rounded btn-secondary" @onclick="CloseModal">
+                    <i class="fas fa-times me-2"></i>
+                    Close
+                </button>
             </div>
-        }
-    </Body>
-    <Footer>
-        <div class="hstack gap-2">
-            <button type="button" class="btn btn-outline-secondary" @onclick="RefreshScores">
-                <i class="fas fa-refresh me-2"></i>Refresh
-            </button>
-            <div class="vr"></div>
-            <button type="button" class="btn btn-secondary ms-auto" @onclick="CloseModal">
-                Close
-            </button>
         </div>
-    </Footer>
-</BSModal> 
+    </Body>
+</BSModal>

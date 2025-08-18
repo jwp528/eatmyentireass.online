@@ -1,9 +1,9 @@
 ﻿@page "/"
 @using BlazorApp.Client.Components
 @using BlazorApp.Client.Services
-@inject ILocalStorageService _localstorage
 @inject IJSRuntime js
 @inject ILeaderboardService LeaderboardService
+@inject ISettingsService SettingsService
 
 <PageTitle>Eat my entire ass</PageTitle>
 
@@ -30,6 +30,33 @@
                 <div class="game-header mb-4">
                     <h1 class="game-title display-3 fw-bold mb-3">Eat my entire ass!</h1>
                     <div class="timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "timer-warning" : "")">@TimerDisplay</div>
+                    
+                    @if (gamePlaying)
+                    {
+                        <div class="game-stats mt-2">
+                            @{
+                                var elapsed = DateTime.Now - gameStartTime;
+                                var showStats = elapsed.TotalSeconds >= 1.0; // Wait 1 second before showing stats
+                            }
+                            
+                            @if (showStats)
+                            {
+                                <div class="stats-display d-flex justify-content-center align-items-center">
+                                    <div class="stat-item">
+                                        <i class="fas fa-mouse text-primary me-2"></i>
+                                        <span class="stat-value text-primary fw-bold fs-5">@CurrentClicksPerSecond</span>
+                                        <span class="stat-label text-muted">clicks/sec</span>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-muted">
+                                    <small><i class="fas fa-clock me-1"></i>Tracking clicks...</small>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
                 
                 <div class="game-display p-3 p-md-4 mx-0 mx-md-2" @onclick="EatPiece" role="button" tabindex="0">
@@ -47,11 +74,20 @@
                                     <button class="btn btn-outline-primary btn-sm btn-md" @onclick="() => ResultsDialog?.Modal?.Show()">
                                         <i class="fas fa-trophy me-2"></i>View Details
                                     </button>
-                                    <button class="btn btn-primary btn-sm btn-md" @onclick="TryAgain">
+                                    <button class="btn btn-primary btn-sm btn-md" @onclick="StartNewGame">
                                         <i class="fas fa-rotate me-2"></i>Play Again
                                     </button>
                                 </div>
                             </div>
+                            @if (gameJustEnded)
+                            {
+                                <div class="mt-3">
+                                    <small class="text-warning">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Game ended! Use "Play Again" button to start a new game.
+                                    </small>
+                                </div>
+                            }
                         </div>
                     }
                     else
@@ -83,7 +119,17 @@
 
 <HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" />
 <AboutModal @ref="AboutDialog" />
-<ResultsModal @ref="ResultsDialog" assesEaten="@assesEaten" totalClicks="@totalClicks" scoreText="@scoreText" AssTypes="@Breakdown.Keys.ToList()" Breakdown="@Breakdown" OnTryAgain="TryAgain" OnSaveScore="ShowSaveScoreDialog" />
+<ResultsModal @ref="ResultsDialog" 
+              assesEaten="@assesEaten" 
+              totalClicks="@totalClicks" 
+              scoreText="@scoreText" 
+              AssTypes="@Breakdown.Keys.ToList()" 
+              Breakdown="@Breakdown" 
+              hasScoreSaved="@hasScoreSaved"
+              clicksPerSecondPolls="@clicksPerSecondPolls"
+              OnTryAgain="TryAgain" 
+              OnSaveScore="ShowSaveScoreDialog"
+              OnShowLeaderboard="ShowLeaderboardDialog" />
 <LeaderboardModal @ref="LeaderboardDialog" />
 <SaveScoreModal @ref="SaveScoreDialog" OnScoreSaved="OnScoreSaved" />
 
@@ -101,13 +147,19 @@
 
     async Task ShowSaveScoreDialog()
     {
-        await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);
+        // Only show save dialog if score hasn't been saved yet
+        if (!hasScoreSaved)
+        {
+            await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);
+        }
     }
 
     async Task OnScoreSaved()
     {
-        // After score is saved, show the results dialog
-        await ResultsDialog?.Modal?.Show();
+        // Mark that score has been saved for this game
+        hasScoreSaved = true;
+        
+        // Keep the results dialog open but update its state
         StateHasChanged();
     }
 }

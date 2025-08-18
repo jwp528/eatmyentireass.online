@@ -2,19 +2,343 @@
     public BSModal? Modal;
 }
 
-<BSModal @ref="Modal" Id="aboutModal" IsVerticallyCentered="true">
-    <Header>
-        <h5 class="modal-title">
-            <i class="fas fa-user"></i>
-            Who's responsible for this?
-        </h5>
-    </Header>
+<BSModal @ref="Modal" Id="aboutModal" IsVerticallyCentered="true" Size="ModalSize.Large">
     <Body>
-        Some dude behind a keyboard with way too much time on his hands.
-        <div class="hstack justify-content-end">
-            <button type="button" class="btn btn-primary" @onclick="async () => await Modal?.Hide()">
-                Makes Sense <i class="fas fa-check ms-3"></i>
-            </button>
+        <div class="about-container">
+            <!-- Modal Header with Close Button -->
+            <div class="modal-custom-header">
+                <button type="button" class="btn-close-custom" @onclick="async () => await Modal?.Hide()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Josh Parsons Info Card -->
+            <div class="josh-card">
+                <!-- Header with Avatar -->
+                <div class="josh-header">
+                    <div class="avatar-container">
+                        <img src="https://www.joshparsons.ca/img/Logo.svg" alt="Josh Parsons Logo" class="josh-avatar" />
+                    </div>
+                    <div class="josh-info">
+                        <h3 class="josh-name">Josh Parsons</h3>
+                        <p class="josh-title">.NET Developer from Cornwall, PEI</p>
+                        <div class="josh-social">
+                            <a href="https://joshparsons.ca" target="_blank" rel="noopener noreferrer" class="social-link">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                            <a href="https://github.com/jwp528" target="_blank" rel="noopener noreferrer" class="social-link">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="https://www.linkedin.com/in/jparsons93/" target="_blank" rel="noopener noreferrer" class="social-link">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="josh-content">
+                    <div class="josh-description">
+                        <p class="lead">Professional .NET developer specializing in web development and software engineering.</p>
+                        <p>From the beautiful Prince Edward Island, I create digital experiences that blend functionality with creativity. This ridiculous game is just one example of what happens when a developer has too much free time!</p>
+                    </div>
+
+                    <div class="josh-skills">
+                        <h5 class="skills-title">
+                            <i class="fas fa-code me-2"></i>
+                            Technologies
+                        </h5>
+                        <div class="skills-grid">
+                            <span class="skill-badge">.NET Core</span>
+                            <span class="skill-badge">Blazor</span>
+                            <span class="skill-badge">Azure</span>
+                            <span class="skill-badge">C#</span>
+                            <span class="skill-badge">JavaScript</span>
+                            <span class="skill-badge">Bootstrap</span>
+                        </div>
+                    </div>
+
+                    <div class="josh-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-map-marker-alt text-danger"></i>
+                            <span>Cornwall, PEI</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-briefcase text-primary"></i>
+                            <span>Freelance Developer</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-coffee text-warning"></i>
+                            <span>Coffee Enthusiast</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="josh-footer">
+                    <div class="website-link">
+                        <a href="https://joshparsons.ca" target="_blank" rel="noopener noreferrer" class="btn btn-cosmic">
+                            <i class="fas fa-external-link-alt me-2"></i>
+                            Visit joshparsons.ca
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </Body>
 </BSModal>
+
+<style>
+    .about-container {
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 16px;
+        position: relative;
+    }
+
+    .modal-custom-header {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+    }
+
+    .btn-close-custom {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.8);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .btn-close-custom:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        transform: scale(1.1);
+    }
+
+    .josh-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-top: 1rem;
+    }
+
+    .josh-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .avatar-container {
+        position: relative;
+    }
+
+    .josh-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgb(83, 74, 171) 0%, rgba(33,37,41,1) 100%);
+        padding: 10px;
+        box-shadow: 0 4px 20px rgba(83, 74, 171, 0.3);
+        transition: transform 0.3s ease;
+    }
+
+    .josh-avatar:hover {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .josh-info {
+        flex: 1;
+    }
+
+    .josh-name {
+        color: #ffffff;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #ffffff, #e0e0e0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .josh-title {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+
+    .josh-social {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .social-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+    }
+
+    .social-link:hover {
+        background: #302b63;
+        color: #ffffff;
+        transform: translateY(-2px);
+    }
+
+    .josh-content {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .josh-description {
+        line-height: 1.6;
+    }
+
+    .josh-description .lead {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+
+    .josh-description p {
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 0;
+    }
+
+    .skills-title {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .skills-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .skill-badge {
+        background: linear-gradient(135deg, #302b63, #24243e);
+        color: #ffffff;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .skill-badge:hover {
+        transform: translateY(-2px);
+    }
+
+    .josh-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+    }
+
+    .stat-item i {
+        font-size: 1.1rem;
+    }
+
+    .josh-footer {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+
+    .btn-cosmic {
+        background: linear-gradient(135deg, #302b63, #0f0c29);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(48, 43, 99, 0.3);
+    }
+
+    .btn-cosmic:hover {
+        background: linear-gradient(135deg, #3d3470, #1a1635);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(48, 43, 99, 0.4);
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .josh-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+
+        .josh-avatar {
+            width: 60px;
+            height: 60px;
+        }
+
+        .josh-name {
+            font-size: 1.5rem;
+        }
+
+        .josh-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .skills-grid {
+            justify-content: center;
+        }
+
+        .modal-custom-header {
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+
+        .btn-close-custom {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+        }
+    }
+</style>

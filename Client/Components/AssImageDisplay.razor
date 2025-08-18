@@ -2,19 +2,34 @@
 
 @code {
     [Parameter] public int piecesEaten { get; set; }
-    [Parameter] public List<string> AssFrames { get; set; }
+    [Parameter] public List<string> AssFrames { get; set; } = new();
     [Parameter] public AssTypeEnum CurrentAssType { get; set; }
 }
 
-<p class="fs-6">
-    @if(piecesEaten < AssFrames.Count() - 2)
-    {
-        <span>(click to <strong>eat</strong> ass)</span>
-    }
-    else
-    {
-        <span>(click to <strong>finish</strong> ass)</span>
-    }
-    <br />
-    <img class="img-fluid" src="/images/Asses/@CurrentAssType.ToString()/@AssFrames[piecesEaten]" width="600" />
-</p>
+@if (AssFrames?.Any() == true && piecesEaten >= 0 && piecesEaten < AssFrames.Count)
+{
+    <p class="fs-6">
+        @if(piecesEaten < AssFrames.Count - 2)
+        {
+            <span>(click to <strong>eat</strong> ass)</span>
+        }
+        else
+        {
+            <span>(click to <strong>finish</strong> ass)</span>
+        }
+        <br />
+        <img class="img-fluid" src="/images/Asses/@CurrentAssType.ToString()/@AssFrames[piecesEaten]" width="600" />
+    </p>
+}
+else
+{
+    <p class="fs-6 text-muted">
+        <span>Loading...</span>
+        <br />
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </p>
+}
