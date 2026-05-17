@@ -8,7 +8,8 @@ namespace BlazorApp.Client.Components
 {
     public partial class SaveScoreModal : ComponentBase
     {
-        [Inject] public ILeaderboardService LeaderboardService { get; set; } = default!;
+        [Inject] public ILeaderboardService SharedLeaderboardService { get; set; } = default!;
+        [Inject] public ILocalLeaderboardService LocalLeaderboardService { get; set; } = default!;
         [Inject] public ISettingsService SettingsService { get; set; } = default!;
 
         [Parameter] public double Score { get; set; }
@@ -21,15 +22,31 @@ namespace BlazorApp.Client.Components
         private string playerName = string.Empty;
         private bool isSaving = false;
         private string errorMessage = string.Empty;
+        private bool isHighScore = false;
+        private int playerRank = 0;
 
         public async Task Show(double score, int totalClicks, Dictionary<AssTypeEnum, int> breakdown)
         {
             Score = score;
             TotalClicks = totalClicks;
             AssBreakdown = breakdown;
-            
+
             // Load the last used player name
             playerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
+
+            // Check if this is a high score using shared leaderboard via API
+            try
+            {
+                var topScores = await SharedLeaderboardService.GetTopScoresAsync(10);
+                isHighScore = topScores.Count < 10 || score > (topScores.LastOrDefault()?.Score ?? 0);
+                playerRank = topScores.Count(x => x.Score > score) + 1;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SaveScoreModal] Error checking high score status: {ex.Message}");
+                isHighScore = true; // Default to true if we can't check
+                playerRank = 1;
+            }
 
             errorMessage = string.Empty;
             isSaving = false;
@@ -68,10 +85,18 @@ namespace BlazorApp.Client.Components
                     GameDurationSeconds = 60
                 };
 
-                await LeaderboardService.SaveScoreAsync(entry);
+                Console.WriteLine($"[SaveScoreModal] Saving score to shared leaderboard via API for {entry.PlayerName}: {entry.Score}");
+
+                // Save to shared leaderboard via API (this will write to Client/wwwroot/data/leaderboard.json)
+                await SharedLeaderboardService.SaveScoreAsync(entry);
+
+                // Also save to local leaderboard as backup
+                await LocalLeaderboardService.SaveScoreAsync(entry);
 
                 // Save the player name for next time
                 await SettingsService.SetLastPlayerNameAsync(playerName.Trim());
+
+                Console.WriteLine($"[SaveScoreModal] ? Score saved successfully to shared leaderboard and local backup!");
 
                 // Close modal immediately after successful save
                 Modal?.Hide();
@@ -85,7 +110,31 @@ namespace BlazorApp.Client.Components
             catch (Exception ex)
             {
                 Console.WriteLine($"[SaveScoreModal] Error saving score: {ex.Message}");
-                errorMessage = $"Failed to save score: {ex.Message}";
+                errorMessage = $"Failed to save score to shared leaderboard: {ex.Message}";
+
+                // Try to save to local storage as fallback
+                try
+                {
+                    var entry = new LeaderboardEntry
+                    {
+                        PlayerName = playerName.Trim(),
+                        Score = Score,
+                        TotalClicks = TotalClicks,
+                        GameDate = DateTime.Now,
+                        AssTypeBreakdown = AssBreakdown.ToDictionary(
+                            kvp => kvp.Key.ToString(),
+                            kvp => kvp.Value
+                        ),
+                        GameDurationSeconds = 60
+                    };
+
+                    await LocalLeaderboardService.SaveScoreAsync(entry);
+                    errorMessage += "\n\nScore saved to local storage as backup.";
+                }
+                catch (Exception localEx)
+                {
+                    errorMessage += $"\n\nLocal backup also failed: {localEx.Message}";
+                }
             }
             finally
             {

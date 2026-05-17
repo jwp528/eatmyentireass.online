@@ -7,8 +7,12 @@
             <div class="text-center mb-4">
                 <h4 class="fw-bold text-white mb-0">
                     <i class="fas fa-trophy text-warning me-2"></i>
-                    Leaderboard
+                    Global Leaderboard
                 </h4>
+                <small class="text-muted">
+                    <i class="fas fa-globe me-1"></i>
+                    Shared across all players - updates require file replacement
+                </small>
             </div>
 
             @if (isLoading)
@@ -17,7 +21,7 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2 text-muted">Loading scores...</p>
+                    <p class="mt-2 text-muted">Loading your local scores...</p>
                 </div>
             }
             else if (!topScores.Any())
@@ -25,12 +29,27 @@
                 <div class="text-center py-5">
                     <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
                     <h6 class="text-muted">No scores yet!</h6>
-                    <p class="text-muted mb-0">Be the first to set a high score!</p>
+                    <p class="text-muted mb-0">Be the first to set a high score on the global leaderboard!</p>
+                    <div class="mt-3">
+                        <i class="fas fa-info-circle text-info me-1"></i>
+                        <small class="text-info">Scores are shared globally via file updates</small>
+                    </div>
                 </div>
             }
             else
             {
                 <div class="leaderboard-content">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">
+                            <i class="fas fa-list-ol me-1"></i>
+                            Top @topScores.Count Scores
+                        </span>
+                        <span class="text-muted small">
+                            <i class="fas fa-globe me-1"></i>
+                            Global scores
+                        </span>
+                    </div>
+
                     <div class="row fw-bold border-bottom pb-2 mb-3 text-muted small text-uppercase">
                         <div class="col-1">#</div>
                         <div class="col-3">Player</div>
@@ -49,15 +68,15 @@
                             <div class="col-1">
                                 @if (rank == 1)
                                 {
-                                    <i class="fas fa-crown text-warning fs-5"></i>
+                                    <i class="fas fa-crown text-warning fs-5" title="1st Place!"></i>
                                 }
                                 else if (rank == 2)
                                 {
-                                    <i class="fas fa-medal text-secondary fs-5"></i>
+                                    <i class="fas fa-medal text-secondary fs-5" title="2nd Place!"></i>
                                 }
                                 else if (rank == 3)
                                 {
-                                    <i class="fas fa-award text-warning fs-5"></i>
+                                    <i class="fas fa-award text-warning fs-5" title="3rd Place!"></i>
                                 }
                                 else
                                 {
@@ -88,14 +107,34 @@
 
             <!-- Action Buttons -->
             <div class="leaderboard-actions mt-4">
-                <button type="button" class="btn btn-big-rounded btn-primary me-3" @onclick="RefreshScores">
-                    <i class="fas fa-sync-alt me-2"></i>
-                    Refresh Scores
-                </button>
-                <button type="button" class="btn btn-big-rounded btn-secondary" @onclick="CloseModal">
-                    <i class="fas fa-times me-2"></i>
-                    Close
-                </button>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-big-rounded btn-primary me-3" @onclick="RefreshScores" disabled="@isLoading">
+                            <i class="fas fa-sync-alt me-2"></i>
+                            Refresh
+                        </button>
+                        @if (topScores.Any())
+                        {
+                            <button type="button" class="btn btn-big-rounded btn-outline-danger me-3" @onclick="ClearLeaderboard" disabled="@isLoading">
+                                <i class="fas fa-trash me-2"></i>
+                                Clear All
+                            </button>
+                        }
+                    </div>
+                    <button type="button" class="btn btn-big-rounded btn-secondary" @onclick="CloseModal">
+                        <i class="fas fa-times me-2"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+
+            <!-- Local Storage Info -->
+            <div class="alert alert-info mt-3 mb-0" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <small>
+                    <strong>Local Leaderboard:</strong> Your scores are saved in this browser only. 
+                    They persist between sessions but won't sync across different devices or browsers.
+                </small>
             </div>
         </div>
     </Body>

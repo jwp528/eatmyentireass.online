@@ -27,7 +27,7 @@ namespace BlazorApp.Client.Pages
 
         double assesEaten = 0;
         int piecesEaten = 0;
-        
+
         // Add tracking for dynamic stats and polling
         DateTime gameStartTime;
         List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls = new(); // Store polls for chart
@@ -140,7 +140,7 @@ namespace BlazorApp.Client.Pages
             {
                 CurrentAssType = BlazorApp.Shared.Assets.GetRandomAssType();
                 AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
-                
+
                 // Ensure piecesEaten is within bounds
                 if (piecesEaten >= AssFrames.Count)
                 {
@@ -190,50 +190,50 @@ namespace BlazorApp.Client.Pages
                 GameTimer.Dispose();
                 GameTimer = null;
             }
-            
+
             if (StatsUpdateTimer != null)
             {
                 StatsUpdateTimer.Stop();
                 StatsUpdateTimer.Dispose();
                 StatsUpdateTimer = null;
             }
-            
+
             if (StatsPollTimer != null)
             {
                 StatsPollTimer.Stop();
                 StatsPollTimer.Dispose();
                 StatsPollTimer = null;
             }
-            
+
             ResetGame();
             GetNewAss();
-            
+
             // Capture game start time for dynamic stats
             gameStartTime = DateTime.Now;
-            
+
             // Add initial poll at game start (0 seconds, 0 clicks/sec)
             clicksPerSecondPolls.Add((0, 0.0));
-            
+
             // Main game timer (1 second intervals)
             GameTimer = new Timer(1000);
             GameTimer.Elapsed += OnTimerTick;
             GameTimer.AutoReset = true;
             GameTimer.Enabled = true;
-            
+
             // Stats update timer (faster updates for smoother display)
             StatsUpdateTimer = new Timer(500); // Update every 500ms for smooth stats
             StatsUpdateTimer.Elapsed += OnStatsUpdateTick;
             StatsUpdateTimer.AutoReset = true;
             StatsUpdateTimer.Enabled = true;
-            
+
             // Stats polling timer (every 10 seconds for chart data)
             StatsPollTimer = new Timer(10000); // Poll every 10 seconds
             StatsPollTimer.Elapsed += OnStatsPollTick;
             StatsPollTimer.AutoReset = true;
             StatsPollTimer.Enabled = true;
-            
+
             gamePlaying = true;
-            
+
             // Force UI update
             StateHasChanged();
         }
@@ -248,7 +248,7 @@ namespace BlazorApp.Client.Pages
             // Update UI for dynamic stats display
             InvokeAsync(() => StateHasChanged());
         }
-        
+
         void OnStatsPollTick(object sender, EventArgs e)
         {
             if (!gamePlaying || StatsPollTimer == null)
@@ -260,7 +260,7 @@ namespace BlazorApp.Client.Pages
             var elapsed = DateTime.Now - gameStartTime;
             var timeStamp = (int)Math.Round(elapsed.TotalSeconds);
             var cps = GetClicksPerSecond();
-            
+
             InvokeAsync(() =>
             {
                 clicksPerSecondPolls.Add((timeStamp, cps));
@@ -350,7 +350,7 @@ namespace BlazorApp.Client.Pages
                     await js.InvokeVoidAsync("playSound", sound, volume);
                 }
             }
-            
+
             // Force UI update to show current score
             StateHasChanged();
         }
@@ -374,7 +374,7 @@ namespace BlazorApp.Client.Pages
         {
             // Always show results dialog immediately
             await ShowResultsDialog();
-            
+
             // Don't check for leaderboard qualification - let user decide if they want to save
             // This eliminates the delay from API calls
         }
@@ -401,21 +401,21 @@ namespace BlazorApp.Client.Pages
                 GameTimer.Dispose();
                 GameTimer = null;
             }
-            
+
             if (StatsUpdateTimer != null)
             {
                 StatsUpdateTimer.Stop();
                 StatsUpdateTimer.Dispose();
                 StatsUpdateTimer = null;
             }
-            
+
             if (StatsPollTimer != null)
             {
                 StatsPollTimer.Stop();
                 StatsPollTimer.Dispose();
                 StatsPollTimer = null;
             }
-            
+
             // Capture final poll when game ends
             if (gamePlaying && clicksPerSecondPolls.Count > 0)
             {
@@ -424,10 +424,10 @@ namespace BlazorApp.Client.Pages
                 var cps = GetClicksPerSecond();
                 clicksPerSecondPolls.Add((timeStamp, cps));
             }
-            
+
             gamePlaying = false;
             gameJustEnded = true; // Set flag to prevent immediate restart
-            
+
             // Auto-clear the flag after 5 seconds to allow restart if modals are closed
             _ = Task.Run(async () =>
             {
@@ -435,7 +435,7 @@ namespace BlazorApp.Client.Pages
                 gameJustEnded = false;
                 await InvokeAsync(() => StateHasChanged());
             });
-            
+
             StateHasChanged();
         }
 
@@ -447,14 +447,14 @@ namespace BlazorApp.Client.Pages
                 GameTimer.Dispose();
                 GameTimer = null;
             }
-            
+
             if (StatsUpdateTimer != null)
             {
                 StatsUpdateTimer.Stop();
                 StatsUpdateTimer.Dispose();
                 StatsUpdateTimer = null;
             }
-            
+
             if (StatsPollTimer != null)
             {
                 StatsPollTimer.Stop();

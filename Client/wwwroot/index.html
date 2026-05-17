@@ -59,6 +59,62 @@
     <meta name="application-name" content="EatMyEntireAss.Online">
     <meta name="mobile-web-app-capable" content="yes">
     <!-- END SEO TAGS -->
+
+    <!-- Complete Browser Link CORS error suppression -->
+    <script>
+        // Comprehensive Browser Link error suppression for development
+        if (window.location.hostname === 'localhost') {
+            // Override console methods to filter Browser Link errors
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            const originalLog = console.log;
+            
+            const isBrowserLinkError = (message) => {
+                if (typeof message === 'string') {
+                    return message.includes('browserLinkSignalR') ||
+                           message.includes('negotiate?clientProtocol') ||
+                           message.includes('Cross-Origin Request Blocked') ||
+                           message.includes('CORS request did not succeed') ||
+                           (message.includes('localhost') && /:\d{5}\/[a-f0-9-]+\/browserLink/.test(message));
+                }
+                return false;
+            };
+
+            console.error = function(message, ...args) {
+                if (!isBrowserLinkError(message)) {
+                    originalError.apply(console, [message, ...args]);
+                }
+            };
+
+            console.warn = function(message, ...args) {
+                if (!isBrowserLinkError(message)) {
+                    originalWarn.apply(console, [message, ...args]);
+                }
+            };
+
+            // Suppress fetch errors for Browser Link
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                if (typeof url === 'string' && url.includes('browserLinkSignalR')) {
+                    // Return a rejected promise silently
+                    return Promise.reject(new Error('Browser Link request suppressed'));
+                }
+                return originalFetch.apply(window, [url, options]);
+            };
+
+            // Block Browser Link WebSocket connections
+            const OriginalWebSocket = window.WebSocket;
+            window.WebSocket = function(url, protocols) {
+                if (typeof url === 'string' && url.includes('browserLink')) {
+                    console.log('Browser Link WebSocket connection blocked');
+                    throw new Error('Browser Link WebSocket blocked');
+                }
+                return new OriginalWebSocket(url, protocols);
+            };
+
+            console.log('[Browser Link Suppression] Browser Link CORS errors are being filtered out');
+        }
+    </script>
 </head>
 
 <body data-bs-theme="dark">

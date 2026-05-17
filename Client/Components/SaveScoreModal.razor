@@ -5,10 +5,21 @@
         <div class="save-score-container">
             <!-- Modal Title -->
             <div class="text-center mb-4">
-                <h4 class="fw-bold text-white mb-0">
-                    <i class="fas fa-save text-success me-2"></i>
-                    Save Your Score
-                </h4>
+                @if (isHighScore)
+                {
+                    <h4 class="fw-bold text-warning mb-0">
+                        <i class="fas fa-trophy text-warning me-2"></i>
+                        🎉 HIGH SCORE! 🎉
+                    </h4>
+                    <small class="text-muted">You made it to the top 10!</small>
+                }
+                else
+                {
+                    <h4 class="fw-bold text-white mb-0">
+                        <i class="fas fa-save text-success me-2"></i>
+                        Save Your Score
+                    </h4>
+                }
             </div>
 
             <div class="mb-4 text-center">
@@ -16,7 +27,22 @@
                 <div class="text-muted">
                     @TotalClicks clicks • @(TotalClicks > 0 ? Math.Round(Score / TotalClicks, 3) : 0) points/click
                 </div>
-                <p class="text-muted mb-0 mt-2">Awesome score! Enter your name to save it to the leaderboard.</p>
+                @if (isHighScore && playerRank > 0)
+                {
+                    <div class="badge bg-warning text-dark mt-2">
+                        <i class="fas fa-medal me-1"></i>Rank #@playerRank
+                    </div>
+                }
+                <p class="text-muted mb-0 mt-2">
+                    @if (isHighScore)
+                    {
+                        <span class="text-warning">🏆 Congratulations! This score earns a spot on the leaderboard!</span>
+                    }
+                    else
+                    {
+                        <span>Great score! Your progress is saved locally.</span>
+                    }
+                </p>
             </div>
             
             <div class="mb-3">
@@ -45,9 +71,15 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Saving...</span>
                     </div>
-                    <p class="mt-2 text-muted">Saving your score...</p>
+                    <p class="mt-2 text-muted">Saving to shared global leaderboard...</p>
                 </div>
             }
+
+            <!-- Information about shared storage -->
+            <div class="alert alert-info mb-3" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <small>Scores are saved to the global shared leaderboard. All players will see your score immediately!</small>
+            </div>
 
             <!-- Action Buttons -->
             <div class="d-flex justify-content-between">
@@ -61,8 +93,8 @@
                         class="btn btn-success" 
                         @onclick="SaveScore"
                         disabled="@(isSaving || string.IsNullOrWhiteSpace(playerName))">
-                    <i class="fas fa-save me-2"></i>
-                    @(isSaving ? "Saving..." : "Save Score")
+                    <i class="fas @(isHighScore ? "fa-trophy" : "fa-save") me-2"></i>
+                    @(isSaving ? "Saving..." : isHighScore ? "Save High Score!" : "Save Score")
                 </button>
             </div>
         </div>
@@ -92,5 +124,11 @@
 
     .save-score-container .form-control::placeholder {
         color: rgba(255, 255, 255, 0.6);
+    }
+
+    .save-score-container .alert-info {
+        background: rgba(13, 202, 240, 0.1);
+        border: 1px solid rgba(13, 202, 240, 0.2);
+        color: #9ec5fe;
     }
 </style>
