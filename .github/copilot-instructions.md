@@ -44,13 +44,13 @@ NEVER CANCEL builds or long-running commands. Set timeout to 120+ minutes for al
 ```bash
 cd /path/to/repo
 export PATH="$HOME/.dotnet:$PATH"
-dotnet restore EMEAOnline.sln
+dotnet restore EMEAOnline.slnx
 ```
 Expected time: **1 second** (when packages already restored). **FIRST RESTORE**: 45+ seconds. NEVER CANCEL - wait for completion.
 
 ### Step 2: Build Solution
 ```bash
-dotnet build EMEAOnline.sln
+dotnet build EMEAOnline.slnx
 ```
 Expected time: **6 seconds** (after initial setup). **FIRST BUILD**: 60+ seconds. NEVER CANCEL - set timeout to 120+ minutes.
 
@@ -87,7 +87,7 @@ cp local.settings.example.json local.settings.json
 **Why Hybrid?** Azure Functions don't integrate well with Aspire's service discovery model. The error "service-producer annotation is invalid" occurs because Functions use their own hosting model that doesn't support Aspire's orchestration protocols.
 
 ### Method 2: Visual Studio 2022 (Recommended for Windows)
-1. Open `EMEAOnline.sln` in Visual Studio 2022
+1. Open `EMEAOnline.slnx` in Visual Studio 2022
 2. Configure multiple startup projects:
    - Right-click solution → Configure Startup Projects
    - Select Multiple startup projects
@@ -141,7 +141,7 @@ Access application at: `http://localhost:4280`
 ### No Unit Tests Available
 The repository currently contains no test projects. Run:
 ```bash
-dotnet test EMEAOnline.sln
+dotnet test EMEAOnline.slnx
 ```
 This will complete quickly with 0 tests found.
 
@@ -151,7 +151,7 @@ ALWAYS perform these validation steps after making code changes:
 
 1. **Build Validation**:
    ```bash
-   dotnet build EMEAOnline.sln
+   dotnet build EMEAOnline.slnx
    # Must succeed (warnings OK, errors not OK)
    ```
 
@@ -205,7 +205,7 @@ This command will EXIT CODE 2 if formatting issues exist. Fix them with `dotnet 
 
 ### Build for CI:
 ```bash
-dotnet build EMEAOnline.sln --configuration Release
+dotnet build EMEAOnline.slnx --configuration Release
 ```
 Expected time: **6 seconds**. NEVER CANCEL - set timeout to 120+ minutes.
 

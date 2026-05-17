@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/azure-static-web-apps-brave-sea-0dfd8ff10.yml" />
+    <File Path=".gitignore" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Api/Api.csproj" />
+  <Project Path="Aspire/Aspire.csproj" />
+  <Project Path="Client/Client.csproj" />
+  <Project Path="Shared/Shared.csproj" />
+</Solution>
