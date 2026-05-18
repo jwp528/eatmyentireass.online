@@ -149,11 +149,21 @@ namespace BlazorApp.Client.Pages
             _ => "How did you even get this? I default the number to 0..."
         };
 
+        protected override void OnInitialized()
+        {
+            base.OnInitialized();
+            GetNewAss(); // Populate frames synchronously before first render to avoid loading spinner
+        }
+
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
             await LoadSettings();
-            GetNewAss();
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (!firstRender) return;
             await AnniversaryDialog.ShowIfEligibleAsync();
             await CheckForUpdateAsync();
         }

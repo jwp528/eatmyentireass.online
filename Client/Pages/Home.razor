@@ -11,136 +11,101 @@
 
 <PageTitle>Eat my entire ass</PageTitle>
 
-<div class="game-container">
-    <Navbar OnShowAboutDialog="ShowAboutDialog" />
+<div class="app-shell">
 
-    <div class="container-fluid px-0">
-        <div class="row p-3 min-vh-100 align-items-start justify-content-center">
-            <div class="col-12 col-md-10 col-lg-8 text-center py-4">
-                
-                <!-- Actions Bar -->
-                <div class="actions-bar mb-4 d-flex justify-content-center align-items-center gap-3">
-                    <button class="btn-fab" @onclick="ShowHelpDialog" title="How to Play">
-                        <i class="fas fa-book-open"></i>
-                    </button>
-                    <button class="btn-fab" @onclick="ShowLeaderboardStatsDialog" title="Leaderboard &amp; Stats">
-                        <i class="fas fa-trophy"></i>
-                    </button>
-                    <button class="btn-fab" @onclick="ShowAssdexDialog" title="Assdex">
-                        <i class="fas fa-book"></i>
-                    </button>
-                    <button class="btn-fab" @onclick="ShowDailyDialog" title="Daily Challenge">
-                        <i class="fas fa-calendar-day"></i>
-                    </button>
-                    <button class="btn-fab @(playSounds ? "btn-fab-active" : "")" @onclick="ToggleSound" title="@(playSounds ? "Sound On" : "Sound Off")">
-                        <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute")"></i>
-                    </button>
-                </div>
-
-                <div class="game-header mb-4">
-                    <h1 class="game-title display-3 fw-bold mb-3">Eat my entire ass!</h1>
-                    
-                    <!-- Timer and Stats Side by Side -->
-                    <div class="game-info-bar d-flex justify-content-center align-items-center gap-4 flex-wrap">
-                        <!-- Timer Display -->
-                        <div class="timer-container">
-                            <div class="timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "timer-warning" : "")">
-                                <i class="fas fa-clock me-2"></i>@TimerDisplay
-                            </div>
-                        </div>
-                        
-                        <!-- CPS Display (only show when game is playing) -->
-                        @if (gamePlaying)
-                        {
-                            <div class="stats-container">
-                                @{
-                                    var elapsed = DateTime.Now - gameStartTime;
-                                    var showStats = elapsed.TotalSeconds >= 1.0; // Wait 1 second before showing stats
-                                }
-                                
-                                @if (showStats)
-                                {
-                                    <div class="cps-display d-flex align-items-center">
-                                        <i class="fas fa-mouse text-primary me-2"></i>
-                                        <span class="stat-value text-primary fw-bold fs-5">@CurrentClicksPerSecond</span>
-                                        <span class="stat-label text-muted ms-1">clicks/sec</span>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="text-muted">
-                                        <small><i class="fas fa-hourglass-start me-1"></i>Warming up...</small>
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
-                </div>
-                
-                <div class="game-display p-3 p-md-4 mx-0 mx-md-2" @onclick="EatPiece" role="button" tabindex="0">
-                    <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
-                </div>
-
-                @if (gamePlaying && comboCount >= 3)
-                {
-                    <div class="combo-badge @ComboCssClass mt-2">
-                        <span class="combo-x">×@ComboMultiplier.ToString("G2")</span>
-                        <span class="combo-label">@ComboLabel</span>
-                    </div>
-                }
-                
-                @if (!gamePlaying)
-                {
-                    @if (assesEaten > 0)
-                    {
-                        <div class="game-results mt-4">
-                            <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 gap-md-3">
-                                <p class="fs-4 mb-2 mb-md-0">Final Score: @Math.Truncate(assesEaten)</p>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-primary btn-sm btn-md" @onclick="() => ResultsDialog?.Modal?.Show()">
-                                        <i class="fas fa-trophy me-2"></i>View Details
-                                    </button>
-                                    <button class="btn btn-primary btn-sm btn-md" @onclick="StartNewGame">
-                                        <i class="fas fa-rotate me-2"></i>Play Again
-                                    </button>
-                                </div>
-                            </div>
-                            @if (gameJustEnded)
-                            {
-                                <div class="mt-3">
-                                    <small class="text-warning">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Game ended! Use "Play Again" button to start a new game.
-                                    </small>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="start-prompt mt-4">
-                            <p class="fs-4">Click the ass to start!</p>
-                        </div>
-                    }
-                }else{
-                    <div class="start-prompt mt-4">
-                        <p class="fs-4">CONSUME!</p>
-                    </div>
-                }
-
-                <!-- Built By line -->
-                <div class="built-by mt-3 text-center">
-                    <small class="text-muted d-flex align-items-center justify-content-center gap-2">
-                        Built By: 
-                        <a href="https://joshparsons.ca" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-flex align-items-center gap-1">
-                            <img src="https://www.joshparsons.ca/img/Logo.svg" alt="Josh Parsons Logo" width="20" height="20" />
-                            <span class="text-white">Josh Parsons</span>
-                        </a>
-                    </small>
-                </div>
-            </div>
+    <header class="app-bar">
+        <div class="app-bar-brand">
+            <img src="/icon-192.png" alt="EMEA" width="28" class="app-bar-icon" />
+            <span class="app-bar-title">EMEA</span>
         </div>
-    </div>
+
+        <nav class="app-bar-actions">
+            <button class="icon-btn" @onclick="ShowHelpDialog" title="How to Play">
+                <i class="fas fa-book-open"></i>
+            </button>
+            <button class="icon-btn" @onclick="ShowLeaderboardStatsDialog" title="Leaderboard &amp; Stats">
+                <i class="fas fa-trophy"></i>
+            </button>
+            <button class="icon-btn" @onclick="ShowAssdexDialog" title="Assdex">
+                <i class="fas fa-book"></i>
+            </button>
+            <button class="icon-btn" @onclick="ShowDailyDialog" title="Daily Challenge">
+                <i class="fas fa-calendar-day"></i>
+            </button>
+        </nav>
+
+        <div class="app-bar-end">
+            <button class="icon-btn @(playSounds ? "icon-btn-active" : "")" @onclick="ToggleSound"
+                    title="@(playSounds ? "Sound On" : "Sound Off")">
+                <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute")"></i>
+            </button>
+            <a href="https://github.com/jwp528/eatmyentireass.online" target="_blank"
+               rel="noopener noreferrer" class="icon-btn hide-xs" title="View Source Code">
+                <i class="fab fa-github"></i>
+            </a>
+            <button class="icon-btn" @onclick="ShowAboutDialog" title="About Developer">
+                <img src="https://www.joshparsons.ca/img/Logo.svg" alt="Josh Parsons"
+                     width="18" height="18" class="icon-btn-img" />
+            </button>
+        </div>
+    </header>
+
+    <main class="game-main" @onclick="EatPiece" role="button" tabindex="0">
+        <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
+
+        @if (gamePlaying && comboCount >= 3)
+        {
+            <div class="combo-badge @ComboCssClass">
+                <span class="combo-x">×@ComboMultiplier.ToString("G2")</span>
+                <span class="combo-label">@ComboLabel</span>
+            </div>
+        }
+    </main>
+
+    <footer class="status-strip">
+        <div class="status-item @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "status-warning" : "")">
+            <i class="fas fa-clock status-icon"></i>
+            <span class="status-timer-val">@TimerDisplay</span>
+        </div>
+
+        <div class="status-center">
+            @if (!gamePlaying)
+            {
+                @if (assesEaten > 0)
+                {
+                    <span class="status-score">@Math.Truncate(assesEaten) pts</span>
+                    <button class="status-action-btn" @onclick="() => ResultsDialog?.Modal?.Show()">
+                        <i class="fas fa-chart-bar"></i><span class="btn-label"> Details</span>
+                    </button>
+                    <button class="status-action-btn status-action-primary" @onclick="StartNewGame">
+                        <i class="fas fa-rotate"></i><span class="btn-label"> Play Again</span>
+                    </button>
+                }
+                else
+                {
+                    <span class="status-hint">Click to start!</span>
+                }
+            }
+            else
+            {
+                <span class="status-hint">CONSUME!</span>
+            }
+        </div>
+
+        <div class="status-item status-cps-area">
+            @if (gamePlaying)
+            {
+                var elapsed = DateTime.Now - gameStartTime;
+                @if (elapsed.TotalSeconds >= 1.0)
+                {
+                    <i class="fas fa-mouse status-icon"></i>
+                    <span class="status-cps-val">@CurrentClicksPerSecond</span>
+                    <small class="status-cps-label">cps</small>
+                }
+            }
+        </div>
+    </footer>
+
 </div>
 
 <HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" />
@@ -150,15 +115,15 @@
 <AssdexModal @ref="AssdexDialog" />
 <DailyModal @ref="DailyDialog" />
 <ResultsModal @ref="ResultsDialog"
-              assesEaten="@assesEaten" 
-              totalClicks="@totalClicks" 
-              scoreText="@scoreText" 
-              AssTypes="@Breakdown.Keys.ToList()" 
-              Breakdown="@Breakdown" 
+              assesEaten="@assesEaten"
+              totalClicks="@totalClicks"
+              scoreText="@scoreText"
+              AssTypes="@Breakdown.Keys.ToList()"
+              Breakdown="@Breakdown"
               hasScoreSaved="@hasScoreSaved"
               clicksPerSecondPolls="@clicksPerSecondPolls"
               peakComboCount="@peakComboCount"
-              OnTryAgain="TryAgain" 
+              OnTryAgain="TryAgain"
               OnSaveScore="ShowSaveScoreDialog"
               OnShowLeaderboard="ShowLeaderboardDialog" />
 <LeaderboardStatsModal @ref="LeaderboardStatsDialog" />
@@ -169,7 +134,7 @@
     SaveScoreModal? SaveScoreDialog;
     AssdexModal? AssdexDialog;
     DailyModal? DailyDialog;
-    
+
     // Make totalClicks accessible in the template
     public int totalClicks = 0;
 
@@ -195,7 +160,6 @@
 
     async Task ShowSaveScoreDialog()
     {
-        // Only show save dialog if score hasn't been saved yet
         if (!hasScoreSaved)
         {
             await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);
@@ -204,10 +168,7 @@
 
     async Task OnScoreSaved()
     {
-        // Mark that score has been saved for this game
         hasScoreSaved = true;
-        
-        // Keep the results dialog open but update its state
         StateHasChanged();
     }
 }
