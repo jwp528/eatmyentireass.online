@@ -78,53 +78,85 @@
     border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
-/* ── Tier badge circles ─────────────────────── */
-.pd-tiers {
+/* ── Tier badge strip (right panel) ────────── */
+.pd-tier-strip {
     display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: 5px;
+    margin-bottom: 0.75rem;
 }
 
-.pd-tier {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
+.pd-tier-card {
+    flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    font-size: 0.52rem;
-    font-weight: 800;
-    border: 2px solid;
+    text-align: center;
+    padding: 0.45rem 0.25rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
-    cursor: default;
 }
 
-/* Locked state */
-.pd-tier-off {
-    border-color: rgba(255, 255, 255, 0.13);
-    color: rgba(255, 255, 255, 0.18);
+.pd-tc-off {
+    opacity: 0.28;
     background: transparent;
 }
 
-/* Unlocked colors */
-.tier-bronze.pd-tier-on  { border-color: #cd7f32; color: #cd7f32; background: rgba(205, 127, 50, 0.12); }
-.tier-silver.pd-tier-on  { border-color: #94a3b8; color: #94a3b8; background: rgba(148, 163, 184, 0.12); }
-.tier-gold.pd-tier-on    { border-color: #f59e0b; color: #f59e0b; background: rgba(245, 158, 11, 0.12); }
-.tier-plat.pd-tier-on    { border-color: #a78bfa; color: #a78bfa; background: rgba(167, 139, 250, 0.12); }
+/* Tier colors when unlocked */
+.tier-bronze.pd-tc-on { border-color: #cd7f32; background: rgba(205, 127, 50, 0.07); color: #cd7f32; }
+.tier-silver.pd-tc-on { border-color: #94a3b8; background: rgba(148, 163, 184, 0.07); color: #94a3b8; }
+.tier-gold.pd-tc-on   { border-color: #f59e0b; background: rgba(245, 158, 11, 0.07); color: #f59e0b; }
+.tier-plat.pd-tc-on   { border-color: #a78bfa; background: rgba(167, 139, 250, 0.07); color: #a78bfa; }
 
-/* Active (highest unlocked) tier pops */
-.pd-tier-active {
-    transform: scale(1.18);
-    box-shadow: 0 0 8px currentColor;
+/* Active (highest unlocked) glows */
+.pd-tc-active {
+    transform: scale(1.04);
+    box-shadow: 0 0 10px currentColor;
 }
 
+.pd-tc-icon {
+    font-size: 1rem;
+    margin-bottom: 0.22rem;
+}
+
+.pd-tc-name {
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+}
+
+.pd-tier-card.pd-tc-off .pd-tc-name { color: rgba(255, 255, 255, 0.5); }
+
+.pd-tc-cond {
+    font-size: 0.55rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 1px;
+    line-height: 1.2;
+}
+
+.pd-tc-perk {
+    font-size: 0.52rem;
+    color: rgba(255, 255, 255, 0.35);
+    font-style: italic;
+    margin-top: 1px;
+    line-height: 1.2;
+}
+
+/* Current tier label in left panel */
 .pd-tier-label {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.4);
     letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
+
+.pd-tier-label.tier-bronze { color: #cd7f32; }
+.pd-tier-label.tier-silver { color: #94a3b8; }
+.pd-tier-label.tier-gold   { color: #f59e0b; }
+.pd-tier-label.tier-plat   { color: #a78bfa; }
 
 /* ── Right panel ────────────────────────────── */
 .pd-right {
