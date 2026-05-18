@@ -162,7 +162,7 @@
                     requestAnimationFrame(frame);
                 } else {
                     // Stop spawning; let existing particles fall off naturally, then clean up
-                    setTimeout(() => { myConfetti.reset(); canvas.remove(); }, 3000);
+                    setTimeout(() => { myConfetti.reset(); if (canvas.parentNode) canvas.remove(); }, 3000);
                 }
             }());
         };

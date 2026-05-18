@@ -50,24 +50,7 @@
         </div>
     </header>
 
-    <main class="game-main @(gamePlaying && frenzyActive ? "frenzy-active" : "")"
-          @onclick="EatPiece"
-          @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
-          role="button" tabindex="0">
-        <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
-
-        @if (gamePlaying && frenzyActive)
-        {
-            <div class="fire-overlay"></div>
-            <div class="frenzy-overlay">
-                <span class="frenzy-title">🔥 FRENZY!</span>
-                <span class="frenzy-timer">@frenzySecondsLeft</span>
-                <span class="frenzy-hold-hint">HOLD</span>
-            </div>
-        }
-    </main>
-
-    <footer class="status-strip">
+    <div class="game-hud">
         <div class="status-item @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "status-warning" : "")">
             <i class="fas fa-clock status-icon"></i>
             <span class="status-timer-val">@TimerDisplay</span>
@@ -116,7 +99,24 @@
                 }
             }
         </div>
-    </footer>
+    </div>
+
+    <main class="game-main @(gamePlaying && frenzyActive ? "frenzy-active" : "")"
+          @onclick="EatPiece"
+          @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
+          role="button" tabindex="0">
+        <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
+
+        @if (gamePlaying && frenzyActive)
+        {
+            <div class="fire-overlay"></div>
+            <div class="frenzy-overlay">
+                <span class="frenzy-title">🔥 FRENZY!</span>
+                <span class="frenzy-timer">@frenzySecondsLeft</span>
+                <span class="frenzy-hold-hint">HOLD</span>
+            </div>
+        }
+    </main>
 
 </div>
 

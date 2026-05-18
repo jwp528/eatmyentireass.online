@@ -113,7 +113,7 @@
 
 ::deep .game-img {
     max-width: 100%;
-    max-height: calc(100dvh - 120px);
+    max-height: calc(100dvh - 108px);
     height: auto;
     width: auto;
     display: block;
@@ -127,14 +127,14 @@
     opacity: 0.45;
 }
 
-/* ── Status Strip ────────────────────────────────────────────────── */
-.status-strip {
+/* ── Game HUD (timer bar above playing area) ─────────────────────── */
+.game-hud {
     display: flex;
     align-items: center;
-    height: 52px;
+    height: 44px;
     padding: 0 16px;
     background: rgba(255, 255, 255, 0.03);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     gap: 8px;
     flex-shrink: 0;
 }
@@ -373,7 +373,7 @@
         font-size: 0.9rem;
     }
 
-    .status-strip {
+    .game-hud {
         padding: 0 8px;
         gap: 4px;
     }
