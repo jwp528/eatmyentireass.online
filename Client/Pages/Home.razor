@@ -37,7 +37,7 @@
         <div class="app-bar-end">
             <button class="icon-btn @(playSounds ? "icon-btn-active" : "")" @onclick="ToggleSound"
                     title="@(playSounds ? "Sound On" : "Sound Off")">
-                <i class="@(playSounds ? "fas fa-volume-high" : "fas fa-volume-xmark")"></i>
+                <i class="@(playSounds ? "bi bi-volume-up-fill" : "bi bi-volume-mute-fill")"></i>
             </button>
             <a href="https://github.com/jwp528/eatmyentireass.online" target="_blank"
                rel="noopener noreferrer" class="icon-btn hide-xs" title="View Source Code">
@@ -59,7 +59,7 @@
         @* Timer — top-center, always visible while game is active *@
         @if (gamePlaying)
         {
-            <div class="canvas-timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "canvas-timer-warning" : "")">
+            <div class="canvas-timer @(gameStartTransition ? "canvas-timer-enter" : "") @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "canvas-timer-warning" : "")">
                 @TimerDisplay
             </div>
         }
@@ -76,10 +76,10 @@
             }
         }
 
-        @* Pre-game prompt *@
-        @if (!gamePlaying && assesEaten == 0)
+        @* Pre-game prompt (stays mounted during transition so it can animate out) *@
+        @if ((!gamePlaying && assesEaten == 0) || gameStartTransition)
         {
-            <div class="canvas-hint">Click to start!</div>
+            <div class="canvas-hint @(gameStartTransition ? "canvas-hint-exit" : "")">Click to start!</div>
         }
 
         @* Post-game overlay *@

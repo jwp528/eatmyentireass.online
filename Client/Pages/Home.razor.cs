@@ -18,6 +18,7 @@ namespace BlazorApp.Client.Pages
 
         bool gamePlaying;
         bool gameJustEnded; // Add this flag to prevent immediate restart
+        bool gameStartTransition = false; // Drives the hint→timer tween animation
         bool hasScoreSaved; // Track if score has been saved for current game
         bool playSounds = true;
         double volume = 1;
@@ -272,6 +273,12 @@ namespace BlazorApp.Client.Pages
             StatsPollTimer.Enabled = true;
 
             gamePlaying = true;
+            gameStartTransition = true;
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(420);
+                await InvokeAsync(() => { gameStartTransition = false; StateHasChanged(); });
+            });
 
             // Force UI update
             StateHasChanged();

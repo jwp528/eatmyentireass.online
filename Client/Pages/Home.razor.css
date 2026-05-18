@@ -181,13 +181,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
     pointer-events: none;
     z-index: 5;
     animation: fade-pulse 2.5s ease-in-out infinite;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.03em;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7);
+}
+
+.canvas-hint-exit {
+    animation: hint-exit 0.42s ease-in forwards;
+}
+
+.canvas-timer-enter {
+    animation: timer-enter 0.42s ease-out forwards !important;
 }
 
 /* Post-game results overlay */
@@ -322,8 +331,18 @@
 }
 
 @@keyframes fade-pulse {
-    0%, 100% { opacity: 0.55; }
+    0%, 100% { opacity: 0.75; }
     50%       { opacity: 1; }
+}
+
+@@keyframes hint-exit {
+    from { opacity: 0.92; transform: translateY(0); }
+    to   { opacity: 0;    transform: translateY(-40px); }
+}
+
+@@keyframes timer-enter {
+    from { opacity: 0; transform: translate(-50%, 32px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
 @@keyframes frenzy-shake {
