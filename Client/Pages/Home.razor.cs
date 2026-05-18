@@ -69,11 +69,6 @@ namespace BlazorApp.Client.Pages
         List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls = new(); // Store polls for chart
         double CurrentClicksPerSecond => GetClicksPerSecond();
 
-        // Daily Challenge mode
-        bool isDailyChallenge = false;
-        List<BlazorApp.Shared.Assets.AssTypeEnum> dailySequence = new();
-        int dailySequenceIndex = 0;
-
         private double GetClicksPerSecond()
         {
             if (!gamePlaying || totalClicks == 0) return 0.0;
@@ -190,15 +185,7 @@ namespace BlazorApp.Client.Pages
         {
             try
             {
-                if (isDailyChallenge && dailySequence.Count > 0)
-                {
-                    CurrentAssType = dailySequence[dailySequenceIndex % dailySequence.Count];
-                    dailySequenceIndex++;
-                }
-                else
-                {
-                    CurrentAssType = BlazorApp.Shared.Assets.GetRandomAssType();
-                }
+                CurrentAssType = BlazorApp.Shared.Assets.GetRandomAssType();
                 AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
 
                 // Ensure piecesEaten is within bounds
@@ -232,8 +219,6 @@ namespace BlazorApp.Client.Pages
             gameJustEnded = false; // Reset the flag when starting a fresh game
             hasScoreSaved = false; // Reset score saved flag for new game
             clicksPerSecondPolls.Clear(); // Clear previous game's polling data
-            isDailyChallenge = false;
-            dailySequenceIndex = 0;
             Breakdown = new()
             {
                 { AssTypeEnum.Boney, 0 },
@@ -302,14 +287,6 @@ namespace BlazorApp.Client.Pages
             StateHasChanged();
         }
 
-        void StartDailyChallenge()
-        {
-            isDailyChallenge = true;
-            dailySequence = BlazorApp.Shared.DailyChallenge.GetDailySequence(DateOnly.FromDateTime(DateTime.UtcNow));
-            dailySequenceIndex = 0;
-            StartGame();
-        }
-
         void OnStatsUpdateTick(object sender, EventArgs e)
         {
             if (!gamePlaying || StatsUpdateTimer == null)
@@ -372,9 +349,8 @@ namespace BlazorApp.Client.Pages
                 // Submit aggregate stats (fire-and-forget, don't block results)
                 _ = SubmitGameStatsAsync();
 
-                // Save daily score if in daily challenge mode
-                if (isDailyChallenge)
-                    _ = PromptAndSaveDailyScoreAsync();
+                // Check daily challenge progress
+                _ = CheckDailyChallengesAsync();
 
                 // Show results immediately - no delay for API calls
                 await CheckAndPromptScoreSave();
@@ -550,11 +526,18 @@ namespace BlazorApp.Client.Pages
             StateHasChanged();
         }
 
+        async Task CheckDailyChallengesAsync()
+        {
+            var totalCount = Breakdown.Values.Sum();
+            var breakdownStrings = Breakdown.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
+            var avgCps = GetClicksPerSecond();
+            var hasAllTypes = Breakdown.Values.All(v => v > 0);
+            await DailyChallengeService.CheckGameResultAsync(totalCount, breakdownStrings, avgCps, peakComboCount, hasAllTypes);
+        }
+
         async Task PromptAndSaveDailyScoreAsync()
         {
-            // Open an inline name prompt via the existing save-score dialog
-            // which stores to the daily endpoint by checking isDailyChallenge
-            await InvokeAsync(async () => await DailyDialog?.ShowForSave(assesEaten));
+            await InvokeAsync(async () => await DailyDialog?.Show());
         }
 
         public void Dispose()

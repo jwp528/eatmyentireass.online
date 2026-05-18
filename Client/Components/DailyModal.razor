@@ -1,4 +1,5 @@
 @using BlazorApp.Client.Services
+@using BlazorApp.Shared
 
 @code {
     public BSModal? Modal;
@@ -6,143 +7,38 @@
     [Microsoft.AspNetCore.Components.Inject]
     public IDailyChallengeService DailyChallengeService { get; set; } = default!;
 
-    [Microsoft.AspNetCore.Components.Inject]
-    public Microsoft.JSInterop.IJSRuntime JS { get; set; } = default!;
-
-    private DailyLeaderboardResult? result;
+    private DailyChallengeProgress? progress;
     private bool isLoading;
-    private bool copied;
-    private string todayLabel = "";
-
-    // Save-score state
-    private double? pendingScore;
-    private string playerName = "";
-    private bool isSaving;
-    private bool scoreSaved;
-    private string saveError = "";
 
     public async Task Show()
     {
-        pendingScore = null;
-        scoreSaved = false;
-        playerName = "";
-        todayLabel = DateTime.UtcNow.ToString("MMMM d, yyyy");
         await Modal!.Show();
-        await LoadLeaderboard();
+        await Load();
     }
 
-    public async Task ShowForSave(double score)
+    public async Task Refresh()
     {
-        pendingScore = score;
-        scoreSaved = false;
-        playerName = "";
-        saveError = "";
-        todayLabel = DateTime.UtcNow.ToString("MMMM d, yyyy");
-        await Modal!.Show();
-        await LoadLeaderboard();
+        await Load();
     }
 
-    private async Task LoadLeaderboard()
+    private async Task Load()
     {
         isLoading = true;
         StateHasChanged();
-        result = await DailyChallengeService.GetTodayLeaderboardAsync();
+        progress = await DailyChallengeService.GetOrCreateTodayTasksAsync();
         isLoading = false;
         StateHasChanged();
-    }
-
-    private async Task SaveScore()
-    {
-        if (string.IsNullOrWhiteSpace(playerName))
-        {
-            saveError = "Enter a name!";
-            return;
-        }
-
-        isSaving = true;
-        saveError = "";
-        StateHasChanged();
-
-        await DailyChallengeService.SaveScoreAsync(playerName.Trim(), pendingScore!.Value);
-        scoreSaved = true;
-        isSaving = false;
-        pendingScore = null;
-
-        // Refresh leaderboard to show new entry
-        await LoadLeaderboard();
-    }
-
-    private async Task CopyShareText()
-    {
-        var scoreInt = pendingScore.HasValue ? (int)pendingScore.Value : (result?.Entries?.FirstOrDefault(e => e.PlayerName == playerName)?.Score ?? 0);
-        var text = $"I ate {(int)scoreInt} asses in today's Daily Ass Challenge! 🍑 eatmyentireass.online";
-        try
-        {
-            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
-            copied = true;
-            StateHasChanged();
-            await Task.Delay(2000);
-            copied = false;
-            StateHasChanged();
-        }
-        catch { /* clipboard may be blocked */ }
     }
 }
 
 <BSModal @ref="Modal" Id="dailyModal" IsVerticallyCentered="true" Size="ModalSize.Large">
     <Body>
         <div class="daily-container">
-            <div class="text-center mb-3">
-                <div class="daily-icon mb-2">🍑</div>
-                <h4 class="fw-bold text-white mb-0">Daily Ass Challenge</h4>
-                <small class="text-muted">@todayLabel — Everyone gets the same sequence!</small>
+            <div class="text-center mb-4">
+                <div class="daily-icon mb-2">📅</div>
+                <h4 class="fw-bold text-white mb-0">Daily Challenges</h4>
+                <small class="text-muted">@DateTime.UtcNow.ToString("MMMM d, yyyy") — New challenges at midnight UTC</small>
             </div>
-
-            @if (pendingScore.HasValue && !scoreSaved)
-            {
-                <div class="save-score-box mb-4">
-                    <h6 class="text-white fw-bold mb-2">
-                        <i class="fas fa-star text-warning me-2"></i>
-                        Your Score: <span class="text-warning">@Math.Round(pendingScore.Value, 1)</span>
-                    </h6>
-                    <div class="d-flex gap-2 align-items-start">
-                        <input type="text"
-                               class="form-control form-control-sm flex-grow-1"
-                               placeholder="Enter your name…"
-                               @bind="playerName"
-                               @bind:event="oninput"
-                               maxlength="30" />
-                        <button class="btn btn-sm btn-warning fw-bold" @onclick="SaveScore" disabled="@isSaving">
-                            @(isSaving ? "Saving…" : "Save")
-                        </button>
-                    </div>
-                    @if (!string.IsNullOrEmpty(saveError))
-                    {
-                        <small class="text-danger">@saveError</small>
-                    }
-                </div>
-            }
-            else if (scoreSaved)
-            {
-                <div class="score-saved-box mb-4">
-                    <i class="fas fa-check-circle text-success me-2"></i>
-                    Score saved! See how you rank below.
-                    <button class="btn btn-sm btn-outline-light ms-2" @onclick="CopyShareText">
-                        @(copied ? "✓ Copied!" : "📋 Share")
-                    </button>
-                </div>
-            }
-            else
-            {
-                <div class="daily-info-box mb-4">
-                    <i class="fas fa-info-circle text-info me-2"></i>
-                    A fresh seeded sequence of 200 asses resets every day at midnight UTC.
-                </div>
-            }
-
-            <h6 class="text-white mb-3 fw-bold">
-                <i class="fas fa-trophy text-warning me-2"></i>Today's Top 10
-            </h6>
 
             @if (isLoading)
             {
@@ -150,26 +46,33 @@
                     <div class="spinner-border text-primary" role="status"></div>
                 </div>
             }
-            else if (result?.Entries?.Any() == true)
+            else if (progress?.Tasks?.Any() == true)
             {
-                <div class="daily-leaderboard">
-                    @for (int i = 0; i < result.Entries.Count; i++)
+                <div class="tasks-list">
+                    @foreach (var task in progress.Tasks)
                     {
-                        var entry = result.Entries[i];
-                        var rank = i + 1;
-                        <div class="daily-entry @(rank == 1 ? "rank-gold" : rank == 2 ? "rank-silver" : rank == 3 ? "rank-bronze" : "")">
-                            <span class="rank-num">@(rank == 1 ? "🥇" : rank == 2 ? "🥈" : rank == 3 ? "🥉" : $"#{rank}")</span>
-                            <span class="entry-name">@entry.PlayerName</span>
-                            <span class="entry-score">@Math.Round(entry.Score, 1)</span>
+                        <div class="task-card @(task.Completed ? "task-done" : "")">
+                            <div class="task-icon">@task.GetIcon()</div>
+                            <div class="task-body">
+                                <div class="task-description">@task.GetDescription()</div>
+                            </div>
+                            <div class="task-status">
+                                @if (task.Completed)
+                                {
+                                    <span class="badge bg-success">✓ Done</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pending</span>
+                                }
+                            </div>
                         </div>
                     }
                 </div>
-            }
-            else
-            {
-                <div class="text-center py-3 text-muted">
-                    <i class="fas fa-calendar-day fa-2x mb-2 d-block"></i>
-                    No scores yet today. Be the first!
+
+                <div class="progress-summary mt-4 text-center">
+                    <span class="text-white fw-bold">@progress.CompletedCount / 3</span>
+                    <span class="text-muted ms-1">challenges completed today</span>
                 </div>
             }
 

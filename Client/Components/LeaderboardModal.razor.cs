@@ -20,8 +20,8 @@ namespace BlazorApp.Client.Components
 
         public async Task Show()
         {
+            if (Modal != null) await Modal.Show();
             await LoadScores();
-            Modal?.Show();
         }
 
         private async Task LoadScores()
@@ -71,7 +71,7 @@ namespace BlazorApp.Client.Components
 
         private async Task CloseModal()
         {
-            Modal?.Hide();
+            if (Modal != null) await Modal.Hide();
         }
     }
 }

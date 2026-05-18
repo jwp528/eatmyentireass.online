@@ -21,7 +21,6 @@ namespace BlazorApp.Client.Components
         private async Task LoadStats()
         {
             isLoading = true;
-            Microsoft.AspNetCore.Components.ComponentBase? _ = null;
             StateHasChanged();
             stats = await StatsService.GetStatsAsync();
             isLoading = false;

@@ -123,18 +123,11 @@
                     {
                         <div class="start-prompt mt-4">
                             <p class="fs-4">Click the ass to start!</p>
-                            <button class="btn btn-outline-warning btn-sm mt-1" @onclick="StartDailyChallenge">
-                                <i class="fas fa-calendar-day me-2"></i>Daily Challenge
-                            </button>
                         </div>
                     }
                 }else{
                     <div class="start-prompt mt-4">
-                        <p class="fs-4">CONSUME!@(isDailyChallenge ? " 📅" : "")</p>
-                        @if (isDailyChallenge)
-                        {
-                            <small class="text-warning"><i class="fas fa-calendar-day me-1"></i>Daily Challenge Mode</small>
-                        }
+                        <p class="fs-4">CONSUME!</p>
                     </div>
                 }
 

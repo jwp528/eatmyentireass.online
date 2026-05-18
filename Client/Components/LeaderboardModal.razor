@@ -11,7 +11,7 @@
                 </h4>
                 <small class="text-muted">
                     <i class="fas fa-globe me-1"></i>
-                    Shared across all players - updates require file replacement
+                    Shared across all players worldwide
                 </small>
             </div>
 
@@ -21,7 +21,7 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2 text-muted">Loading your local scores...</p>
+                    <p class="mt-2 text-muted">Loading scores...</p>
                 </div>
             }
             else if (!topScores.Any())
@@ -30,10 +30,6 @@
                     <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
                     <h6 class="text-muted">No scores yet!</h6>
                     <p class="text-muted mb-0">Be the first to set a high score on the global leaderboard!</p>
-                    <div class="mt-3">
-                        <i class="fas fa-info-circle text-info me-1"></i>
-                        <small class="text-info">Scores are shared globally via file updates</small>
-                    </div>
                 </div>
             }
             else
@@ -126,15 +122,6 @@
                         Close
                     </button>
                 </div>
-            </div>
-
-            <!-- Global Leaderboard Info -->
-            <div class="alert alert-info mt-3 mb-0" role="alert">
-                <i class="fas fa-globe me-2"></i>
-                <small>
-                    <strong>Global Leaderboard:</strong> Scores are shared across all players worldwide.
-                    Save your score after each game to compete!
-                </small>
             </div>
         </div>
     </Body>
