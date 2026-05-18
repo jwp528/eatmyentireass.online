@@ -260,7 +260,7 @@
     color: #fff;
 }/* ── Frenzy: screen shake ────────────────────────────────────────── */
 .frenzy-shaking {
-    animation: frenzy-shake 0.45s ease-in-out;
+    animation: frenzy-shake 0.4s ease-in-out infinite;
 }
 
 /* ── Frenzy: fire border on game area ───────────────────────────── */
@@ -315,13 +315,24 @@
     inset: 0;
     pointer-events: none;
     z-index: 4;
-    transform-origin: bottom center;
-    animation: fire-flicker 0.35s ease-in-out infinite alternate;
+    animation: fire-flicker 0.25s ease-in-out infinite alternate;
     background:
-        radial-gradient(ellipse 110% 50% at 50% 100%, rgba(255, 80, 0, 0.28) 0%, rgba(255, 40, 0, 0.12) 45%, transparent 70%),
-        radial-gradient(ellipse 55% 28% at 12% 100%, rgba(255, 110, 0, 0.22) 0%, transparent 55%),
-        radial-gradient(ellipse 55% 28% at 88% 100%, rgba(255, 60, 0, 0.22) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 20% at 50% 0%,   rgba(180, 20, 0, 0.12) 0%, transparent 60%);
+        /* bottom — main flame wall */
+        radial-gradient(ellipse 130% 55% at 50% 102%, rgba(255, 90, 0, 0.55) 0%, rgba(255, 40, 0, 0.25) 40%, transparent 65%),
+        radial-gradient(ellipse 55% 32% at 15% 102%, rgba(255, 130, 0, 0.45) 0%, transparent 50%),
+        radial-gradient(ellipse 55% 32% at 85% 102%, rgba(255, 70, 0, 0.45) 0%, transparent 50%),
+        /* top — heat shimmer */
+        radial-gradient(ellipse 130% 55% at 50% -2%, rgba(200, 30, 0, 0.45) 0%, rgba(180, 20, 0, 0.20) 40%, transparent 65%),
+        radial-gradient(ellipse 50% 28% at 20% -2%, rgba(220, 50, 0, 0.35) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 28% at 80% -2%, rgba(220, 50, 0, 0.35) 0%, transparent 50%),
+        /* left side */
+        radial-gradient(ellipse 40% 100% at -2% 50%, rgba(255, 80, 0, 0.40) 0%, rgba(200, 40, 0, 0.18) 45%, transparent 65%),
+        radial-gradient(ellipse 25% 50% at -2% 25%, rgba(255, 110, 0, 0.30) 0%, transparent 55%),
+        radial-gradient(ellipse 25% 50% at -2% 75%, rgba(255, 60, 0, 0.30) 0%, transparent 55%),
+        /* right side */
+        radial-gradient(ellipse 40% 100% at 102% 50%, rgba(255, 80, 0, 0.40) 0%, rgba(200, 40, 0, 0.18) 45%, transparent 65%),
+        radial-gradient(ellipse 25% 50% at 102% 25%, rgba(255, 110, 0, 0.30) 0%, transparent 55%),
+        radial-gradient(ellipse 25% 50% at 102% 75%, rgba(255, 60, 0, 0.30) 0%, transparent 55%);
 }
 
 /* ── Animations ──────────────────────────────────────────────────── */
@@ -357,25 +368,38 @@
 }
 
 @@keyframes fire-border {
-    from {
+    0% {
         box-shadow:
-            0 0 0 2px rgba(255, 90, 0, 0.55),
-            0 0 18px rgba(255, 70, 0, 0.4),
-            0 0 38px rgba(180, 30, 0, 0.2);
+            0 0 0 2px rgba(255, 90, 0, 0.6),
+            0 0 20px rgba(255, 70, 0, 0.45),
+            0 0 45px rgba(180, 30, 0, 0.25);
     }
-    to {
+    33% {
         box-shadow:
-            0 0 0 2px rgba(255, 160, 0, 0.9),
-            0 0 32px rgba(255, 110, 0, 0.65),
-            0 0 60px rgba(220, 50, 0, 0.38);
+            0 0 0 3px rgba(255, 170, 0, 0.95),
+            0 0 38px rgba(255, 120, 0, 0.75),
+            0 0 70px rgba(220, 60, 0, 0.45);
+    }
+    66% {
+        box-shadow:
+            0 0 0 2px rgba(255, 100, 0, 0.7),
+            0 0 24px rgba(255, 80, 0, 0.5),
+            0 0 52px rgba(200, 40, 0, 0.3);
+    }
+    100% {
+        box-shadow:
+            0 0 0 3px rgba(255, 200, 0, 1.0),
+            0 0 40px rgba(255, 130, 0, 0.80),
+            0 0 75px rgba(240, 70, 0, 0.50);
     }
 }
 
 @@keyframes fire-flicker {
-    0%   { opacity: 0.55; transform: scaleY(0.93); }
-    35%  { opacity: 0.88; transform: scaleY(1.05); }
-    65%  { opacity: 0.70; transform: scaleY(0.97); }
-    100% { opacity: 0.82; transform: scaleY(1.03); }
+    0%   { opacity: 0.65; filter: brightness(0.9); }
+    20%  { opacity: 0.95; filter: brightness(1.15); }
+    45%  { opacity: 0.75; filter: brightness(0.95); }
+    70%  { opacity: 1.00; filter: brightness(1.20); }
+    100% { opacity: 0.80; filter: brightness(1.05); }
 }
 
 /* ── Mobile ──────────────────────────────────────────────────────── */

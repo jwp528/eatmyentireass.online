@@ -37,9 +37,8 @@ namespace BlazorApp.Client.Pages
         int frenzyCount = 0;
         bool frenzyShaking = false;
         bool _mouseHeld = false;
-        bool _autoEatInProgress = false;
+        CancellationTokenSource? _autoEatCts;
         Timer? FrenzyCountdownTimer;
-        Timer? FrenzyAutoClickTimer;
 
         // Add tracking for dynamic stats and polling
         DateTime gameStartTime;
@@ -204,7 +203,6 @@ namespace BlazorApp.Client.Pages
             frenzySecondsLeft = 0;
             frenzyCount = 0;
             _mouseHeld = false;
-            _autoEatInProgress = false;
             StopFrenzy();
             GameTimeInSeconds = 60;
             gameJustEnded = false; // Reset the flag when starting a fresh game
@@ -539,23 +537,16 @@ namespace BlazorApp.Client.Pages
             {
                 frenzyActive = true;
                 frenzyCount++;
+                frenzyShaking = true; // Earthquake shake for entire frenzy duration
 
                 FrenzyCountdownTimer = new Timer(1000);
                 FrenzyCountdownTimer.Elapsed += OnFrenzyCountdownTick;
                 FrenzyCountdownTimer.AutoReset = true;
                 FrenzyCountdownTimer.Enabled = true;
 
-                // Screen shake for 0.5s, fire effect is CSS-driven while frenzy is active
-                frenzyShaking = true;
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(500);
-                    await InvokeAsync(() => { frenzyShaking = false; StateHasChanged(); });
-                });
-
                 // If the mouse is already held, kick off auto-eat immediately
                 if (_mouseHeld)
-                    StartFrenzyAutoClick();
+                    _ = StartFrenzyAutoClickLoop();
             }
         }
 
@@ -584,7 +575,7 @@ namespace BlazorApp.Client.Pages
         {
             _mouseHeld = true;
             if (frenzyActive && gamePlaying)
-                StartFrenzyAutoClick();
+                _ = StartFrenzyAutoClickLoop();
         }
 
         void OnFrenzyHoldEnd()
@@ -593,39 +584,32 @@ namespace BlazorApp.Client.Pages
             StopFrenzyAutoClick();
         }
 
-        void StartFrenzyAutoClick()
+        async Task StartFrenzyAutoClickLoop()
         {
-            if (FrenzyAutoClickTimer != null) return;
-            FrenzyAutoClickTimer = new Timer(100); // 10 clicks/sec
-            FrenzyAutoClickTimer.Elapsed += OnFrenzyAutoClickTick;
-            FrenzyAutoClickTimer.AutoReset = true;
-            FrenzyAutoClickTimer.Enabled = true;
+            // Cancel any existing loop before starting a new one
+            _autoEatCts?.Cancel();
+            var cts = new CancellationTokenSource();
+            _autoEatCts = cts;
+
+            try
+            {
+                while (!cts.IsCancellationRequested && _mouseHeld && frenzyActive && gamePlaying)
+                {
+                    await EatPiece();
+                    await Task.Delay(100, cts.Token); // 10 clicks/sec
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FrenzyAutoClick] Error: {ex.Message}");
+            }
         }
 
         void StopFrenzyAutoClick()
         {
-            FrenzyAutoClickTimer?.Stop();
-            FrenzyAutoClickTimer?.Dispose();
-            FrenzyAutoClickTimer = null;
-        }
-
-        async void OnFrenzyAutoClickTick(object? sender, System.Timers.ElapsedEventArgs e)
-        {
-            if (_autoEatInProgress || !frenzyActive || !gamePlaying || !_mouseHeld) return;
-            _autoEatInProgress = true;
-            try
-            {
-                await InvokeAsync(async () =>
-                {
-                    if (frenzyActive && gamePlaying && _mouseHeld)
-                        await EatPiece();
-                });
-            }
-            catch { }
-            finally
-            {
-                _autoEatInProgress = false;
-            }
+            _autoEatCts?.Cancel();
+            _autoEatCts = null;
         }
 
         public void Dispose()
