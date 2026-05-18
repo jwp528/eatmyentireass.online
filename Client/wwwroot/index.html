@@ -161,8 +161,8 @@
                 if (Date.now() < end) {
                     requestAnimationFrame(frame);
                 } else {
-                    myConfetti.reset();
-                    canvas.remove();
+                    // Stop spawning; let existing particles fall off naturally, then clean up
+                    setTimeout(() => { myConfetti.reset(); canvas.remove(); }, 3000);
                 }
             }());
         };
