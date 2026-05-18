@@ -1,0 +1,144 @@
+.assdex-container {
+    color: #ffffff;
+    padding: 0.5rem;
+}
+
+.assdex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.assdex-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem 0.75rem;
+    text-align: center;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.assdex-card.unlocked {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.assdex-card.unlocked:hover {
+    transform: translateY(-3px);
+    border-color: rgba(59, 130, 246, 0.7);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2);
+}
+
+.assdex-card.locked {
+    opacity: 0.55;
+    filter: grayscale(0.4);
+}
+
+.assdex-image-wrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.assdex-img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+}
+
+.assdex-card.locked .assdex-img {
+    filter: brightness(0.2) saturate(0);
+}
+
+.lock-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.unlock-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    background: #22c55e;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+.assdex-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #ffffff;
+}
+
+.assdex-desc {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.4;
+}
+
+.locked-desc {
+    color: rgba(255, 255, 255, 0.35);
+    font-style: italic;
+}
+
+.mystery-img {
+    width: 72px;
+    height: 72px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+}
+
+.mystery-slot {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.complete-badge {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 179, 8, 0.2));
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    border-radius: 25px;
+    padding: 0.6rem 1.5rem;
+    color: #fcd34d;
+    font-weight: 600;
+    display: inline-block;
+}
+
+@@media (max-width: 576px) {
+    .assdex-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .assdex-image-wrap,
+    .assdex-img,
+    .mystery-img {
+        width: 56px;
+        height: 56px;
+    }
+}

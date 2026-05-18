@@ -23,6 +23,18 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseA
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 
+// Version check service
+builder.Services.AddScoped<IVersionCheckService, VersionCheckService>();
+
+// Stats service
+builder.Services.AddScoped<IStatsService, StatsService>();
+
+// Collection (Assdex) service
+builder.Services.AddScoped<ICollectionService, CollectionService>();
+
+// Daily Challenge service
+builder.Services.AddScoped<IDailyChallengeService, DailyChallengeService>();
+
 // Use API-based shared leaderboard service (writes to shared file via API)
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 

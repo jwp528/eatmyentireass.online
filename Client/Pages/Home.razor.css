@@ -91,6 +91,57 @@
     50% { transform: translateY(-10px); }
 }
 
+/* Combo Fever styles */
+.combo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    animation: combo-pulse 0.6s ease-in-out infinite alternate;
+}
+
+.combo-hot {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(239, 68, 68, 0.2));
+    border: 1px solid rgba(251, 146, 60, 0.5);
+    color: #fb923c;
+}
+
+.combo-fire {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.25));
+    border: 1px solid rgba(239, 68, 68, 0.6);
+    color: #ef4444;
+}
+
+.combo-fever {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(124, 58, 237, 0.3));
+    border: 1px solid rgba(239, 68, 68, 0.7);
+    color: #f87171;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+.combo-max {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(239, 68, 68, 0.35));
+    border: 1px solid #f59e0b;
+    color: #fcd34d;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+.combo-x {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.combo-label {
+    font-size: 0.9rem;
+}
+
+@keyframes combo-pulse {
+    from { transform: scale(1); }
+    to   { transform: scale(1.04); }
+}
+
 /* Mobile-specific adjustments - Keep side by side but reduce spacing and sizes */
 @media (max-width: 768px) {
     .game-info-bar {

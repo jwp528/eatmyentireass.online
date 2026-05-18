@@ -1,0 +1,78 @@
+@inject IJSRuntime JS
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+@code {
+    public BSModal? Modal;
+
+    public async Task ShowIfEligibleAsync()
+    {
+        var alreadySeen = await LocalStorage.GetItemAsync<bool>("anniversaryModalSeen_2026");
+        if (alreadySeen) return;
+
+        var today = DateTime.Today;
+        var windowStart = new DateTime(2026, 5, 18);
+        var windowEnd = new DateTime(2026, 5, 28);
+        if (today < windowStart || today > windowEnd) return;
+
+        await Task.Delay(600);
+        await Modal!.Show();
+        await JS.InvokeVoidAsync("fireConfetti");
+    }
+
+    private async Task Dismiss()
+    {
+        await LocalStorage.SetItemAsync("anniversaryModalSeen_2026", true);
+        await Modal!.Hide();
+    }
+}
+
+<BSModal @ref="Modal" Id="anniversaryModal" IsVerticallyCentered="true" Size="ModalSize.Large">
+    <Body>
+        <div class="anniversary-container">
+            <button type="button" class="btn-close-custom" @onclick="Dismiss">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="anniversary-content text-center">
+                <div class="anniversary-emoji mb-3">🎂🍑🎉</div>
+
+                <h2 class="anniversary-title">An Entire Year of Eating Ass!</h2>
+                <p class="anniversary-subtitle text-warning fw-semibold">May 21, 2024 → May 21, 2026</p>
+
+                <div class="anniversary-divider my-4"></div>
+
+                <p class="anniversary-message lead">
+                    One whole year. 365 days. Countless asses consumed.
+                </p>
+                <p class="anniversary-message">
+                    To every single person who clicked, munched, and devoured their way through the leaderboard —
+                    <strong class="text-warning">thank you</strong>. Genuinely. This ridiculous corner of the internet
+                    exists because of your continued dedication to the craft of ass-eating.
+                </p>
+                <p class="anniversary-message">
+                    You could have spent your time productively. You chose this instead.
+                    That is beautiful. That is <em>commitment</em>. Never stop striving for more. 🍑
+                </p>
+
+                <div class="anniversary-stats mt-4 mb-4">
+                    <div class="anniversary-stat">
+                        <span class="stat-number">1</span>
+                        <span class="stat-desc">Year Online</span>
+                    </div>
+                    <div class="anniversary-stat">
+                        <span class="stat-number">∞</span>
+                        <span class="stat-desc">Asses Eaten</span>
+                    </div>
+                    <div class="anniversary-stat">
+                        <span class="stat-number">0</span>
+                        <span class="stat-desc">Regrets</span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-anniversary" @onclick="Dismiss">
+                    <i class="fas fa-heart me-2"></i>Let's Eat! 🍑
+                </button>
+            </div>
+        </div>
+    </Body>
+</BSModal>

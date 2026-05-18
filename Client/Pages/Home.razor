@@ -4,6 +4,10 @@
 @inject IJSRuntime js
 @inject ILeaderboardService LeaderboardService
 @inject ISettingsService SettingsService
+@inject IVersionCheckService VersionCheckService
+@inject IStatsService StatsService
+@inject ICollectionService CollectionService
+@inject IDailyChallengeService DailyChallengeService
 
 <PageTitle>Eat my entire ass</PageTitle>
 
@@ -21,6 +25,15 @@
                     </button>
                     <button class="btn-fab" @onclick="ShowLeaderboardDialog" title="Leaderboard">
                         <i class="fas fa-trophy"></i>
+                    </button>
+                    <button class="btn-fab" @onclick="ShowStatsDialog" title="Global Stats">
+                        <i class="fas fa-chart-bar"></i>
+                    </button>
+                    <button class="btn-fab" @onclick="ShowAssdexDialog" title="Assdex">
+                        <i class="fas fa-book"></i>
+                    </button>
+                    <button class="btn-fab" @onclick="ShowDailyDialog" title="Daily Challenge">
+                        <i class="fas fa-calendar-day"></i>
                     </button>
                     <button class="btn-fab @(playSounds ? "btn-fab-active" : "")" @onclick="ToggleSound" title="@(playSounds ? "Sound On" : "Sound Off")">
                         <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute")"></i>
@@ -70,6 +83,14 @@
                 <div class="game-display p-3 p-md-4 mx-0 mx-md-2" @onclick="EatPiece" role="button" tabindex="0">
                     <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
                 </div>
+
+                @if (gamePlaying && comboCount >= 3)
+                {
+                    <div class="combo-badge @ComboCssClass mt-2">
+                        <span class="combo-x">×@ComboMultiplier.ToString("G2")</span>
+                        <span class="combo-label">@ComboLabel</span>
+                    </div>
+                }
                 
                 @if (!gamePlaying)
                 {
@@ -102,11 +123,18 @@
                     {
                         <div class="start-prompt mt-4">
                             <p class="fs-4">Click the ass to start!</p>
+                            <button class="btn btn-outline-warning btn-sm mt-1" @onclick="StartDailyChallenge">
+                                <i class="fas fa-calendar-day me-2"></i>Daily Challenge
+                            </button>
                         </div>
                     }
                 }else{
                     <div class="start-prompt mt-4">
-                        <p class="fs-4">CONSUME!</p>
+                        <p class="fs-4">CONSUME!@(isDailyChallenge ? " 📅" : "")</p>
+                        @if (isDailyChallenge)
+                        {
+                            <small class="text-warning"><i class="fas fa-calendar-day me-1"></i>Daily Challenge Mode</small>
+                        }
                     </div>
                 }
 
@@ -127,7 +155,12 @@
 
 <HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" />
 <AboutModal @ref="AboutDialog" />
-<ResultsModal @ref="ResultsDialog" 
+<AnniversaryModal @ref="AnniversaryDialog" />
+<UpdateModal @ref="UpdateDialog" />
+<StatsModal @ref="StatsDialog" />
+<AssdexModal @ref="AssdexDialog" />
+<DailyModal @ref="DailyDialog" />
+<ResultsModal @ref="ResultsDialog"
               assesEaten="@assesEaten" 
               totalClicks="@totalClicks" 
               scoreText="@scoreText" 
@@ -135,6 +168,7 @@
               Breakdown="@Breakdown" 
               hasScoreSaved="@hasScoreSaved"
               clicksPerSecondPolls="@clicksPerSecondPolls"
+              peakComboCount="@peakComboCount"
               OnTryAgain="TryAgain" 
               OnSaveScore="ShowSaveScoreDialog"
               OnShowLeaderboard="ShowLeaderboardDialog" />
@@ -144,6 +178,8 @@
 @code {
     LeaderboardModal? LeaderboardDialog;
     SaveScoreModal? SaveScoreDialog;
+    AssdexModal? AssdexDialog;
+    DailyModal? DailyDialog;
     
     // Make totalClicks accessible in the template
     public int totalClicks = 0;
@@ -151,6 +187,16 @@
     async Task ShowLeaderboardDialog()
     {
         await LeaderboardDialog?.Show();
+    }
+
+    async Task ShowAssdexDialog()
+    {
+        await AssdexDialog?.Show();
+    }
+
+    async Task ShowDailyDialog()
+    {
+        await DailyDialog?.Show();
     }
 
     async Task ShowSaveScoreDialog()

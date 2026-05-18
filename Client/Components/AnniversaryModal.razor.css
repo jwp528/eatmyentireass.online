@@ -1,0 +1,152 @@
+.anniversary-container {
+    background: linear-gradient(135deg, #1a0533 0%, #3d1a6e 50%, #1a0533 100%);
+    color: #ffffff;
+    padding: 2rem 1.5rem 1.5rem;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.anniversary-container::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(255, 215, 0, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.btn-close-custom {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    z-index: 10;
+}
+
+.btn-close-custom:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+.anniversary-emoji {
+    font-size: 3rem;
+    line-height: 1;
+    animation: float 3s ease-in-out infinite;
+}
+
+@@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.anniversary-title {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffd700, #ffaa00, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.anniversary-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.anniversary-divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
+    border: none;
+}
+
+.anniversary-message {
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.anniversary-message.lead {
+    font-size: 1.15rem;
+    color: #ffffff;
+}
+
+.anniversary-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.anniversary-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    min-width: 80px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffd700;
+    line-height: 1;
+}
+
+.stat-desc {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+}
+
+.btn-anniversary {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border: none;
+    color: #1a0533;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 0.75rem 2.5rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-anniversary:hover {
+    background: linear-gradient(135deg, #ffe033, #ffaa00);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.5);
+    color: #1a0533;
+}
+
+@@media (max-width: 576px) {
+    .anniversary-title {
+        font-size: 1.5rem;
+    }
+
+    .anniversary-stats {
+        gap: 1rem;
+    }
+
+    .anniversary-stat {
+        padding: 0.5rem 1rem;
+    }
+}

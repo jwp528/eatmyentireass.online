@@ -12,6 +12,9 @@ namespace BlazorApp.Client.Pages
     {
         HelpModal HelpDialog;
         AboutModal AboutDialog;
+        AnniversaryModal AnniversaryDialog;
+        UpdateModal UpdateDialog;
+        StatsModal StatsDialog;
         ResultsModal ResultsDialog;
 
         bool gamePlaying;
@@ -28,10 +31,48 @@ namespace BlazorApp.Client.Pages
         double assesEaten = 0;
         int piecesEaten = 0;
 
+        // Combo Fever system
+        int comboCount = 0;
+        int peakComboCount = 0;
+        DateTime lastAssEatenTime;
+        static readonly TimeSpan ComboWindow = TimeSpan.FromSeconds(2);
+
+        double ComboMultiplier => comboCount switch
+        {
+            >= 21 => 5.0,
+            >= 11 => 3.0,
+            >= 6 => 2.0,
+            >= 3 => 1.5,
+            _ => 1.0
+        };
+
+        string ComboLabel => comboCount switch
+        {
+            >= 21 => "MAX FEVER!! 💥",
+            >= 11 => "Fever! 🌋",
+            >= 6 => "On Fire! 🔥🔥",
+            >= 3 => "Hot 🔥",
+            _ => ""
+        };
+
+        string ComboCssClass => comboCount switch
+        {
+            >= 21 => "combo-max",
+            >= 11 => "combo-fever",
+            >= 6 => "combo-fire",
+            >= 3 => "combo-hot",
+            _ => ""
+        };
+
         // Add tracking for dynamic stats and polling
         DateTime gameStartTime;
         List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls = new(); // Store polls for chart
         double CurrentClicksPerSecond => GetClicksPerSecond();
+
+        // Daily Challenge mode
+        bool isDailyChallenge = false;
+        List<BlazorApp.Shared.Assets.AssTypeEnum> dailySequence = new();
+        int dailySequenceIndex = 0;
 
         private double GetClicksPerSecond()
         {
@@ -119,6 +160,17 @@ namespace BlazorApp.Client.Pages
             await base.OnInitializedAsync();
             await LoadSettings();
             GetNewAss();
+            await AnniversaryDialog.ShowIfEligibleAsync();
+            await CheckForUpdateAsync();
+        }
+
+        private async Task CheckForUpdateAsync()
+        {
+            var hasUpdate = await VersionCheckService.IsUpdateAvailableAsync();
+            if (hasUpdate && VersionCheckService.ServerVersion != null)
+            {
+                await UpdateDialog.ShowIfNeededAsync(VersionCheckService.ServerVersion);
+            }
         }
 
         private async Task LoadSettings()
@@ -138,7 +190,15 @@ namespace BlazorApp.Client.Pages
         {
             try
             {
-                CurrentAssType = BlazorApp.Shared.Assets.GetRandomAssType();
+                if (isDailyChallenge && dailySequence.Count > 0)
+                {
+                    CurrentAssType = dailySequence[dailySequenceIndex % dailySequence.Count];
+                    dailySequenceIndex++;
+                }
+                else
+                {
+                    CurrentAssType = BlazorApp.Shared.Assets.GetRandomAssType();
+                }
                 AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
 
                 // Ensure piecesEaten is within bounds
@@ -166,10 +226,14 @@ namespace BlazorApp.Client.Pages
             assesEaten = 0;
             piecesEaten = 0;
             totalClicks = 0;
+            comboCount = 0;
+            peakComboCount = 0;
             GameTimeInSeconds = 60;
             gameJustEnded = false; // Reset the flag when starting a fresh game
             hasScoreSaved = false; // Reset score saved flag for new game
             clicksPerSecondPolls.Clear(); // Clear previous game's polling data
+            isDailyChallenge = false;
+            dailySequenceIndex = 0;
             Breakdown = new()
             {
                 { AssTypeEnum.Boney, 0 },
@@ -238,6 +302,14 @@ namespace BlazorApp.Client.Pages
             StateHasChanged();
         }
 
+        void StartDailyChallenge()
+        {
+            isDailyChallenge = true;
+            dailySequence = BlazorApp.Shared.DailyChallenge.GetDailySequence(DateOnly.FromDateTime(DateTime.UtcNow));
+            dailySequenceIndex = 0;
+            StartGame();
+        }
+
         void OnStatsUpdateTick(object sender, EventArgs e)
         {
             if (!gamePlaying || StatsUpdateTimer == null)
@@ -297,6 +369,13 @@ namespace BlazorApp.Client.Pages
                     await js.InvokeVoidAsync("playSound", gameOverSound, volume);
                 }
 
+                // Submit aggregate stats (fire-and-forget, don't block results)
+                _ = SubmitGameStatsAsync();
+
+                // Save daily score if in daily challenge mode
+                if (isDailyChallenge)
+                    _ = PromptAndSaveDailyScoreAsync();
+
                 // Show results immediately - no delay for API calls
                 await CheckAndPromptScoreSave();
             });
@@ -333,11 +412,25 @@ namespace BlazorApp.Client.Pages
             // Check if we're about to complete the current ass
             if (piecesEaten >= AssFrames.Count - 1)
             {
-                // Completing the ass - reset to get a new one and add points
+                // Completing the ass - update combo before adding points
+                var now = DateTime.Now;
+                if (comboCount > 0 && (now - lastAssEatenTime) > ComboWindow)
+                {
+                    comboCount = 0; // combo expired
+                }
+                comboCount++;
+                lastAssEatenTime = now;
+                if (comboCount > peakComboCount) peakComboCount = comboCount;
+
+                // Apply combo multiplier to points earned
                 piecesEaten = 0;
-                assesEaten += BlazorApp.Shared.Assets.GetPointsForAssType(CurrentAssType);
+                assesEaten += BlazorApp.Shared.Assets.GetPointsForAssType(CurrentAssType) * ComboMultiplier;
                 Breakdown[CurrentAssType]++;
+
+                // Assdex: track new unlocks
+                var completedType = CurrentAssType;
                 GetNewAss();
+                _ = CollectionService.MarkUnlockedAsync(completedType);
             }
             else
             {
@@ -363,6 +456,24 @@ namespace BlazorApp.Client.Pages
         async Task ShowAboutDialog()
         {
             await AboutDialog?.Modal?.Show();
+        }
+
+        async Task ShowStatsDialog()
+        {
+            await StatsDialog?.Show();
+        }
+
+        async Task SubmitGameStatsAsync()
+        {
+            var update = new GameStatsUpdate
+            {
+                Clicks = totalClicks,
+                DurationSeconds = 60,
+                AssTypeBreakdown = Breakdown.ToDictionary(
+                    kvp => kvp.Key.ToString(),
+                    kvp => kvp.Value)
+            };
+            await StatsService.UpdateStatsAsync(update);
         }
 
         async Task ShowResultsDialog()
@@ -437,6 +548,13 @@ namespace BlazorApp.Client.Pages
             });
 
             StateHasChanged();
+        }
+
+        async Task PromptAndSaveDailyScoreAsync()
+        {
+            // Open an inline name prompt via the existing save-score dialog
+            // which stores to the daily endpoint by checking isDailyChallenge
+            await InvokeAsync(async () => await DailyDialog?.ShowForSave(assesEaten));
         }
 
         public void Dispose()

@@ -1,0 +1,87 @@
+.update-container {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 2rem 1.5rem 1.5rem;
+    border-radius: 16px;
+    position: relative;
+}
+
+.btn-close-update {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+}
+
+.btn-close-update:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.update-icon {
+    font-size: 2.5rem;
+    color: #3b82f6;
+    animation: pulse-update 2s ease-in-out infinite;
+}
+
+@@keyframes pulse-update {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.update-title {
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.update-version {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.update-message {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.btn-update-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    border-radius: 25px;
+    transition: all 0.2s ease;
+}
+
+.btn-update-primary:hover {
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.btn-update-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    padding: 0.6rem 1.5rem;
+    border-radius: 25px;
+    transition: all 0.2s ease;
+}
+
+.btn-update-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}

@@ -7,6 +7,7 @@
     [Parameter] public List<AssTypeEnum> AssTypes { get; set; } = new();
     [Parameter] public Dictionary<AssTypeEnum, int> Breakdown { get; set; } = new();
     [Parameter] public bool hasScoreSaved { get; set; }
+    [Parameter] public int peakComboCount { get; set; }
     [Parameter] public List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
     [Parameter] public EventCallback OnSaveScore { get; set; }
@@ -97,6 +98,14 @@
                             <span class="stat-value">@(totalClicks > 0 ? Math.Round(assesEaten / totalClicks, 3) : 0)</span>
                             <span class="stat-label">Points/Click</span>
                         </div>
+                        @if (peakComboCount >= 3)
+                        {
+                            <div class="stat-compact">
+                                <i class="fas fa-fire text-danger"></i>
+                                <span class="stat-value">@peakComboCount</span>
+                                <span class="stat-label">Peak Combo</span>
+                            </div>
+                        }
                     </div>
                     
                     @if (!string.IsNullOrEmpty(scoreText))
@@ -195,8 +204,8 @@
                                     <i class="fas fa-info-circle me-1"></i>
                                     @if (clicksPerSecondPolls.Any())
                                     {
-                                        <text>Peak: @Math.Round(clicksPerSecondPolls.Max(p => p.clicksPerSecond), 1) clicks/sec • 
-                                        Average: @Math.Round(clicksPerSecondPolls.Average(p => p.clicksPerSecond), 1) clicks/sec •
+                                        <text>Peak: @Math.Round(clicksPerSecondPolls.Max(p => p.clicksPerSecond), 1) clicks/sec ï¿½ 
+                                        Average: @Math.Round(clicksPerSecondPolls.Average(p => p.clicksPerSecond), 1) clicks/sec ï¿½
                                         @clicksPerSecondPolls.Count data points</text>
                                     }
                                     else
