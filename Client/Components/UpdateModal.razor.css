@@ -85,3 +85,8 @@
     background: rgba(255, 255, 255, 0.15);
     color: #ffffff;
 }
+
+#updateModal .modal-content {
+    background: transparent;
+    border: none;
+}

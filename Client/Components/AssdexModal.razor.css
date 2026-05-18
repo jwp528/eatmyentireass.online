@@ -1,6 +1,12 @@
 .assdex-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: #ffffff;
     padding: 0.5rem;
+}
+
+#assdexModal .modal-content {
+    background: transparent;
+    border: none;
 }
 
 .assdex-grid {

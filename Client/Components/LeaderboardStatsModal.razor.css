@@ -2,7 +2,13 @@
     max-width: 820px;
 }
 
+#leaderboardStatsModal .modal-content {
+    background: transparent;
+    border: none;
+}
+
 .lb-stats-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: #ffffff;
     padding: 0.25rem;
 }
