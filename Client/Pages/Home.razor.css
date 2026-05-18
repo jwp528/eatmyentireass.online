@@ -233,54 +233,52 @@
     color: rgba(255, 255, 255, 0.45);
 }
 
-/* ── Combo Badge ─────────────────────────────────────────────────── */
-.combo-badge {
+/* ── Frenzy Overlay ──────────────────────────────────────────────── */
+.frenzy-overlay {
     position: absolute;
-    bottom: 12px;
-    right: 12px;
-    display: inline-flex;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.25rem 0.8rem;
-    border-radius: 50px;
-    font-weight: 700;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 6px 16px;
+    background: rgba(220, 60, 0, 0.88);
+    backdrop-filter: blur(4px);
+    z-index: 10;
     pointer-events: none;
-    animation: combo-pulse 0.6s ease-in-out infinite alternate;
+    animation: frenzy-pulse 0.45s ease-in-out infinite alternate;
 }
 
-.combo-hot {
-    background: rgba(251, 146, 60, 0.18);
-    border: 1px solid rgba(251, 146, 60, 0.5);
-    color: #fb923c;
+.frenzy-title {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #fff;
+    letter-spacing: 0.04em;
 }
 
-.combo-fire {
-    background: rgba(239, 68, 68, 0.22);
-    border: 1px solid rgba(239, 68, 68, 0.6);
-    color: #ef4444;
-}
-
-.combo-fever {
-    background: rgba(239, 68, 68, 0.28);
-    border: 1px solid rgba(239, 68, 68, 0.7);
-    color: #f87171;
-    box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
-}
-
-.combo-max {
-    background: rgba(245, 158, 11, 0.3);
-    border: 1px solid #f59e0b;
-    color: #fcd34d;
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.45);
-}
-
-.combo-x {
-    font-size: 1.1rem;
+.frenzy-timer {
+    font-size: 1.45rem;
+    font-weight: 900;
+    color: #ffd700;
+    min-width: 1.4rem;
+    text-align: center;
     line-height: 1;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
 }
 
-.combo-label {
-    font-size: 0.82rem;
+.frenzy-hold-hint {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.status-frenzy {
+    color: #ff8c00;
+    font-weight: 700;
+    animation: frenzy-pulse 0.45s ease-in-out infinite alternate;
 }
 
 /* ── Animations ──────────────────────────────────────────────────── */
@@ -294,9 +292,9 @@
     50%       { opacity: 1; }
 }
 
-@@keyframes combo-pulse {
-    from { transform: scale(1); }
-    to   { transform: scale(1.04); }
+@@keyframes frenzy-pulse {
+    from { background: rgba(220, 60, 0, 0.82); }
+    to   { background: rgba(255, 120, 0, 0.95); }
 }
 
 /* ── Mobile ──────────────────────────────────────────────────────── */

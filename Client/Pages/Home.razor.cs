@@ -30,38 +30,14 @@ namespace BlazorApp.Client.Pages
         double assesEaten = 0;
         int piecesEaten = 0;
 
-        // Combo Fever system
-        int comboCount = 0;
-        int peakComboCount = 0;
-        DateTime lastAssEatenTime;
-        static readonly TimeSpan ComboWindow = TimeSpan.FromSeconds(2);
-
-        double ComboMultiplier => comboCount switch
-        {
-            >= 21 => 5.0,
-            >= 11 => 3.0,
-            >= 6 => 2.0,
-            >= 3 => 1.5,
-            _ => 1.0
-        };
-
-        string ComboLabel => comboCount switch
-        {
-            >= 21 => "MAX FEVER!! 💥",
-            >= 11 => "Fever! 🌋",
-            >= 6 => "On Fire! 🔥🔥",
-            >= 3 => "Hot 🔥",
-            _ => ""
-        };
-
-        string ComboCssClass => comboCount switch
-        {
-            >= 21 => "combo-max",
-            >= 11 => "combo-fever",
-            >= 6 => "combo-fire",
-            >= 3 => "combo-hot",
-            _ => ""
-        };
+        // Frenzy Mode
+        bool frenzyActive = false;
+        int frenzySecondsLeft = 0;
+        int frenzyCount = 0;
+        bool _mouseHeld = false;
+        bool _autoEatInProgress = false;
+        Timer? FrenzyCountdownTimer;
+        Timer? FrenzyAutoClickTimer;
 
         // Add tracking for dynamic stats and polling
         DateTime gameStartTime;
@@ -222,8 +198,12 @@ namespace BlazorApp.Client.Pages
             assesEaten = 0;
             piecesEaten = 0;
             totalClicks = 0;
-            comboCount = 0;
-            peakComboCount = 0;
+            frenzyActive = false;
+            frenzySecondsLeft = 0;
+            frenzyCount = 0;
+            _mouseHeld = false;
+            _autoEatInProgress = false;
+            StopFrenzy();
             GameTimeInSeconds = 60;
             gameJustEnded = false; // Reset the flag when starting a fresh game
             hasScoreSaved = false; // Reset score saved flag for new game
@@ -397,25 +377,17 @@ namespace BlazorApp.Client.Pages
             // Check if we're about to complete the current ass
             if (piecesEaten >= AssFrames.Count - 1)
             {
-                // Completing the ass - update combo before adding points
-                var now = DateTime.Now;
-                if (comboCount > 0 && (now - lastAssEatenTime) > ComboWindow)
-                {
-                    comboCount = 0; // combo expired
-                }
-                comboCount++;
-                lastAssEatenTime = now;
-                if (comboCount > peakComboCount) peakComboCount = comboCount;
-
-                // Apply combo multiplier to points earned
+                var completedType = CurrentAssType;
                 piecesEaten = 0;
-                assesEaten += BlazorApp.Shared.Assets.GetPointsForAssType(CurrentAssType) * ComboMultiplier;
-                Breakdown[CurrentAssType]++;
+                assesEaten += BlazorApp.Shared.Assets.GetPointsForAssType(completedType);
+                Breakdown[completedType]++;
 
                 // Assdex: track new unlocks
-                var completedType = CurrentAssType;
                 GetNewAss();
                 _ = CollectionService.MarkUnlockedAsync(completedType);
+
+                if (completedType == AssTypeEnum.Golden)
+                    TriggerFrenzy();
             }
             else
             {
@@ -523,6 +495,7 @@ namespace BlazorApp.Client.Pages
 
             gamePlaying = false;
             gameJustEnded = true; // Set flag to prevent immediate restart
+            StopFrenzy();
 
             // Auto-clear the flag after 5 seconds to allow restart if modals are closed
             _ = Task.Run(async () =>
@@ -541,7 +514,7 @@ namespace BlazorApp.Client.Pages
             var breakdownStrings = Breakdown.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
             var avgCps = GetClicksPerSecond();
             var hasAllTypes = Breakdown.Values.All(v => v > 0);
-            await DailyChallengeService.CheckGameResultAsync(totalCount, breakdownStrings, avgCps, peakComboCount, hasAllTypes);
+            await DailyChallengeService.CheckGameResultAsync(totalCount, breakdownStrings, avgCps, frenzyCount, hasAllTypes);
         }
 
         async Task PromptAndSaveDailyScoreAsync()
@@ -549,8 +522,101 @@ namespace BlazorApp.Client.Pages
             await InvokeAsync(async () => await DailyDialog?.Show());
         }
 
+        void TriggerFrenzy()
+        {
+            // Reset countdown (always extend to 10s on re-trigger)
+            frenzySecondsLeft = 10;
+
+            if (!frenzyActive)
+            {
+                frenzyActive = true;
+                frenzyCount++;
+
+                FrenzyCountdownTimer = new Timer(1000);
+                FrenzyCountdownTimer.Elapsed += OnFrenzyCountdownTick;
+                FrenzyCountdownTimer.AutoReset = true;
+                FrenzyCountdownTimer.Enabled = true;
+
+                _ = js.InvokeVoidAsync("fireConfetti");
+
+                // If the mouse is already held, kick off auto-eat immediately
+                if (_mouseHeld)
+                    StartFrenzyAutoClick();
+            }
+        }
+
+        void OnFrenzyCountdownTick(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            frenzySecondsLeft--;
+            if (frenzySecondsLeft <= 0)
+                InvokeAsync(StopFrenzy);
+            else
+                InvokeAsync(() => StateHasChanged());
+        }
+
+        void StopFrenzy()
+        {
+            frenzyActive = false;
+            frenzySecondsLeft = 0;
+            FrenzyCountdownTimer?.Stop();
+            FrenzyCountdownTimer?.Dispose();
+            FrenzyCountdownTimer = null;
+            StopFrenzyAutoClick();
+            StateHasChanged();
+        }
+
+        void OnFrenzyHoldStart()
+        {
+            _mouseHeld = true;
+            if (frenzyActive && gamePlaying)
+                StartFrenzyAutoClick();
+        }
+
+        void OnFrenzyHoldEnd()
+        {
+            _mouseHeld = false;
+            StopFrenzyAutoClick();
+        }
+
+        void StartFrenzyAutoClick()
+        {
+            if (FrenzyAutoClickTimer != null) return;
+            FrenzyAutoClickTimer = new Timer(100); // 10 clicks/sec
+            FrenzyAutoClickTimer.Elapsed += OnFrenzyAutoClickTick;
+            FrenzyAutoClickTimer.AutoReset = true;
+            FrenzyAutoClickTimer.Enabled = true;
+        }
+
+        void StopFrenzyAutoClick()
+        {
+            FrenzyAutoClickTimer?.Stop();
+            FrenzyAutoClickTimer?.Dispose();
+            FrenzyAutoClickTimer = null;
+        }
+
+        async void OnFrenzyAutoClickTick(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            if (_autoEatInProgress || !frenzyActive || !gamePlaying || !_mouseHeld) return;
+            _autoEatInProgress = true;
+            try
+            {
+                await InvokeAsync(async () =>
+                {
+                    if (frenzyActive && gamePlaying && _mouseHeld)
+                        await EatPiece();
+                });
+            }
+            catch { }
+            finally
+            {
+                _autoEatInProgress = false;
+            }
+        }
+
         public void Dispose()
         {
+            StopFrenzy();
+
             if (GameTimer != null)
             {
                 GameTimer.Stop();

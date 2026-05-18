@@ -50,14 +50,17 @@
         </div>
     </header>
 
-    <main class="game-main" @onclick="EatPiece" role="button" tabindex="0">
+    <main class="game-main" @onclick="EatPiece"
+          @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
+          role="button" tabindex="0">
         <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
 
-        @if (gamePlaying && comboCount >= 3)
+        @if (gamePlaying && frenzyActive)
         {
-            <div class="combo-badge @ComboCssClass">
-                <span class="combo-x">×@ComboMultiplier.ToString("G2")</span>
-                <span class="combo-label">@ComboLabel</span>
+            <div class="frenzy-overlay">
+                <span class="frenzy-title">🔥 FRENZY!</span>
+                <span class="frenzy-timer">@frenzySecondsLeft</span>
+                <span class="frenzy-hold-hint">HOLD</span>
             </div>
         }
     </main>
@@ -88,7 +91,14 @@
             }
             else
             {
-                <span class="status-hint">CONSUME!</span>
+                @if (frenzyActive)
+                {
+                    <span class="status-hint status-frenzy">🔥 HOLD TO EAT!</span>
+                }
+                else
+                {
+                    <span class="status-hint">CONSUME!</span>
+                }
             }
         </div>
 
@@ -122,7 +132,7 @@
               Breakdown="@Breakdown"
               hasScoreSaved="@hasScoreSaved"
               clicksPerSecondPolls="@clicksPerSecondPolls"
-              peakComboCount="@peakComboCount"
+              peakComboCount="@frenzyCount"
               OnTryAgain="TryAgain"
               OnSaveScore="ShowSaveScoreDialog"
               OnShowLeaderboard="ShowLeaderboardDialog" />

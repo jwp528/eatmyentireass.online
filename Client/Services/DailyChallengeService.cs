@@ -10,7 +10,7 @@ namespace BlazorApp.Client.Services
             int totalAssesCount,
             Dictionary<string, int> breakdown,
             double avgCps,
-            int peakCombo,
+            int frenzyCount,
             bool hasAllTypes);
     }
 
@@ -51,7 +51,7 @@ namespace BlazorApp.Client.Services
             int totalAssesCount,
             Dictionary<string, int> breakdown,
             double avgCps,
-            int peakCombo,
+            int frenzyCount,
             bool hasAllTypes)
         {
             var progress = await GetOrCreateTodayTasksAsync();
@@ -71,8 +71,8 @@ namespace BlazorApp.Client.Services
                         cnt >= task.TargetValue,
                     DailyChallengeType.CpsOver10 =>
                         avgCps >= 10.0,
-                    DailyChallengeType.ReachComboX =>
-                        peakCombo >= task.TargetValue,
+                    DailyChallengeType.TriggerFrenzy =>
+                        frenzyCount >= task.TargetValue,
                     DailyChallengeType.EatAllTypes =>
                         hasAllTypes,
                     _ => false

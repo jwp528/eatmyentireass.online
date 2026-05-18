@@ -6,11 +6,11 @@ namespace BlazorApp.Shared
 {
     public enum DailyChallengeType
     {
-        EatXAsses,      // eat X total asses in one game
-        EatXTypeAsses,  // eat X of [Type] in one game
-        CpsOver10,      // average CPS >= 10
-        ReachComboX,    // peak combo >= X
-        EatAllTypes,    // eat all 6 types in one game
+        EatXAsses,       // eat X total asses in one game
+        EatXTypeAsses,   // eat X of [Type] in one game
+        CpsOver10,       // average CPS >= 10
+        TriggerFrenzy,   // trigger frenzy mode >= X times
+        EatAllTypes,     // eat all 6 types in one game
     }
 
     public class DailyTask
@@ -25,7 +25,7 @@ namespace BlazorApp.Shared
             DailyChallengeType.EatXAsses => $"Eat {TargetValue} asses in one game",
             DailyChallengeType.EatXTypeAsses => $"Eat {TargetValue} {AssTypeName} asses in one game",
             DailyChallengeType.CpsOver10 => "Average 10+ clicks per second in one game",
-            DailyChallengeType.ReachComboX => $"Reach a combo streak of {TargetValue}+",
+            DailyChallengeType.TriggerFrenzy => $"Trigger Frenzy {TargetValue} time{(TargetValue > 1 ? "s" : "")} in one game",
             DailyChallengeType.EatAllTypes => "Eat at least one of every ass type",
             _ => "Complete this challenge"
         };
@@ -35,7 +35,7 @@ namespace BlazorApp.Shared
             DailyChallengeType.EatXAsses => "🍑",
             DailyChallengeType.EatXTypeAsses => "🎯",
             DailyChallengeType.CpsOver10 => "⚡",
-            DailyChallengeType.ReachComboX => "🔥",
+            DailyChallengeType.TriggerFrenzy => "🔥",
             DailyChallengeType.EatAllTypes => "🌈",
             _ => "✅"
         };
@@ -59,7 +59,7 @@ namespace BlazorApp.Shared
             var rng = new Random(seed);
 
             var allTypes = (Assets.AssTypeEnum[])Enum.GetValues(typeof(Assets.AssTypeEnum));
-            var comboTargets = new[] { 5, 8, 10, 15, 20 };
+            var frenzyTargets = new[] { 1, 2, 3 };
 
             // One task from each category pool, shuffled
             var pool = new List<DailyTask>
@@ -75,8 +75,8 @@ namespace BlazorApp.Shared
                 },
                 // CPS > 10
                 new() { Type = DailyChallengeType.CpsOver10 },
-                // Combo streak
-                new() { Type = DailyChallengeType.ReachComboX, TargetValue = comboTargets[rng.Next(comboTargets.Length)] },
+                // Trigger frenzy N times
+                new() { Type = DailyChallengeType.TriggerFrenzy, TargetValue = frenzyTargets[rng.Next(frenzyTargets.Length)] },
                 // Eat all types
                 new() { Type = DailyChallengeType.EatAllTypes },
             };
