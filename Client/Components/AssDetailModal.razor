@@ -15,6 +15,15 @@
 
     private string AssName => _assType.ToString();
     private string AssImg => $"/images/Asses/{AssName}/entire_ass.png";
+    private bool IsLegendary => _assType == AssTypeEnum.Golden;
+
+    private static readonly (int ms, string tierCls, string icon)[] TierDefs =
+    {
+        (10,  "tier-bronze",   "10"),
+        (25,  "tier-silver",   "25"),
+        (50,  "tier-gold",     "50"),
+        (100, "tier-plat",     "★"),
+    };
 
     public async Task ShowAsync(AssTypeEnum assType)
     {
@@ -38,6 +47,17 @@
         }
     }
 
+    private string GetEntryNo() => _assType switch
+    {
+        AssTypeEnum.Boney   => "001",
+        AssTypeEnum.Cartoon => "002",
+        AssTypeEnum.Flat    => "003",
+        AssTypeEnum.GYAT    => "004",
+        AssTypeEnum.Hairy   => "005",
+        AssTypeEnum.Golden  => "006",
+        _                   => "???"
+    };
+
     private string GetFlavorText() => _assType switch
     {
         AssTypeEnum.Boney   => "A skeletal specimen of uncertain origin. Archaeologists believe it predates flavor itself. Crunches like gravel, tastes like regret. Zero nutritional value — confirmed.",
@@ -49,16 +69,13 @@
         _                   => "A mysterious specimen. Details lost to time."
     };
 
-    private string GetRarity() => _assType switch
-    {
-        AssTypeEnum.Golden => "Legendary (~2%)",
-        _ => "Common (~20%)"
-    };
+    private string GetRarity() => IsLegendary ? "Legendary" : "Common";
 
     private int BaseClicks => BlazorApp.Shared.Assets.Frames[AssName].Count;
     private double BasePoints => BlazorApp.Shared.Assets.GetPointsForAssType(_assType);
     private int EffectiveClicks => ProgressService.GetEffectiveCompleteThreshold(_assType, _progress) + 1;
     private double EffectivePoints => ProgressService.GetEffectivePoints(_assType, _progress);
+    private bool HasActivePerks => _progress.HasPerk10 || _progress.HasPerk50 || _progress.HasPerk100;
 
     private long GlobalTypeCount => _globalStats?.AssTypeStats?.TryGetValue(AssName, out var c) == true ? c : 0;
     private long GlobalTotal => _globalStats?.AssTypeStats?.Values.Sum() ?? 0;
@@ -70,184 +87,237 @@
     {
         10  => "One less click to eat",
         25  => "Spawns twice as often",
-        50  => "Takes half the clicks to eat",
-        100 => "+1 bonus point per eat · MASTERY",
+        50  => "Half the clicks to eat",
+        100 => "+1 bonus point · MASTERY",
         _   => ""
     };
 
     private bool IsMilestoneUnlocked(int ms) => _progress.Eaten >= ms;
 
+    private int GetHighestTier() => _progress.Eaten switch
+    {
+        >= 100 => 100,
+        >= 50  => 50,
+        >= 25  => 25,
+        >= 10  => 10,
+        _      => 0
+    };
+
     private double GetMilestoneProgress(int ms)
     {
         var prev = ms switch { 10 => 0, 25 => 10, 50 => 25, 100 => 50, _ => 0 };
-        var from = _progress.Eaten - prev;
         var to = ms - prev;
         if (to <= 0) return 100;
-        return Math.Min(100.0, from * 100.0 / to);
+        return Math.Min(100.0, (_progress.Eaten - prev) * 100.0 / to);
     }
+
+    private double PointsBarPct => Math.Min(BasePoints / 10.0 * 100.0, 100);
+    private double ClicksBarPct => Math.Min(BaseClicks / 30.0 * 100.0, 100);
 }
 
 <BSModal @ref="Modal" Id="assDetailModal" IsVerticallyCentered="true" Size="ModalSize.Large">
+    <Header>
+        <span class="pd-entry-no">#@GetEntryNo()</span>
+        <span class="pd-hdr-name flex-grow-1">
+            @AssName
+            @if (_progress.HasPerk100)
+            {
+                <span class="badge bg-warning text-dark ms-2">🏆 MASTERY</span>
+            }
+        </span>
+        <button type="button" class="btn-close btn-close-white" @onclick="() => Modal?.Hide()"></button>
+    </Header>
     <Body>
-        <div class="ad-shell">
+        <div class="pd-body">
 
-            <!-- Header -->
-            <div class="ad-header">
-                <img src="@AssImg" class="ad-header-img" alt="@AssName" />
-                <div class="ad-header-text">
-                    <div class="ad-header-name">
-                        @AssName
-                        @if (_progress.HasPerk100)
-                        {
-                            <span class="ad-mastery-badge">🏆 MASTERY</span>
-                        }
-                    </div>
-                    <div class="ad-header-sub">
-                        @EffectiveClicks click@(EffectiveClicks == 1 ? "" : "s") &middot; @EffectivePoints pts &middot; @GetRarity()
-                        @if (_progress.HasPerk10 || _progress.HasPerk50 || _progress.HasPerk100)
-                        {
-                            <span class="ad-perk-indicator">⚡ Perks Active</span>
-                        }
-                    </div>
+            <!-- ── Left panel ── -->
+            <div class="pd-left @(IsLegendary ? "pd-left-legendary" : "")">
+                <img src="@AssImg" class="pd-sprite" alt="@AssName" />
+                <span class="pd-rarity-badge @(IsLegendary ? "rarity-legendary" : "rarity-common")">@GetRarity()</span>
+
+                <!-- Tier badges — always show all 4; active tier glows -->
+                <div class="pd-tiers">
+                    @foreach (var def in TierDefs)
+                    {
+                        var unlocked = IsMilestoneUnlocked(def.ms);
+                        var isHighest = GetHighestTier() == def.ms;
+                        <div class="pd-tier @def.tierCls @(unlocked ? "pd-tier-on" : "pd-tier-off") @(isHighest ? "pd-tier-active" : "")"
+                             title="Lv.@def.ms — @GetPerkText(def.ms)">
+                            @def.icon
+                        </div>
+                    }
                 </div>
-                <button class="ad-close" type="button" @onclick="() => Modal?.Hide()">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <!-- Tab bar -->
-            <div class="ad-tab-bar">
-                <button class="ad-tab @(_activeTab == 0 ? "ad-tab-active" : "")" @onclick="() => SwitchTab(0)">Overview</button>
-                <button class="ad-tab @(_activeTab == 1 ? "ad-tab-active" : "")" @onclick="() => SwitchTab(1)">My Stats</button>
-                <button class="ad-tab @(_activeTab == 2 ? "ad-tab-active" : "")" @onclick="() => SwitchTab(2)">Global</button>
-                <button class="ad-tab @(_activeTab == 3 ? "ad-tab-active" : "")" @onclick="() => SwitchTab(3)">Progress</button>
-            </div>
-
-            <!-- Tab content -->
-            <div class="ad-content">
-                @if (_activeTab == 0)
+                @if (GetHighestTier() > 0)
                 {
-                    <!-- Overview -->
-                    <p class="ad-flavor">@GetFlavorText()</p>
-                    <div class="ad-stats-row">
-                        <div class="ad-stat">
-                            <div class="ad-stat-val">@BasePoints</div>
-                            <div class="ad-stat-lbl">Base Points</div>
-                        </div>
-                        <div class="ad-stat">
-                            <div class="ad-stat-val">@BaseClicks</div>
-                            <div class="ad-stat-lbl">Base Clicks</div>
-                        </div>
-                        <div class="ad-stat">
-                            <div class="ad-stat-val">@GetRarity()</div>
-                            <div class="ad-stat-lbl">Rarity</div>
-                        </div>
-                    </div>
-                }
-                else if (_activeTab == 1)
-                {
-                    <!-- My Stats -->
-                    <div class="ad-my-grid">
-                        <div class="ad-my-stat">
-                            <div class="ad-my-val">@_progress.Eaten</div>
-                            <div class="ad-my-lbl">Times Eaten</div>
-                        </div>
-                        <div class="ad-my-stat">
-                            <div class="ad-my-val">@_progress.ClicksUsed.ToString("N0")</div>
-                            <div class="ad-my-lbl">Total Clicks Used</div>
-                        </div>
-                    </div>
-                    <div class="ad-perk-section">
-                        <div class="ad-perk-title">Active Perks</div>
-                        @if (!_progress.HasPerk10)
-                        {
-                            <div class="ad-perk-none">No perks yet — eat 10 to unlock the first perk!</div>
-                        }
-                        @if (_progress.HasPerk10)
-                        {
-                            <div class="ad-perk-row"><i class="bi bi-check-circle-fill text-success"></i> One less click to eat</div>
-                        }
-                        @if (_progress.HasPerk25)
-                        {
-                            <div class="ad-perk-row"><i class="bi bi-check-circle-fill text-success"></i> Spawns twice as often</div>
-                        }
-                        @if (_progress.HasPerk50)
-                        {
-                            <div class="ad-perk-row"><i class="bi bi-check-circle-fill text-success"></i> Takes half the clicks to eat</div>
-                        }
-                        @if (_progress.HasPerk100)
-                        {
-                            <div class="ad-perk-row ad-perk-gold"><i class="bi bi-star-fill"></i> +1 bonus point per eat · MASTERY unlocked</div>
-                        }
-                    </div>
-                }
-                else if (_activeTab == 2)
-                {
-                    <!-- Global -->
-                    @if (_globalLoading)
-                    {
-                        <div class="ad-empty">
-                            <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
-                            Loading global data&hellip;
-                        </div>
-                    }
-                    else if (_globalStats == null)
-                    {
-                        <div class="ad-empty">Could not load global stats.</div>
-                    }
-                    else
-                    {
-                        <div class="ad-global-grid">
-                            <div class="ad-global-stat">
-                                <div class="ad-global-val">@GlobalTypeCount.ToString("N0")</div>
-                                <div class="ad-global-lbl">Eaten Globally</div>
-                            </div>
-                            <div class="ad-global-stat">
-                                <div class="ad-global-val">@GlobalPercent.ToString("F1")%</div>
-                                <div class="ad-global-lbl">Of All Asses</div>
-                            </div>
-                        </div>
-                        <div class="ad-global-bar-track">
-                            <div class="ad-global-bar-fill" style="width: @(Math.Min(GlobalPercent, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
-                        </div>
-                        <div class="ad-global-note">Based on @GlobalTotal.ToString("N0") total asses eaten globally</div>
-                    }
+                    <span class="pd-tier-label">Lv.@GetHighestTier()</span>
                 }
                 else
                 {
-                    <!-- Progress -->
-                    <div class="ad-progress-list">
-                        @foreach (var ms in Milestones)
+                    <span class="pd-tier-label text-muted">No perks yet</span>
+                }
+            </div>
+
+            <!-- ── Right panel ── -->
+            <div class="pd-right">
+
+                <!-- Quick stats strip -->
+                <div class="pd-quick-row">
+                    <div class="pd-qs">
+                        <span class="pd-qs-val @(EffectiveClicks != BaseClicks ? "pd-qs-green" : "")">@EffectiveClicks</span>
+                        <span class="pd-qs-lbl">Clicks</span>
+                    </div>
+                    <div class="pd-qs">
+                        <span class="pd-qs-val @(EffectivePoints != BasePoints ? "pd-qs-green" : "")">@EffectivePoints pts</span>
+                        <span class="pd-qs-lbl">Points</span>
+                    </div>
+                    <div class="pd-qs">
+                        <span class="pd-qs-val">@GetRarity()</span>
+                        <span class="pd-qs-lbl">Rarity</span>
+                    </div>
+                    @if (HasActivePerks)
+                    {
+                        <div class="pd-qs">
+                            <span class="pd-qs-val pd-qs-amber">⚡</span>
+                            <span class="pd-qs-lbl">Perks</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Bootstrap nav-tabs -->
+                <ul class="nav nav-tabs pd-tabs mt-3 mb-0">
+                    <li class="nav-item">
+                        <button class="nav-link pd-tab-btn @(_activeTab == 0 ? "active" : "")" @onclick="() => SwitchTab(0)">Overview</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link pd-tab-btn @(_activeTab == 1 ? "active" : "")" @onclick="() => SwitchTab(1)">My Stats</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link pd-tab-btn @(_activeTab == 2 ? "active" : "")" @onclick="() => SwitchTab(2)">Global</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link pd-tab-btn @(_activeTab == 3 ? "active" : "")" @onclick="() => SwitchTab(3)">Progress</button>
+                    </li>
+                </ul>
+
+                <!-- Tab content -->
+                <div class="pd-tab-body">
+                    @if (_activeTab == 0)
+                    {
+                        <p class="pd-flavor">"@GetFlavorText()"</p>
+                        <div class="pd-statbars">
+                            <div class="pd-sbar-row">
+                                <span class="pd-sbar-name">Points</span>
+                                <div class="pd-sbar-track">
+                                    <div class="pd-sbar-fill pd-sbar-pts"
+                                         style="width:@PointsBarPct.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                </div>
+                                <span class="pd-sbar-val">@BasePoints</span>
+                            </div>
+                            <div class="pd-sbar-row">
+                                <span class="pd-sbar-name">Difficulty</span>
+                                <div class="pd-sbar-track">
+                                    <div class="pd-sbar-fill pd-sbar-clk"
+                                         style="width:@ClicksBarPct.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                </div>
+                                <span class="pd-sbar-val">@BaseClicks clicks</span>
+                            </div>
+                        </div>
+                    }
+                    else if (_activeTab == 1)
+                    {
+                        <div class="pd-big-stats">
+                            <div class="pd-big-stat">
+                                <div class="pd-big-val">@_progress.Eaten</div>
+                                <div class="pd-big-lbl">Times Eaten</div>
+                            </div>
+                            <div class="pd-big-stat">
+                                <div class="pd-big-val">@_progress.ClicksUsed.ToString("N0")</div>
+                                <div class="pd-big-lbl">Total Clicks</div>
+                            </div>
+                        </div>
+                        <div class="pd-perk-list mt-3">
+                            <div class="pd-perk-hdr">Active Perks</div>
+                            @if (!_progress.HasPerk10)
+                            {
+                                <div class="text-muted fst-italic small">Eat 10 to unlock your first perk</div>
+                            }
+                            @if (_progress.HasPerk10)  { <div class="pd-perk-row"><i class="bi bi-check-circle-fill text-success me-2"></i>One less click to eat</div> }
+                            @if (_progress.HasPerk25)  { <div class="pd-perk-row"><i class="bi bi-check-circle-fill text-success me-2"></i>Spawns twice as often</div> }
+                            @if (_progress.HasPerk50)  { <div class="pd-perk-row"><i class="bi bi-check-circle-fill text-success me-2"></i>Half the clicks to eat</div> }
+                            @if (_progress.HasPerk100) { <div class="pd-perk-row pd-perk-gold"><i class="bi bi-star-fill me-2"></i>+1 bonus point · MASTERY</div> }
+                        </div>
+                    }
+                    else if (_activeTab == 2)
+                    {
+                        @if (_globalLoading)
                         {
-                            var unlocked = IsMilestoneUnlocked(ms);
-                            var isCurrent = !unlocked && _progress.NextMilestone == ms;
-                            <div class="ad-ms-row @(unlocked ? "ms-unlocked" : isCurrent ? "ms-current" : "ms-locked")">
-                                <div class="ad-ms-icon">
-                                    @if (unlocked) { <i class="bi bi-check-circle-fill text-success"></i> }
-                                    else { <i class="bi bi-circle text-secondary"></i> }
+                            <div class="pd-empty">
+                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                Loading&hellip;
+                            </div>
+                        }
+                        else if (_globalStats == null)
+                        {
+                            <div class="pd-empty text-muted">Global stats unavailable</div>
+                        }
+                        else
+                        {
+                            <div class="pd-big-stats">
+                                <div class="pd-big-stat">
+                                    <div class="pd-big-val">@GlobalTypeCount.ToString("N0")</div>
+                                    <div class="pd-big-lbl">Eaten Globally</div>
                                 </div>
-                                <div class="ad-ms-body">
-                                    <div class="ad-ms-label">@ms eaten</div>
-                                    <div class="ad-ms-perk">@GetPerkText(ms)</div>
-                                </div>
-                                <div class="ad-ms-status @(unlocked ? "ms-status-active" : "ms-status-locked")">
-                                    @(unlocked ? "Active" : "Locked")
+                                <div class="pd-big-stat">
+                                    <div class="pd-big-val">@GlobalPercent.ToString("F1")%</div>
+                                    <div class="pd-big-lbl">Of All Types</div>
                                 </div>
                             </div>
-                            @if (isCurrent)
-                            {
-                                <div class="ad-ms-prog-wrap">
-                                    <div class="ad-ms-prog-bar">
-                                        <div class="ad-ms-prog-fill" style="width: @GetMilestoneProgress(ms).ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
-                                    </div>
-                                    <span class="ad-ms-prog-txt">@_progress.Eaten / @ms</span>
+                            <div class="pd-sbar-row mt-3">
+                                <span class="pd-sbar-name">Share</span>
+                                <div class="pd-sbar-track">
+                                    <div class="pd-sbar-fill pd-sbar-global"
+                                         style="width:@Math.Min(GlobalPercent, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
                                 </div>
-                            }
+                                <span class="pd-sbar-val">@GlobalPercent.ToString("F1")%</span>
+                            </div>
+                            <small class="text-muted d-block mt-2">of @GlobalTotal.ToString("N0") total globally</small>
                         }
-                    </div>
-                }
+                    }
+                    else
+                    {
+                        <div class="pd-ms-list">
+                            @foreach (var ms in Milestones)
+                            {
+                                var unlocked = IsMilestoneUnlocked(ms);
+                                var isCurrent = !unlocked && _progress.NextMilestone == ms;
+                                <div class="pd-ms-row @(unlocked ? "pd-ms-done" : isCurrent ? "pd-ms-current" : "pd-ms-locked")">
+                                    <div class="pd-ms-icon">
+                                        @if (unlocked) { <i class="bi bi-check-circle-fill text-success"></i> }
+                                        else if (isCurrent) { <i class="bi bi-circle-half text-primary"></i> }
+                                        else { <i class="bi bi-circle text-secondary"></i> }
+                                    </div>
+                                    <div class="pd-ms-body">
+                                        <div class="pd-ms-label">@ms eaten</div>
+                                        <small class="text-muted">@GetPerkText(ms)</small>
+                                    </div>
+                                    <div class="pd-ms-status @(unlocked ? "text-success fw-semibold" : "text-muted")">
+                                        @(unlocked ? "Active" : $"{_progress.Eaten}/{ms}")
+                                    </div>
+                                </div>
+                                @if (isCurrent)
+                                {
+                                    <div class="progress mb-2" style="height:3px; margin-left:2rem;">
+                                        <div class="progress-bar bg-primary" role="progressbar"
+                                             style="width:@GetMilestoneProgress(ms).ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
             </div>
 
         </div>
     </Body>
 </BSModal>
+
