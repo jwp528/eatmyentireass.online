@@ -1,8 +1,6 @@
 .save-score-container {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: #ffffff;
     padding: 1.5rem;
-    border-radius: 12px;
 }
 
 .save-score-container .form-control {

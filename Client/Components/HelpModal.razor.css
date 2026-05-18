@@ -1,6 +1,5 @@
 /* Help Modal Styles */
 .help-container {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: #ffffff;
     padding: 1.5rem;
     border-radius: 16px;
@@ -367,11 +366,6 @@
     background: transparent;
     color: #ffffff;
     padding: 0;
-}
-
-#helpModal .modal-content {
-    background: transparent;
-    border: none;
 }
 
 /* Custom Scrollbar */

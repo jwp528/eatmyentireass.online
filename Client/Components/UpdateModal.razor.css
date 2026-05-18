@@ -1,8 +1,6 @@
 .update-container {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: #ffffff;
     padding: 2rem 1.5rem 1.5rem;
-    border-radius: 16px;
     position: relative;
 }
 
@@ -84,9 +82,4 @@
 .btn-update-secondary:hover {
     background: rgba(255, 255, 255, 0.15);
     color: #ffffff;
-}
-
-#updateModal .modal-content {
-    background: transparent;
-    border: none;
 }

@@ -1,8 +1,6 @@
 .about-container {
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     color: #ffffff;
     padding: 1.5rem;
-    border-radius: 16px;
 }
 
 .josh-card {

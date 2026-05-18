@@ -1,15 +1,8 @@
 .anniversary-container {
-    background: linear-gradient(135deg, #1a0533 0%, #3d1a6e 50%, #1a0533 100%);
     color: #ffffff;
     padding: 2rem 1.5rem 1.5rem;
-    border-radius: 16px;
     position: relative;
     overflow: hidden;
-}
-
-#anniversaryModal .modal-content {
-    background: transparent;
-    border: none;
 }
 
 .anniversary-emoji {

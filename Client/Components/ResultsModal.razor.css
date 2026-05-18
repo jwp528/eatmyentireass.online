@@ -415,19 +415,14 @@
 #saveScoreModal .modal-body,
 #aboutModal .modal-body {
     padding: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    color: #ffffff;
     max-height: 85vh;
     overflow: hidden;
-    border-radius: 0.5rem;
 }
 
 #resultsModal .modal-content,
 #leaderboardModal .modal-content,
 #saveScoreModal .modal-content,
 #aboutModal .modal-content {
-    background: transparent;
-    border: none;
     max-height: 90vh;
 }
 
