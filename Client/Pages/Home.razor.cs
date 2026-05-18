@@ -544,6 +544,8 @@ namespace BlazorApp.Client.Pages
                 FrenzyCountdownTimer.AutoReset = true;
                 FrenzyCountdownTimer.Enabled = true;
 
+                _ = js.InvokeVoidAsync("startFireEffect", "fire-canvas");
+
                 // If the mouse is already held, kick off auto-eat immediately
                 if (_mouseHeld)
                     _ = StartFrenzyAutoClickLoop();
@@ -568,6 +570,7 @@ namespace BlazorApp.Client.Pages
             FrenzyCountdownTimer?.Dispose();
             FrenzyCountdownTimer = null;
             StopFrenzyAutoClick();
+            _ = js.InvokeVoidAsync("stopFireEffect");
             StateHasChanged();
         }
 
@@ -614,7 +617,13 @@ namespace BlazorApp.Client.Pages
 
         public void Dispose()
         {
-            StopFrenzy();
+            // Cancel async operations immediately (no JS interop or StateHasChanged during disposal)
+            _autoEatCts?.Cancel();
+            _autoEatCts = null;
+
+            FrenzyCountdownTimer?.Stop();
+            FrenzyCountdownTimer?.Dispose();
+            FrenzyCountdownTimer = null;
 
             if (GameTimer != null)
             {

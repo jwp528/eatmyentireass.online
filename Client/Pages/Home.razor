@@ -104,13 +104,15 @@
         @* Frenzy overlays *@
         @if (gamePlaying && frenzyActive)
         {
-            <div class="fire-overlay"></div>
             <div class="frenzy-overlay">
                 <span class="frenzy-title">🔥 FRENZY!</span>
                 <span class="frenzy-timer">@frenzySecondsLeft</span>
                 <span class="frenzy-hold-hint">HOLD</span>
             </div>
         }
+
+        @* WebGL fire canvas — always in DOM, shown/hidden by JS *@
+        <canvas id="fire-canvas" class="fire-canvas"></canvas>
     </main>
 
 </div>
