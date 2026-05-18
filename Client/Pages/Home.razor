@@ -37,7 +37,7 @@
         <div class="app-bar-end">
             <button class="icon-btn @(playSounds ? "icon-btn-active" : "")" @onclick="ToggleSound"
                     title="@(playSounds ? "Sound On" : "Sound Off")">
-                <i class="@(playSounds ? "fas fa-headphones" : "fas fa-headphones-slash")"></i>
+                <i class="@(playSounds ? "fas fa-volume-high" : "fas fa-volume-xmark")"></i>
             </button>
             <a href="https://github.com/jwp528/eatmyentireass.online" target="_blank"
                rel="noopener noreferrer" class="icon-btn hide-xs" title="View Source Code">
@@ -50,63 +50,57 @@
         </div>
     </header>
 
-    <div class="game-hud">
-        <div class="status-item @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "status-warning" : "")">
-            <i class="fas fa-clock status-icon"></i>
-            <span class="status-timer-val">@TimerDisplay</span>
-        </div>
-
-        <div class="status-center">
-            @if (!gamePlaying)
-            {
-                @if (assesEaten > 0)
-                {
-                    <span class="status-score">@Math.Truncate(assesEaten) pts</span>
-                    <button class="status-action-btn" @onclick="() => ResultsDialog?.Modal?.Show()">
-                        <i class="fas fa-chart-bar"></i><span class="btn-label"> Details</span>
-                    </button>
-                    <button class="status-action-btn status-action-primary" @onclick="StartNewGame">
-                        <i class="fas fa-rotate"></i><span class="btn-label"> Play Again</span>
-                    </button>
-                }
-                else
-                {
-                    <span class="status-hint">Click to start!</span>
-                }
-            }
-            else
-            {
-                @if (frenzyActive)
-                {
-                    <span class="status-hint status-frenzy">🔥 HOLD TO EAT!</span>
-                }
-                else
-                {
-                    <span class="status-hint">CONSUME!</span>
-                }
-            }
-        </div>
-
-        <div class="status-item status-cps-area">
-            @if (gamePlaying)
-            {
-                var elapsed = DateTime.Now - gameStartTime;
-                @if (elapsed.TotalSeconds >= 1.0)
-                {
-                    <i class="fas fa-mouse status-icon"></i>
-                    <span class="status-cps-val">@CurrentClicksPerSecond</span>
-                    <small class="status-cps-label">cps</small>
-                }
-            }
-        </div>
-    </div>
-
     <main class="game-main @(gamePlaying && frenzyActive ? "frenzy-active" : "")"
           @onclick="EatPiece"
           @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
           role="button" tabindex="0">
         <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
 
+        @* Timer — top-center, always visible while game is active *@
+        @if (gamePlaying)
+        {
+            <div class="canvas-timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "canvas-timer-warning" : "")">
+                @TimerDisplay
+            </div>
+        }
+
+        @* CPS — bottom-right corner during game *@
+        @if (gamePlaying)
+        {
+            var elapsed = DateTime.Now - gameStartTime;
+            if (elapsed.TotalSeconds >= 1.0)
+            {
+                <div class="canvas-cps">
+                    <i class="fas fa-mouse"></i> @CurrentClicksPerSecond <small>cps</small>
+                </div>
+            }
+        }
+
+        @* Pre-game prompt *@
+        @if (!gamePlaying && assesEaten == 0)
+        {
+            <div class="canvas-hint">Click to start!</div>
+        }
+
+        @* Post-game overlay *@
+        @if (!gamePlaying && assesEaten > 0)
+        {
+            <div class="canvas-results">
+                <div class="canvas-score">@Math.Truncate(assesEaten) pts</div>
+                <div class="canvas-actions">
+                    <button class="canvas-btn" @onclick:stopPropagation="true"
+                            @onclick="() => ResultsDialog?.Modal?.Show()">
+                        <i class="fas fa-chart-bar"></i> Details
+                    </button>
+                    <button class="canvas-btn canvas-btn-primary" @onclick:stopPropagation="true"
+                            @onclick="StartNewGame">
+                        <i class="fas fa-rotate"></i> Play Again
+                    </button>
+                </div>
+            </div>
+        }
+
+        @* Frenzy overlays *@
         @if (gamePlaying && frenzyActive)
         {
             <div class="fire-overlay"></div>
