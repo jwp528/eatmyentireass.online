@@ -34,6 +34,7 @@ namespace BlazorApp.Client.Pages
         bool frenzyActive = false;
         int frenzySecondsLeft = 0;
         int frenzyCount = 0;
+        bool frenzyShaking = false;
         bool _mouseHeld = false;
         bool _autoEatInProgress = false;
         Timer? FrenzyCountdownTimer;
@@ -537,7 +538,13 @@ namespace BlazorApp.Client.Pages
                 FrenzyCountdownTimer.AutoReset = true;
                 FrenzyCountdownTimer.Enabled = true;
 
-                _ = js.InvokeVoidAsync("fireConfetti");
+                // Screen shake for 0.5s, fire effect is CSS-driven while frenzy is active
+                frenzyShaking = true;
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(500);
+                    await InvokeAsync(() => { frenzyShaking = false; StateHasChanged(); });
+                });
 
                 // If the mouse is already held, kick off auto-eat immediately
                 if (_mouseHeld)
@@ -558,6 +565,7 @@ namespace BlazorApp.Client.Pages
         {
             frenzyActive = false;
             frenzySecondsLeft = 0;
+            frenzyShaking = false;
             FrenzyCountdownTimer?.Stop();
             FrenzyCountdownTimer?.Dispose();
             FrenzyCountdownTimer = null;

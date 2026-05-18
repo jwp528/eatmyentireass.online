@@ -233,7 +233,17 @@
     color: rgba(255, 255, 255, 0.45);
 }
 
-/* ── Frenzy Overlay ──────────────────────────────────────────────── */
+/* ── Frenzy: screen shake ────────────────────────────────────────── */
+.frenzy-shaking {
+    animation: frenzy-shake 0.45s ease-in-out;
+}
+
+/* ── Frenzy: fire border on game area ───────────────────────────── */
+.game-main.frenzy-active {
+    animation: fire-border 0.55s ease-in-out infinite alternate;
+}
+
+/* ── Frenzy Overlay (top banner) ────────────────────────────────── */
 .frenzy-overlay {
     position: absolute;
     top: 0;
@@ -244,11 +254,10 @@
     justify-content: center;
     gap: 0.6rem;
     padding: 6px 16px;
-    background: rgba(220, 60, 0, 0.88);
-    backdrop-filter: blur(4px);
+    background: rgba(200, 50, 0, 0.82);
+    backdrop-filter: blur(3px);
     z-index: 10;
     pointer-events: none;
-    animation: frenzy-pulse 0.45s ease-in-out infinite alternate;
 }
 
 .frenzy-title {
@@ -278,7 +287,21 @@
 .status-frenzy {
     color: #ff8c00;
     font-weight: 700;
-    animation: frenzy-pulse 0.45s ease-in-out infinite alternate;
+}
+
+/* ── Fire overlay inside game area ──────────────────────────────── */
+.fire-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    transform-origin: bottom center;
+    animation: fire-flicker 0.35s ease-in-out infinite alternate;
+    background:
+        radial-gradient(ellipse 110% 50% at 50% 100%, rgba(255, 80, 0, 0.28) 0%, rgba(255, 40, 0, 0.12) 45%, transparent 70%),
+        radial-gradient(ellipse 55% 28% at 12% 100%, rgba(255, 110, 0, 0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 28% at 88% 100%, rgba(255, 60, 0, 0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 20% at 50% 0%,   rgba(180, 20, 0, 0.12) 0%, transparent 60%);
 }
 
 /* ── Animations ──────────────────────────────────────────────────── */
@@ -292,9 +315,37 @@
     50%       { opacity: 1; }
 }
 
-@@keyframes frenzy-pulse {
-    from { background: rgba(220, 60, 0, 0.82); }
-    to   { background: rgba(255, 120, 0, 0.95); }
+@@keyframes frenzy-shake {
+    0%, 100% { transform: translate(0, 0); }
+    12%  { transform: translate(-5px, -3px); }
+    24%  { transform: translate(5px,  3px); }
+    36%  { transform: translate(-4px,  4px); }
+    48%  { transform: translate(5px, -4px); }
+    60%  { transform: translate(-5px,  3px); }
+    72%  { transform: translate(4px, -3px); }
+    86%  { transform: translate(-3px,  5px); }
+}
+
+@@keyframes fire-border {
+    from {
+        box-shadow:
+            0 0 0 2px rgba(255, 90, 0, 0.55),
+            0 0 18px rgba(255, 70, 0, 0.4),
+            0 0 38px rgba(180, 30, 0, 0.2);
+    }
+    to {
+        box-shadow:
+            0 0 0 2px rgba(255, 160, 0, 0.9),
+            0 0 32px rgba(255, 110, 0, 0.65),
+            0 0 60px rgba(220, 50, 0, 0.38);
+    }
+}
+
+@@keyframes fire-flicker {
+    0%   { opacity: 0.55; transform: scaleY(0.93); }
+    35%  { opacity: 0.88; transform: scaleY(1.05); }
+    65%  { opacity: 0.70; transform: scaleY(0.97); }
+    100% { opacity: 0.82; transform: scaleY(1.03); }
 }
 
 /* ── Mobile ──────────────────────────────────────────────────────── */

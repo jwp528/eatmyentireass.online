@@ -11,7 +11,7 @@
 
 <PageTitle>Eat my entire ass</PageTitle>
 
-<div class="app-shell">
+<div class="app-shell @(frenzyShaking ? "frenzy-shaking" : "")"  >
 
     <header class="app-bar">
         <div class="app-bar-brand">
@@ -50,13 +50,15 @@
         </div>
     </header>
 
-    <main class="game-main" @onclick="EatPiece"
+    <main class="game-main @(gamePlaying && frenzyActive ? "frenzy-active" : "")"
+          @onclick="EatPiece"
           @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
           role="button" tabindex="0">
         <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
 
         @if (gamePlaying && frenzyActive)
         {
+            <div class="fire-overlay"></div>
             <div class="frenzy-overlay">
                 <span class="frenzy-title">🔥 FRENZY!</span>
                 <span class="frenzy-timer">@frenzySecondsLeft</span>
