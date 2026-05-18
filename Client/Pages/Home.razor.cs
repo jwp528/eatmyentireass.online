@@ -14,7 +14,6 @@ namespace BlazorApp.Client.Pages
         AboutModal AboutDialog;
         AnniversaryModal AnniversaryDialog;
         UpdateModal UpdateDialog;
-        StatsModal StatsDialog;
         ResultsModal ResultsDialog;
 
         bool gamePlaying;
@@ -436,7 +435,7 @@ namespace BlazorApp.Client.Pages
 
         async Task ShowStatsDialog()
         {
-            await StatsDialog?.Show();
+            if (LeaderboardStatsDialog != null) await LeaderboardStatsDialog.ShowStats();
         }
 
         async Task SubmitGameStatsAsync()

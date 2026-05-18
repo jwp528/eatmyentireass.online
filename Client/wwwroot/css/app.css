@@ -1,3 +1,12 @@
+/* Global dark modal override — removes Bootstrap's default white background */
+.modal-content {
+    background: #1a0a2e;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+    color: #ffffff;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     height:100vh;

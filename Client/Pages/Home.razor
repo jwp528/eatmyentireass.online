@@ -23,11 +23,8 @@
                     <button class="btn-fab" @onclick="ShowHelpDialog" title="How to Play">
                         <i class="fas fa-book-open"></i>
                     </button>
-                    <button class="btn-fab" @onclick="ShowLeaderboardDialog" title="Leaderboard">
+                    <button class="btn-fab" @onclick="ShowLeaderboardStatsDialog" title="Leaderboard &amp; Stats">
                         <i class="fas fa-trophy"></i>
-                    </button>
-                    <button class="btn-fab" @onclick="ShowStatsDialog" title="Global Stats">
-                        <i class="fas fa-chart-bar"></i>
                     </button>
                     <button class="btn-fab" @onclick="ShowAssdexDialog" title="Assdex">
                         <i class="fas fa-book"></i>
@@ -150,7 +147,6 @@
 <AboutModal @ref="AboutDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />
-<StatsModal @ref="StatsDialog" />
 <AssdexModal @ref="AssdexDialog" />
 <DailyModal @ref="DailyDialog" />
 <ResultsModal @ref="ResultsDialog"
@@ -165,11 +161,11 @@
               OnTryAgain="TryAgain" 
               OnSaveScore="ShowSaveScoreDialog"
               OnShowLeaderboard="ShowLeaderboardDialog" />
-<LeaderboardModal @ref="LeaderboardDialog" />
+<LeaderboardStatsModal @ref="LeaderboardStatsDialog" />
 <SaveScoreModal @ref="SaveScoreDialog" OnScoreSaved="OnScoreSaved" />
 
 @code {
-    LeaderboardModal? LeaderboardDialog;
+    LeaderboardStatsModal? LeaderboardStatsDialog;
     SaveScoreModal? SaveScoreDialog;
     AssdexModal? AssdexDialog;
     DailyModal? DailyDialog;
@@ -179,7 +175,12 @@
 
     async Task ShowLeaderboardDialog()
     {
-        await LeaderboardDialog?.Show();
+        if (LeaderboardStatsDialog != null) await LeaderboardStatsDialog.ShowLeaderboard();
+    }
+
+    async Task ShowLeaderboardStatsDialog()
+    {
+        if (LeaderboardStatsDialog != null) await LeaderboardStatsDialog.ShowLeaderboard();
     }
 
     async Task ShowAssdexDialog()
