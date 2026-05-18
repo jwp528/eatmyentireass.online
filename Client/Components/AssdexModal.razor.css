@@ -22,7 +22,15 @@
     gap: 0.5rem;
 }
 
-.assdex-card.unlocked {
+.assdex-clickable {
+    cursor: pointer;
+}
+
+.assdex-clickable:active {
+    transform: scale(0.97);
+}
+
+
     border-color: rgba(59, 130, 246, 0.4);
     background: rgba(59, 130, 246, 0.08);
 }

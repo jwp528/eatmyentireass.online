@@ -9,6 +9,9 @@
     [Microsoft.AspNetCore.Components.Inject]
     public ICollectionService CollectionService { get; set; } = default!;
 
+    [Microsoft.AspNetCore.Components.Parameter]
+    public Microsoft.AspNetCore.Components.EventCallback<AssTypeEnum> OnShowDetail { get; set; }
+
     private HashSet<AssTypeEnum> unlockedTypes = new();
     private bool isLoading;
     private AssTypeEnum? _focusType;
@@ -78,7 +81,8 @@
                     {
                         var isUnlocked = unlockedTypes.Contains(assType);
                         var isFocused = _focusType == assType;
-                        <div id="assdex-@assType.ToString()" class="assdex-card @(isUnlocked ? "unlocked" : "locked") @(isFocused ? "assdex-focused" : "")">
+                        <div id="assdex-@assType.ToString()" class="assdex-card @(isUnlocked ? "unlocked" : "locked") @(isFocused ? "assdex-focused" : "") @(isUnlocked && OnShowDetail.HasDelegate ? "assdex-clickable" : "")"
+                             @onclick="async () => { if (isUnlocked && OnShowDetail.HasDelegate) await OnShowDetail.InvokeAsync(assType); }">
                             <div class="assdex-image-wrap">
                                 <img src="/images/Asses/@assType.ToString()/entire_ass.png"
                                      class="assdex-img"

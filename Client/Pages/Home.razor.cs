@@ -31,6 +31,11 @@ namespace BlazorApp.Client.Pages
         double assesEaten = 0;
         int piecesEaten = 0;
 
+        // Progress / perks cache (loaded in OnInitializedAsync, safe defaults until then)
+        Dictionary<AssTypeEnum, AssTypeProgress> _progressCache =
+            Enum.GetValues<AssTypeEnum>().ToDictionary(t => t, _ => new AssTypeProgress());
+        int _effectiveCompleteThreshold = 0;
+
         // Frenzy Mode
         bool frenzyActive = false;
         int frenzySecondsLeft = 0;
@@ -135,6 +140,7 @@ namespace BlazorApp.Client.Pages
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
+            _progressCache = await ProgressService.LoadAsync();
             await LoadSettings();
         }
 
@@ -171,10 +177,10 @@ namespace BlazorApp.Client.Pages
         {
             try
             {
-                CurrentAssType = BlazorApp.Shared.Assets.GetRandomAssType();
+                CurrentAssType = PickNextAssType();
                 AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
+                _effectiveCompleteThreshold = ProgressService.GetEffectiveCompleteThreshold(CurrentAssType, _progressCache[CurrentAssType]);
 
-                // Ensure piecesEaten is within bounds
                 if (piecesEaten >= AssFrames.Count)
                 {
                     piecesEaten = 0;
@@ -182,11 +188,28 @@ namespace BlazorApp.Client.Pages
             }
             catch (Exception)
             {
-                // Fallback to a safe default if something goes wrong
                 CurrentAssType = AssTypeEnum.Flat;
                 AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
+                _effectiveCompleteThreshold = ProgressService.GetEffectiveCompleteThreshold(CurrentAssType, _progressCache[CurrentAssType]);
                 piecesEaten = 0;
             }
+        }
+
+        AssTypeEnum PickNextAssType()
+        {
+            // ~2% chance of Golden
+            if (Random.Shared.Next(50) == 0)
+                return AssTypeEnum.Golden;
+
+            // Build weighted pool for non-golden types
+            var pool = new List<AssTypeEnum>();
+            foreach (var type in Enum.GetValues<AssTypeEnum>())
+            {
+                if (type == AssTypeEnum.Golden) continue;
+                var count = _progressCache.TryGetValue(type, out var p) && p.HasPerk25 ? 2 : 1;
+                for (int i = 0; i < count; i++) pool.Add(type);
+            }
+            return pool[Random.Shared.Next(pool.Count)];
         }
 
         async Task LoadDataAsync(string username)
@@ -381,16 +404,22 @@ namespace BlazorApp.Client.Pages
             }
 
             // Check if we're about to complete the current ass
-            if (piecesEaten >= AssFrames.Count - 1)
+            if (piecesEaten >= _effectiveCompleteThreshold)
             {
                 var completedType = CurrentAssType;
+                var clicksUsed = piecesEaten + 1;
                 piecesEaten = 0;
-                assesEaten += BlazorApp.Shared.Assets.GetPointsForAssType(completedType);
+                assesEaten += ProgressService.GetEffectivePoints(completedType, _progressCache[completedType]);
                 Breakdown[completedType]++;
 
-                // Assdex: track new unlocks
+                // Update progress cache synchronously before getting next ass
+                _progressCache[completedType].Eaten++;
+                _progressCache[completedType].ClicksUsed += clicksUsed;
+
+                // Assdex: track new unlocks; get next ass (uses updated cache for threshold)
                 GetNewAss();
                 _ = CollectionService.MarkUnlockedAsync(completedType);
+                _ = ProgressService.SaveAsync(_progressCache);
 
                 if (completedType == AssTypeEnum.Golden)
                     TriggerFrenzy();

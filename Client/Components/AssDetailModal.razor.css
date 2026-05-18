@@ -1,0 +1,328 @@
+#assDetailModal .modal-content {
+    background: transparent;
+    border: none;
+}
+
+.ad-shell {
+    background: #1a1a2e;
+    color: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────── */
+.ad-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.25rem 0;
+}
+
+.ad-header-img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.ad-header-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.ad-header-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.ad-mastery-badge {
+    font-size: 0.68rem;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fcd34d;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.ad-header-sub {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.2rem;
+}
+
+.ad-perk-indicator {
+    color: #a78bfa;
+    font-weight: 600;
+    margin-left: 0.35rem;
+}
+
+.ad-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    align-self: flex-start;
+    transition: color 0.15s;
+    flex-shrink: 0;
+}
+
+.ad-close:hover { color: #fff; }
+
+/* ── Tab bar ─────────────────────────────── */
+.ad-tab-bar {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 1rem 0 0;
+    padding: 0 1.25rem;
+    overflow-x: auto;
+}
+
+.ad-tab {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.55rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.ad-tab:hover { color: rgba(255, 255, 255, 0.8); }
+
+.ad-tab-active {
+    color: #7986cb;
+    border-bottom-color: #7986cb;
+    font-weight: 600;
+}
+
+/* ── Content ─────────────────────────────── */
+.ad-content {
+    padding: 1.25rem;
+    min-height: 200px;
+}
+
+/* Overview */
+.ad-flavor {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+.ad-stats-row {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.ad-stat { text-align: center; }
+
+.ad-stat-val {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    display: block;
+}
+
+.ad-stat-lbl {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* My Stats */
+.ad-my-grid {
+    display: flex;
+    gap: 2.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.ad-my-stat { text-align: center; }
+
+.ad-my-val {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.ad-my-lbl {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.ad-perk-section { margin-top: 0.25rem; }
+
+.ad-perk-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 0.6rem;
+}
+
+.ad-perk-none {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.35);
+    font-style: italic;
+}
+
+.ad-perk-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.72);
+    padding: 0.25rem 0;
+}
+
+.ad-perk-gold { color: #fcd34d; }
+
+/* Global */
+.ad-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.4);
+    min-height: 120px;
+    font-size: 0.9rem;
+}
+
+.ad-global-grid {
+    display: flex;
+    gap: 2.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.ad-global-stat { text-align: center; }
+
+.ad-global-val {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.ad-global-lbl {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.ad-global-bar-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+}
+
+.ad-global-bar-fill {
+    height: 100%;
+    background: #7986cb;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.ad-global-note {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Progress milestones */
+.ad-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ad-ms-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+}
+
+.ms-current {
+    background: rgba(121, 134, 203, 0.1);
+    border-color: rgba(121, 134, 203, 0.3);
+}
+
+.ms-unlocked { opacity: 1; }
+
+.ms-locked { opacity: 0.45; }
+
+.ad-ms-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+.ad-ms-body { flex: 1; }
+
+.ad-ms-label { font-weight: 600; font-size: 0.88rem; }
+
+.ad-ms-perk {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.ad-ms-status {
+    font-size: 0.72rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.ms-status-active { color: #86efac; }
+
+.ms-status-locked { color: rgba(255, 255, 255, 0.25); }
+
+.ad-ms-prog-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 0.75rem 0.5rem;
+}
+
+.ad-ms-prog-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.ad-ms-prog-fill {
+    height: 100%;
+    background: #7986cb;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+
+.ad-ms-prog-txt {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.35);
+    white-space: nowrap;
+}
+
+@@media (max-width: 576px) {
+    .ad-header-img { width: 52px; height: 52px; }
+    .ad-header-name { font-size: 1.1rem; }
+    .ad-my-val, .ad-global-val { font-size: 1.4rem; }
+}

@@ -1,0 +1,253 @@
+@using BlazorApp.Shared
+@using static BlazorApp.Shared.Assets
+@using BlazorApp.Client.Services
+@inject IProgressService ProgressService
+@inject IStatsService StatsService
+
+@code {
+    public BSModal? Modal;
+
+    private AssTypeEnum _assType;
+    private AssTypeProgress _progress = new();
+    private GameStats? _globalStats;
+    private bool _globalLoading;
+    private int _activeTab;
+
+    private string AssName => _assType.ToString();
+    private string AssImg => $"/images/Asses/{AssName}/entire_ass.png";
+
+    public async Task ShowAsync(AssTypeEnum assType)
+    {
+        _assType = assType;
+        _activeTab = 0;
+        _globalStats = null;
+        _globalLoading = false;
+        _progress = await ProgressService.GetProgressAsync(assType);
+        StateHasChanged();
+        await Modal!.Show();
+    }
+
+    private async Task SwitchTab(int tab)
+    {
+        _activeTab = tab;
+        if (tab == 2 && _globalStats == null && !_globalLoading)
+        {
+            _globalLoading = true;
+            _globalStats = await StatsService.GetStatsAsync();
+            _globalLoading = false;
+        }
+    }
+
+    private string GetFlavorText() => _assType switch
+    {
+        AssTypeEnum.Boney   => "A skeletal specimen of uncertain origin. Archaeologists believe it predates flavor itself. Crunches like gravel, tastes like regret. Zero nutritional value — confirmed.",
+        AssTypeEnum.Cartoon => "Lovingly rendered in 2D by an artist who has clearly made questionable life choices. Hand-drawn, hand-animated, hand-delivered to your mouth. If you listen closely, you can hear the pen strokes.",
+        AssTypeEnum.Flat    => "Aerodynamically ideal. Scientists have proposed using this in a wind tunnel. Thinner than your average pizza, and somehow less satisfying. Don't underestimate it — what it lacks in volume it makes up for in quantity.",
+        AssTypeEnum.Hairy   => "Classic. Ungroomed. Unapologetic. Undefeated. Nature's most authentic offering. The kind of ass that wakes up like that. No filter required — and believe me, none was applied.",
+        AssTypeEnum.GYAT    => "GYAT DAMN. The forbidden fruit of the ass world. Thicc. Juicy. Supreme. Consuming one is widely considered a spiritual experience. Handle with both hands.",
+        AssTypeEnum.Golden  => "Gilded perfection. A rare delicacy that defies explanation. Economists argue eating one is irresponsible. Philosophers say it's transcendent. It tastes like winning.",
+        _                   => "A mysterious specimen. Details lost to time."
+    };
+
+    private string GetRarity() => _assType switch
+    {
+        AssTypeEnum.Golden => "Legendary (~2%)",
+        _ => "Common (~20%)"
+    };
+
+    private int BaseClicks => BlazorApp.Shared.Assets.Frames[AssName].Count;
+    private double BasePoints => BlazorApp.Shared.Assets.GetPointsForAssType(_assType);
+    private int EffectiveClicks => ProgressService.GetEffectiveCompleteThreshold(_assType, _progress) + 1;
+    private double EffectivePoints => ProgressService.GetEffectivePoints(_assType, _progress);
+
+    private long GlobalTypeCount => _globalStats?.AssTypeStats?.TryGetValue(AssName, out var c) == true ? c : 0;
+    private long GlobalTotal => _globalStats?.AssTypeStats?.Values.Sum() ?? 0;
+    private double GlobalPercent => GlobalTotal > 0 ? GlobalTypeCount * 100.0 / GlobalTotal : 0;
+
+    private static readonly int[] Milestones = { 10, 25, 50, 100 };
+
+    private string GetPerkText(int milestone) => milestone switch
+    {
+        10  => "One less click to eat",
+        25  => "Spawns twice as often",
+        50  => "Takes half the clicks to eat",
+        100 => "+1 bonus point per eat · MASTERY",
+        _   => ""
+    };
+
+    private bool IsMilestoneUnlocked(int ms) => _progress.Eaten >= ms;
+
+    private double GetMilestoneProgress(int ms)
+    {
+        var prev = ms switch { 10 => 0, 25 => 10, 50 => 25, 100 => 50, _ => 0 };
+        var from = _progress.Eaten - prev;
+        var to = ms - prev;
+        if (to <= 0) return 100;
+        return Math.Min(100.0, from * 100.0 / to);
+    }
+}
+
+<BSModal @ref="Modal" Id="assDetailModal" IsVerticallyCentered="true" Size="ModalSize.Large">
+    <Body>
+        <div class="ad-shell">
+
+            <!-- Header -->
+            <div class="ad-header">
+                <img src="@AssImg" class="ad-header-img" alt="@AssName" />
+                <div class="ad-header-text">
+                    <div class="ad-header-name">
+                        @AssName
+                        @if (_progress.HasPerk100)
+                        {
+                            <span class="ad-mastery-badge">🏆 MASTERY</span>
+                        }
+                    </div>
+                    <div class="ad-header-sub">
+                        @EffectiveClicks click@(EffectiveClicks == 1 ? "" : "s") &middot; @EffectivePoints pts &middot; @GetRarity()
+                        @if (_progress.HasPerk10 || _progress.HasPerk50 || _progress.HasPerk100)
+                        {
+                            <span class="ad-perk-indicator">⚡ Perks Active</span>
+                        }
+                    </div>
+                </div>
+                <button class="ad-close" type="button" @onclick="() => Modal?.Hide()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="ad-tab-bar">
+                <button class="ad-tab @(_activeTab == 0 ? "ad-tab-active" : "")" @onclick="() => SwitchTab(0)">Overview</button>
+                <button class="ad-tab @(_activeTab == 1 ? "ad-tab-active" : "")" @onclick="() => SwitchTab(1)">My Stats</button>
+                <button class="ad-tab @(_activeTab == 2 ? "ad-tab-active" : "")" @onclick="() => SwitchTab(2)">Global</button>
+                <button class="ad-tab @(_activeTab == 3 ? "ad-tab-active" : "")" @onclick="() => SwitchTab(3)">Progress</button>
+            </div>
+
+            <!-- Tab content -->
+            <div class="ad-content">
+                @if (_activeTab == 0)
+                {
+                    <!-- Overview -->
+                    <p class="ad-flavor">@GetFlavorText()</p>
+                    <div class="ad-stats-row">
+                        <div class="ad-stat">
+                            <div class="ad-stat-val">@BasePoints</div>
+                            <div class="ad-stat-lbl">Base Points</div>
+                        </div>
+                        <div class="ad-stat">
+                            <div class="ad-stat-val">@BaseClicks</div>
+                            <div class="ad-stat-lbl">Base Clicks</div>
+                        </div>
+                        <div class="ad-stat">
+                            <div class="ad-stat-val">@GetRarity()</div>
+                            <div class="ad-stat-lbl">Rarity</div>
+                        </div>
+                    </div>
+                }
+                else if (_activeTab == 1)
+                {
+                    <!-- My Stats -->
+                    <div class="ad-my-grid">
+                        <div class="ad-my-stat">
+                            <div class="ad-my-val">@_progress.Eaten</div>
+                            <div class="ad-my-lbl">Times Eaten</div>
+                        </div>
+                        <div class="ad-my-stat">
+                            <div class="ad-my-val">@_progress.ClicksUsed.ToString("N0")</div>
+                            <div class="ad-my-lbl">Total Clicks Used</div>
+                        </div>
+                    </div>
+                    <div class="ad-perk-section">
+                        <div class="ad-perk-title">Active Perks</div>
+                        @if (!_progress.HasPerk10)
+                        {
+                            <div class="ad-perk-none">No perks yet — eat 10 to unlock the first perk!</div>
+                        }
+                        @if (_progress.HasPerk10)
+                        {
+                            <div class="ad-perk-row"><i class="bi bi-check-circle-fill text-success"></i> One less click to eat</div>
+                        }
+                        @if (_progress.HasPerk25)
+                        {
+                            <div class="ad-perk-row"><i class="bi bi-check-circle-fill text-success"></i> Spawns twice as often</div>
+                        }
+                        @if (_progress.HasPerk50)
+                        {
+                            <div class="ad-perk-row"><i class="bi bi-check-circle-fill text-success"></i> Takes half the clicks to eat</div>
+                        }
+                        @if (_progress.HasPerk100)
+                        {
+                            <div class="ad-perk-row ad-perk-gold"><i class="bi bi-star-fill"></i> +1 bonus point per eat · MASTERY unlocked</div>
+                        }
+                    </div>
+                }
+                else if (_activeTab == 2)
+                {
+                    <!-- Global -->
+                    @if (_globalLoading)
+                    {
+                        <div class="ad-empty">
+                            <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
+                            Loading global data&hellip;
+                        </div>
+                    }
+                    else if (_globalStats == null)
+                    {
+                        <div class="ad-empty">Could not load global stats.</div>
+                    }
+                    else
+                    {
+                        <div class="ad-global-grid">
+                            <div class="ad-global-stat">
+                                <div class="ad-global-val">@GlobalTypeCount.ToString("N0")</div>
+                                <div class="ad-global-lbl">Eaten Globally</div>
+                            </div>
+                            <div class="ad-global-stat">
+                                <div class="ad-global-val">@GlobalPercent.ToString("F1")%</div>
+                                <div class="ad-global-lbl">Of All Asses</div>
+                            </div>
+                        </div>
+                        <div class="ad-global-bar-track">
+                            <div class="ad-global-bar-fill" style="width: @(Math.Min(GlobalPercent, 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                        </div>
+                        <div class="ad-global-note">Based on @GlobalTotal.ToString("N0") total asses eaten globally</div>
+                    }
+                }
+                else
+                {
+                    <!-- Progress -->
+                    <div class="ad-progress-list">
+                        @foreach (var ms in Milestones)
+                        {
+                            var unlocked = IsMilestoneUnlocked(ms);
+                            var isCurrent = !unlocked && _progress.NextMilestone == ms;
+                            <div class="ad-ms-row @(unlocked ? "ms-unlocked" : isCurrent ? "ms-current" : "ms-locked")">
+                                <div class="ad-ms-icon">
+                                    @if (unlocked) { <i class="bi bi-check-circle-fill text-success"></i> }
+                                    else { <i class="bi bi-circle text-secondary"></i> }
+                                </div>
+                                <div class="ad-ms-body">
+                                    <div class="ad-ms-label">@ms eaten</div>
+                                    <div class="ad-ms-perk">@GetPerkText(ms)</div>
+                                </div>
+                                <div class="ad-ms-status @(unlocked ? "ms-status-active" : "ms-status-locked")">
+                                    @(unlocked ? "Active" : "Locked")
+                                </div>
+                            </div>
+                            @if (isCurrent)
+                            {
+                                <div class="ad-ms-prog-wrap">
+                                    <div class="ad-ms-prog-bar">
+                                        <div class="ad-ms-prog-fill" style="width: @GetMilestoneProgress(ms).ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                    </div>
+                                    <span class="ad-ms-prog-txt">@_progress.Eaten / @ms</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+    </Body>
+</BSModal>

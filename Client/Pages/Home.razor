@@ -9,6 +9,7 @@
 @inject IStatsService StatsService
 @inject ICollectionService CollectionService
 @inject IDailyChallengeService DailyChallengeService
+@inject IProgressService ProgressService
 
 <PageTitle>Eat my entire ass</PageTitle>
 
@@ -121,7 +122,8 @@
 <AboutModal @ref="AboutDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />
-<AssdexModal @ref="AssdexDialog" />
+<AssdexModal @ref="AssdexDialog" OnShowDetail="OpenAssDetail" />
+<AssDetailModal @ref="AssDetailDialog" />
 <DailyModal @ref="DailyDialog" />
 <ResultsModal @ref="ResultsDialog"
               assesEaten="@assesEaten"
@@ -143,6 +145,7 @@
     LeaderboardStatsModal? LeaderboardStatsDialog;
     SaveScoreModal? SaveScoreDialog;
     AssdexModal? AssdexDialog;
+    AssDetailModal? AssDetailDialog;
     DailyModal? DailyDialog;
 
     // Make totalClicks accessible in the template
@@ -161,6 +164,11 @@
     async Task ShowAssdexDialog()
     {
         await AssdexDialog?.Show();
+    }
+
+    async Task OpenAssDetail(AssTypeEnum assType)
+    {
+        await AssDetailDialog?.ShowAsync(assType);
     }
 
     async Task OpenAssdexForType(AssTypeEnum assType)

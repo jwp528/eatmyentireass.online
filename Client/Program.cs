@@ -32,6 +32,9 @@ builder.Services.AddScoped<IStatsService, StatsService>();
 // Collection (Assdex) service
 builder.Services.AddScoped<ICollectionService, CollectionService>();
 
+// Progress / perks service
+builder.Services.AddScoped<IProgressService, ProgressService>();
+
 // Daily Challenge service
 builder.Services.AddScoped<IDailyChallengeService, DailyChallengeService>();
 
