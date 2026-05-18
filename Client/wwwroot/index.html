@@ -146,26 +146,24 @@
         };
 
         window.fireConfetti = () => {
+            const canvas = document.createElement('canvas');
+            canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;pointer-events:none';
+            document.body.appendChild(canvas);
+
+            const myConfetti = confetti.create(canvas, { resize: true, useWorker: false });
             const duration = 3000;
             const end = Date.now() + duration;
             const colors = ['#ffd700', '#ff8c00', '#ff69b4', '#9b59b6', '#3498db'];
 
             (function frame() {
-                confetti({
-                    particleCount: 5,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 },
-                    colors: colors
-                });
-                confetti({
-                    particleCount: 5,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 },
-                    colors: colors
-                });
-                if (Date.now() < end) requestAnimationFrame(frame);
+                myConfetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors });
+                myConfetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors });
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                } else {
+                    myConfetti.reset();
+                    canvas.remove();
+                }
             }());
         };
 
