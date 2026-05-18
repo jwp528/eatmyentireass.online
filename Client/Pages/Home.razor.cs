@@ -343,6 +343,10 @@ namespace BlazorApp.Client.Pages
                 return;
             }
 
+            // Pause main countdown while frenzy is active
+            if (frenzyActive)
+                return;
+
             if (GameTimeInSeconds > 0)
             {
                 GameTimeInSeconds--;

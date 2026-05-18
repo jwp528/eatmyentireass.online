@@ -2,6 +2,7 @@
 @using static BlazorApp.Shared.Assets
 @using BlazorApp.Client.Services
 @inject IJSRuntime JS
+@inject IProgressService ProgressService
 
 @code {
     public BSModal? Modal;
@@ -13,6 +14,7 @@
     public Microsoft.AspNetCore.Components.EventCallback<AssTypeEnum> OnShowDetail { get; set; }
 
     private HashSet<AssTypeEnum> unlockedTypes = new();
+    private Dictionary<AssTypeEnum, AssTypeProgress> _progressData = new();
     private bool isLoading;
     private AssTypeEnum? _focusType;
 
@@ -38,6 +40,7 @@
         isLoading = true;
         StateHasChanged();
         unlockedTypes = await CollectionService.GetUnlockedTypesAsync();
+        _progressData = await ProgressService.LoadAsync();
         isLoading = false;
         StateHasChanged();
     }
@@ -52,6 +55,19 @@
         AssTypeEnum.Golden  => "10 pts · The holy grail. Rare. Metallic.",
         _                   => "???"
     };
+
+    private (string biIcon, string name, string tierCls)? GetTierBadge(AssTypeEnum assType)
+    {
+        if (!_progressData.TryGetValue(assType, out var p)) return null;
+        return p.Eaten switch
+        {
+            >= 100 => ("bi-crown-fill",     "Master",  "tier-plat"),
+            >= 50  => ("bi-lightning-fill", "Expert",  "tier-gold"),
+            >= 25  => ("bi-star-fill",      "Regular", "tier-silver"),
+            >= 10  => ("bi-award",          "Taster",  "tier-bronze"),
+            _      => null
+        };
+    }
 }
 
 <BSModal @ref="Modal" Id="assdexModal" IsVerticallyCentered="true" Size="ModalSize.ExtraLarge">
@@ -59,7 +75,7 @@
         <div class="assdex-container">
             <div class="text-center mb-4">
                 <h4 class="fw-bold text-white mb-0">
-                    <i class="fas fa-book text-info me-2"></i>
+                    <span class="me-2"><AssIconSvg Style="AssIconSvg.AssIconStyle.Fill" Size="1.3em" Color="#0dcaf0" /></span>
                     Assdex
                 </h4>
                 <small class="text-muted">
@@ -81,6 +97,7 @@
                     {
                         var isUnlocked = unlockedTypes.Contains(assType);
                         var isFocused = _focusType == assType;
+                        var tier = isUnlocked ? GetTierBadge(assType) : null;
                         <div id="assdex-@assType.ToString()" class="assdex-card @(isUnlocked ? "unlocked" : "locked") @(isFocused ? "assdex-focused" : "") @(isUnlocked && OnShowDetail.HasDelegate ? "assdex-clickable" : "")"
                              @onclick="async () => { if (isUnlocked && OnShowDetail.HasDelegate) await OnShowDetail.InvokeAsync(assType); }">
                             <div class="assdex-image-wrap">
@@ -102,6 +119,12 @@
                             @if (isUnlocked)
                             {
                                 <div class="assdex-desc">@GetDescription(assType)</div>
+                                @if (tier != null)
+                                {
+                                    <div class="assdex-tier-badge @tier.Value.tierCls">
+                                        <i class="bi @tier.Value.biIcon"></i>@tier.Value.name
+                                    </div>
+                                }
                             }
                             else
                             {

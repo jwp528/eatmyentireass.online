@@ -30,7 +30,7 @@
     transform: scale(0.97);
 }
 
-
+.assdex-card.unlocked {
     border-color: rgba(59, 130, 246, 0.4);
     background: rgba(59, 130, 246, 0.08);
 }
@@ -148,6 +148,26 @@
     font-weight: 600;
     display: inline-block;
 }
+
+/* ── Progress tier badges on Assdex cards ─── */
+.assdex-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.18rem 0.45rem;
+    border-radius: 20px;
+    margin-top: 0.25rem;
+    border: 1px solid;
+}
+
+.assdex-tier-badge.tier-bronze { color: #cd7f32; background: rgba(205, 127, 50, 0.1); border-color: rgba(205, 127, 50, 0.35); }
+.assdex-tier-badge.tier-silver { color: #94a3b8; background: rgba(148, 163, 184, 0.1); border-color: rgba(148, 163, 184, 0.35); }
+.assdex-tier-badge.tier-gold   { color: #f59e0b; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.35); }
+.assdex-tier-badge.tier-plat   { color: #a78bfa; background: rgba(167, 139, 250, 0.1); border-color: rgba(167, 139, 250, 0.35); }
 
 @@media (max-width: 576px) {
     .assdex-grid {
