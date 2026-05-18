@@ -228,6 +228,16 @@
         window.addEventListener('load', () => {
             window.preloadGameImages();
         });
+
+        window.scrollAssdexTo = (assTypeName) => {
+            // Give the modal a moment to render, then scroll to the focused card
+            setTimeout(() => {
+                const el = document.getElementById('assdex-' + assTypeName);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 350);
+        };
     </script>
 </body>
 

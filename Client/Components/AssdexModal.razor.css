@@ -33,6 +33,18 @@
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2);
 }
 
+.assdex-focused {
+    border-color: #7986cb !important;
+    box-shadow: 0 0 0 2px rgba(121,134,203,0.45), 0 6px 24px rgba(121,134,203,0.25) !important;
+    animation: assdex-pulse 1.6s ease-out;
+}
+
+@keyframes assdex-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(121,134,203,0.7), 0 6px 24px rgba(121,134,203,0.25); }
+    60%  { box-shadow: 0 0 0 8px rgba(121,134,203,0),   0 6px 24px rgba(121,134,203,0.25); }
+    100% { box-shadow: 0 0 0 2px rgba(121,134,203,0.45),0 6px 24px rgba(121,134,203,0.25); }
+}
+
 .assdex-card.locked {
     opacity: 0.55;
     filter: grayscale(0.4);

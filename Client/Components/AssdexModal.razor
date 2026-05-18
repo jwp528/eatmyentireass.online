@@ -1,6 +1,7 @@
 @using BlazorApp.Shared
 @using static BlazorApp.Shared.Assets
 @using BlazorApp.Client.Services
+@inject IJSRuntime JS
 
 @code {
     public BSModal? Modal;
@@ -10,13 +11,23 @@
 
     private HashSet<AssTypeEnum> unlockedTypes = new();
     private bool isLoading;
+    private AssTypeEnum? _focusType;
 
     private static readonly AssTypeEnum[] AllTypes = (AssTypeEnum[])Enum.GetValues(typeof(AssTypeEnum));
 
     public async Task Show()
     {
+        _focusType = null;
         await Modal!.Show();
         await LoadCollection();
+    }
+
+    public async Task ShowForType(AssTypeEnum focusType)
+    {
+        _focusType = focusType;
+        await Modal!.Show();
+        await LoadCollection();
+        await JS.InvokeVoidAsync("scrollAssdexTo", focusType.ToString());
     }
 
     private async Task LoadCollection()
@@ -66,7 +77,8 @@
                     @foreach (var assType in AllTypes)
                     {
                         var isUnlocked = unlockedTypes.Contains(assType);
-                        <div class="assdex-card @(isUnlocked ? "unlocked" : "locked")">
+                        var isFocused = _focusType == assType;
+                        <div id="assdex-@assType.ToString()" class="assdex-card @(isUnlocked ? "unlocked" : "locked") @(isFocused ? "assdex-focused" : "")">
                             <div class="assdex-image-wrap">
                                 <img src="/images/Asses/@assType.ToString()/entire_ass.png"
                                      class="assdex-img"

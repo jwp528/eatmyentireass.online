@@ -1,4 +1,7 @@
+@using BlazorApp.Shared
 @using static BlazorApp.Shared.Assets
+@using BlazorApp.Client.Services
+@inject IStatsService StatsService
 
 @code {
     [Parameter] public double assesEaten { get; set; }
@@ -7,14 +10,19 @@
     [Parameter] public List<AssTypeEnum> AssTypes { get; set; } = new();
     [Parameter] public Dictionary<AssTypeEnum, int> Breakdown { get; set; } = new();
     [Parameter] public bool hasScoreSaved { get; set; }
-    [Parameter] public int peakComboCount { get; set; }  // now receives frenzyCount
+    [Parameter] public int peakComboCount { get; set; }
     [Parameter] public List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
     [Parameter] public EventCallback OnSaveScore { get; set; }
     [Parameter] public EventCallback OnShowLeaderboard { get; set; }
+    [Parameter] public EventCallback<AssTypeEnum> OnShowAssdex { get; set; }
 
     public BSModal? Modal;
     private int activeTab = 0;
+
+    // Global stats (Stats tab)
+    private GameStats? _globalStats;
+    private bool _statsLoading;
 
     private double ChartMaxCps => clicksPerSecondPolls.Any()
         ? Math.Max(1, clicksPerSecondPolls.Max(p => p.clicksPerSecond) * 1.2)
@@ -49,6 +57,25 @@
     {
         var count = Breakdown.ContainsKey(assType) ? Breakdown[assType] : 0;
         return count * BlazorApp.Shared.Assets.GetPointsForAssType(assType);
+    }
+
+    private long GlobalTotalAssesEaten() =>
+        _globalStats?.AssTypeStats.Values.Sum() ?? 0;
+
+    private long GlobalAvgClicksPerRound() =>
+        _globalStats is { RoundsPlayed: > 0 }
+            ? _globalStats.TotalClicks / _globalStats.RoundsPlayed
+            : 0;
+
+    private async Task SwitchTab(int tab)
+    {
+        activeTab = tab;
+        if (tab == 2 && _globalStats == null && !_statsLoading)
+        {
+            _statsLoading = true;
+            _globalStats = await StatsService.GetStatsAsync();
+            _statsLoading = false;
+        }
     }
 }
 
@@ -104,11 +131,14 @@
 
             <!-- Material underline tabs -->
             <div class="rm-tab-bar">
-                <button class="rm-tab @(activeTab == 0 ? "rm-tab-active" : "")" @onclick="() => activeTab = 0">
+                <button class="rm-tab @(activeTab == 0 ? "rm-tab-active" : "")" @onclick="() => SwitchTab(0)">
                     <i class="bi bi-graph-up-arrow"></i> Performance
                 </button>
-                <button class="rm-tab @(activeTab == 1 ? "rm-tab-active" : "")" @onclick="() => activeTab = 1">
+                <button class="rm-tab @(activeTab == 1 ? "rm-tab-active" : "")" @onclick="() => SwitchTab(1)">
                     <i class="bi bi-pie-chart-fill"></i> Breakdown
+                </button>
+                <button class="rm-tab @(activeTab == 2 ? "rm-tab-active" : "")" @onclick="() => SwitchTab(2)">
+                    <i class="bi bi-bar-chart-line-fill"></i> Global Stats
                 </button>
             </div>
 
@@ -169,7 +199,7 @@
                         <div class="rm-empty">No performance data</div>
                     }
                 }
-                else
+                else if (activeTab == 1)
                 {
                     <div class="rm-breakdown">
                         @foreach (var ass in AssTypes.OrderByDescending(a => Breakdown[a]))
@@ -190,9 +220,77 @@
                                     <span class="rm-bd-count">@Breakdown[ass]</span>
                                     <span class="rm-bd-pct">@pct%</span>
                                 </div>
+                                <button class="rm-dex-btn" title="View in Assdex"
+                                        @onclick="() => OnShowAssdex.InvokeAsync(ass)">
+                                    <i class="bi bi-book"></i> Dex
+                                </button>
                             </div>
                         }
                     </div>
+                }
+                else
+                {
+                    <!-- Global Stats tab -->
+                    @if (_statsLoading)
+                    {
+                        <div class="rm-empty">
+                            <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
+                            Loading global stats...
+                        </div>
+                    }
+                    else if (_globalStats == null)
+                    {
+                        <div class="rm-empty">Could not load global stats.</div>
+                    }
+                    else
+                    {
+                        <div class="rm-gs-grid">
+                            <div class="rm-gs-stat">
+                                <i class="bi bi-emoji-dizzy rm-gs-icon"></i>
+                                <span class="rm-gs-val">@GlobalTotalAssesEaten().ToString("N0")</span>
+                                <span class="rm-gs-lbl">Asses Eaten</span>
+                            </div>
+                            <div class="rm-gs-stat">
+                                <i class="bi bi-mouse rm-gs-icon"></i>
+                                <span class="rm-gs-val">@_globalStats.TotalClicks.ToString("N0")</span>
+                                <span class="rm-gs-lbl">Total Clicks</span>
+                            </div>
+                            <div class="rm-gs-stat">
+                                <i class="bi bi-controller rm-gs-icon"></i>
+                                <span class="rm-gs-val">@_globalStats.RoundsPlayed.ToString("N0")</span>
+                                <span class="rm-gs-lbl">Rounds Played</span>
+                            </div>
+                            <div class="rm-gs-stat">
+                                <i class="bi bi-cursor rm-gs-icon"></i>
+                                <span class="rm-gs-val">@GlobalAvgClicksPerRound().ToString("N0")</span>
+                                <span class="rm-gs-lbl">Avg Clicks/Round</span>
+                            </div>
+                        </div>
+                        <div class="rm-gs-divider"></div>
+                        <div class="rm-gs-section-label">By Ass Type</div>
+                        <div class="rm-breakdown">
+                            @foreach (var kv in _globalStats.AssTypeStats.OrderByDescending(x => x.Value))
+                            {
+                                var total = GlobalTotalAssesEaten();
+                                var pct = total > 0 ? Math.Round((double)kv.Value / total * 100, 1) : 0;
+                                var barW = total > 0 ? (double)kv.Value / total * 100 : 0;
+                                <div class="rm-bd-row">
+                                    <img src="/images/Asses/@kv.Key/entire_ass.png"
+                                         class="rm-bd-img" alt="@kv.Key" />
+                                    <div class="rm-bd-info">
+                                        <div class="rm-bd-name">@kv.Key</div>
+                                        <div class="rm-bd-bar-track">
+                                            <div class="rm-bd-bar-fill" style="width:@(barW)%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="rm-bd-nums">
+                                        <span class="rm-bd-count">@kv.Value.ToString("N0")</span>
+                                        <span class="rm-bd-pct">@pct%</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
                 }
             </div>
 

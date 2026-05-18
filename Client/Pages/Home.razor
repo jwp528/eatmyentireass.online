@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using BlazorApp.Client.Components
 @using BlazorApp.Client.Services
+@using static BlazorApp.Shared.Assets
 @inject IJSRuntime js
 @inject ILeaderboardService LeaderboardService
 @inject ISettingsService SettingsService
@@ -131,7 +132,8 @@
               peakComboCount="@frenzyCount"
               OnTryAgain="TryAgain"
               OnSaveScore="ShowSaveScoreDialog"
-              OnShowLeaderboard="ShowLeaderboardDialog" />
+              OnShowLeaderboard="ShowLeaderboardDialog"
+              OnShowAssdex="OpenAssdexForType" />
 <LeaderboardStatsModal @ref="LeaderboardStatsDialog" />
 <SaveScoreModal @ref="SaveScoreDialog" OnScoreSaved="OnScoreSaved" />
 
@@ -157,6 +159,12 @@
     async Task ShowAssdexDialog()
     {
         await AssdexDialog?.Show();
+    }
+
+    async Task OpenAssdexForType(AssTypeEnum assType)
+    {
+        await ResultsDialog?.Modal?.Hide();
+        await AssdexDialog?.ShowForType(assType);
     }
 
     async Task ShowDailyDialog()
