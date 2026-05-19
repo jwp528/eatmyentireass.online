@@ -1,5 +1,6 @@
 using BlazorApp.Shared;
 using System.Text.Json;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace BlazorApp.Client.Services
 {
@@ -12,19 +13,23 @@ namespace BlazorApp.Client.Services
     public class StatsService : IStatsService
     {
         private readonly HttpClient _httpClient;
+        private readonly string _staticBase;
 
-        public StatsService(HttpClient httpClient)
+        public StatsService(HttpClient httpClient, IWebAssemblyHostEnvironment hostEnv)
         {
             _httpClient = httpClient;
+            _staticBase = hostEnv.BaseAddress;
         }
 
         public async Task<GameStats?> GetStatsAsync()
         {
             try
             {
-                // Read directly from the static file — fast, no Azure Function cold-start
+                // Read directly from the static file — bypass API cold-start.
+                // Use the app's own origin (not the API base address).
                 var bust = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var json = await _httpClient.GetStringAsync($"data/stats.json?v={bust}");
+                var url = new Uri(new Uri(_staticBase), $"data/stats.json?v={bust}");
+                var json = await _httpClient.GetStringAsync(url);
                 return JsonSerializer.Deserialize<GameStats>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             catch (Exception ex)

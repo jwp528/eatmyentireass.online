@@ -1,5 +1,6 @@
 using BlazorApp.Shared;
 using System.Text.Json;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace BlazorApp.Client.Services
 {
@@ -14,11 +15,13 @@ namespace BlazorApp.Client.Services
     public class LeaderboardService : ILeaderboardService
     {
         private readonly HttpClient _httpClient;
+        private readonly string _staticBase;
 
-        public LeaderboardService(HttpClient httpClient)
+        public LeaderboardService(HttpClient httpClient, IWebAssemblyHostEnvironment hostEnv)
         {
             _httpClient = httpClient;
-            Console.WriteLine($"[LeaderboardService] Initialized with BaseAddress: {_httpClient.BaseAddress}");
+            _staticBase = hostEnv.BaseAddress;
+            Console.WriteLine($"[LeaderboardService] Initialized. API: {_httpClient.BaseAddress}, Static: {_staticBase}");
 
             // Set a reasonable timeout to prevent hanging requests
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
@@ -68,9 +71,10 @@ namespace BlazorApp.Client.Services
         {
             try
             {
-                // Read directly from the static file — no Azure Function cold-start
+                // Read directly from the static file — use the app's own origin, not API base.
                 var bust = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var json = await _httpClient.GetStringAsync($"data/leaderboard.json?v={bust}");
+                var url = new Uri(new Uri(_staticBase), $"data/leaderboard.json?v={bust}");
+                var json = await _httpClient.GetStringAsync(url);
                 var wrapper = JsonSerializer.Deserialize<LeaderboardFileWrapper>(json, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
