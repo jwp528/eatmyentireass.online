@@ -22,8 +22,9 @@ namespace BlazorApp.Client.Services
         {
             try
             {
+                // Read directly from the static file — fast, no Azure Function cold-start
                 var bust = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var json = await _httpClient.GetStringAsync($"api/stats?v={bust}");
+                var json = await _httpClient.GetStringAsync($"data/stats.json?v={bust}");
                 return JsonSerializer.Deserialize<GameStats>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             catch (Exception ex)

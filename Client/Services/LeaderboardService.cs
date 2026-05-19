@@ -68,55 +68,26 @@ namespace BlazorApp.Client.Services
         {
             try
             {
-                // Test API connection first
-                var isApiConnected = await TestApiConnectionAsync();
-                if (!isApiConnected)
+                // Read directly from the static file — no Azure Function cold-start
+                var bust = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                var json = await _httpClient.GetStringAsync($"data/leaderboard.json?v={bust}");
+                var wrapper = JsonSerializer.Deserialize<LeaderboardFileWrapper>(json, new JsonSerializerOptions
                 {
-                    Console.WriteLine("[LeaderboardService] API connection test failed, returning empty list");
-                    return new List<LeaderboardEntry>();
-                }
-
-                var requestUrl = "api/leaderboard";
-                var fullUrl = new Uri(_httpClient.BaseAddress!, requestUrl);
-                Console.WriteLine($"[LeaderboardService] Attempting to fetch scores from: {fullUrl}");
-
-                var response = await _httpClient.GetAsync(requestUrl);
-                Console.WriteLine($"[LeaderboardService] GET response status: {response.StatusCode}");
-                Console.WriteLine($"[LeaderboardService] GET response headers: {string.Join(", ", response.Headers.Select(h => $"{h.Key}={string.Join(",", h.Value)}"))}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"[LeaderboardService] Response content: {json}");
-
-                    var scores = JsonSerializer.Deserialize<List<LeaderboardEntry>>(json, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                    Console.WriteLine($"[LeaderboardService] Deserialized {scores?.Count ?? 0} scores");
-                    return scores ?? new List<LeaderboardEntry>();
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"[LeaderboardService] Error response: {errorContent}");
-                    return new List<LeaderboardEntry>();
-                }
-            }
-            catch (HttpRequestException httpEx)
-            {
-                Console.WriteLine($"[LeaderboardService] HTTP Error in GetTopScoresAsync: {httpEx.Message}");
-                Console.WriteLine($"[LeaderboardService] Base Address: {_httpClient.BaseAddress}");
-                Console.WriteLine("[LeaderboardService] This usually means the API server is not running or not accessible.");
-                return new List<LeaderboardEntry>();
+                    PropertyNameCaseInsensitive = true
+                });
+                var entries = wrapper?.Entries ?? new List<LeaderboardEntry>();
+                return entries.OrderByDescending(e => e.Score).Take(count).ToList();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[LeaderboardService] Exception in GetTopScoresAsync: {ex.Message}");
-                Console.WriteLine($"[LeaderboardService] Stack trace: {ex.StackTrace}");
+                Console.WriteLine($"[LeaderboardService] GetTopScores failed: {ex.Message}");
                 return new List<LeaderboardEntry>();
             }
+        }
+
+        private sealed class LeaderboardFileWrapper
+        {
+            public List<LeaderboardEntry> Entries { get; set; } = new();
         }
 
         public async Task SaveScoreAsync(LeaderboardEntry entry)
@@ -124,13 +95,6 @@ namespace BlazorApp.Client.Services
             try
             {
                 Console.WriteLine($"[LeaderboardService] Attempting to save score for {entry.PlayerName}: {entry.Score}");
-
-                // Enhanced connectivity test before attempting to save
-                var isApiConnected = await TestApiConnectionAsync();
-                if (!isApiConnected)
-                {
-                    throw new Exception("Cannot connect to the API server. The API may be down or not accessible. Please make sure the Azure Functions API is running on http://localhost:7071");
-                }
 
                 var requestUrl = "api/leaderboard/save";
                 var fullUrl = new Uri(_httpClient.BaseAddress!, requestUrl);
