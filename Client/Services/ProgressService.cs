@@ -88,12 +88,13 @@ namespace BlazorApp.Client.Services
         // Perk50 supersedes Perk10 (it's the bigger discount).
         public int GetEffectiveCompleteThreshold(AssTypeEnum assType, AssTypeProgress progress)
         {
-            int base_ = ClicksRequired[assType.ToString()];
+            int frameCount = Frames[assType.ToString()].Count;
+            int baseThreshold = frameCount - 1;
             if (progress.HasPerk50)
-                return Math.Max(0, (int)Math.Ceiling((base_ + 1) / 2.0) - 1);
+                return Math.Max(0, (int)Math.Ceiling(frameCount / 2.0) - 1);
             if (progress.HasPerk10)
-                return Math.Max(0, base_ - 1);
-            return base_;
+                return Math.Max(0, baseThreshold - 1);
+            return baseThreshold;
         }
 
         public double GetEffectivePoints(AssTypeEnum assType, AssTypeProgress progress)

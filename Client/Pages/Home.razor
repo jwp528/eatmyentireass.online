@@ -56,7 +56,7 @@
           @onclick="EatPiece"
           @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
           role="button" tabindex="0">
-        <AssCanvas AssType="@CurrentAssType" BitesEaten="@piecesEaten" TotalBites="@_effectiveCompleteThreshold" />
+        <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
 
         @* Timer — top-center, always visible while game is active *@
         @if (gamePlaying)

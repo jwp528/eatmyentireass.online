@@ -28,17 +28,125 @@ public class Assets
         AssTypeEnum.Hairy
     };
 
-    public static Dictionary<string, int> ClicksRequired = new()
+    public static Dictionary<string, List<string>> Frames = new Dictionary<string, List<string>>()
     {
-        { AssTypeEnum.Boney.ToString(),   4  },
-        { AssTypeEnum.Cartoon.ToString(), 13 },
-        { AssTypeEnum.Flat.ToString(),    9  },
-        { AssTypeEnum.Golden.ToString(),  29 },
-        { AssTypeEnum.GYAT.ToString(),    14 },
-        { AssTypeEnum.Hairy.ToString(),   8  },
-    };
+        {
+            AssTypeEnum.Boney.ToString(), new List<string>
+            {
+                "entire_ass.png",
+                "chunk1.png",
+                "chunk2.png",
+                "chunk3.png",
+                "chunk4.png",
+            }
+        },
 
-    public static bool HasHole(AssTypeEnum assType) => assType != AssTypeEnum.Boney;
+        {
+            AssTypeEnum.Cartoon.ToString(), new List<string>
+            {
+                "entire_ass.png",
+                "chunk1.png",
+                "chunk2.png",
+                "chunk3.png",
+                "chunk4.png",
+                "chunk5.png",
+                "chunk6.png",
+                "chunk7.png",
+                "chunk8.png",
+                "chunk9.png",
+                "chunk10.png",
+                "chunk11.png",
+                "chunk12.png",
+                "hole.png",
+            }
+        },
+        {
+            AssTypeEnum.Flat.ToString(), new List<string>
+            {
+                "entire_ass.png",
+                "chunk1.png",
+                "chunk2.png",
+                "chunk3.png",
+                "chunk4.png",
+                "chunk5.png",
+                "chunk6.png",
+                "chunk7.png",
+                "chunk8.png",
+                "hole.png"
+            }
+        },
+        {
+            AssTypeEnum.Golden.ToString(), new List<string>
+            {
+                "entire_ass.png",
+                "chunk1.png",
+                "chunk2.png",
+                "chunk3.png",
+                "chunk4.png",
+                "chunk5.png",
+                "chunk6.png",
+                "chunk7.png",
+                "chunk8.png",
+                "chunk9.png",
+                "chunk10.png",
+                "chunk11.png",
+                "chunk12.png",
+                "chunk13.png",
+                "chunk14.png",
+                "chunk15.png",
+                "chunk16.png",
+                "chunk17.png",
+                "chunk18.png",
+                "chunk19.png",
+                "chunk20.png",
+                "chunk21.png",
+                "chunk22.png",
+                "chunk23.png",
+                "chunk24.png",
+                "chunk25.png",
+                "hole.png",
+                "hole.png",
+                "hole.png",
+                "hole.png",
+                "hole.png"
+            }
+        },
+        {
+            AssTypeEnum.GYAT.ToString(), new List<string>
+            {
+                "entire_ass.png",
+                "chunk1.png",
+                "chunk2.png",
+                "chunk3.png",
+                "chunk4.png",
+                "chunk5.png",
+                "chunk6.png",
+                "chunk7.png",
+                "chunk8.png",
+                "chunk9.png",
+                "chunk10.png",
+                "chunk11.png",
+                "chunk12.png",
+                "chunk13.png",
+                "hole.png"
+
+            }
+        },
+        {
+            AssTypeEnum.Hairy.ToString(), new List<string>
+            {
+                "entire_ass.png",
+                "chunk1.png",
+                "chunk2.png",
+                "chunk3.png",
+                "chunk4.png",
+                "chunk5.png",
+                "chunk6.png",
+                "chunk7.png",
+                "hole.png"
+            }
+        }
+    };
 
     public static AssTypeEnum GetRandomAssType()
     {
@@ -63,6 +171,11 @@ public class Assets
         weightedList[49] = AssTypeEnum.Golden; // 1% chance
 
         return weightedList[random.Next(weightedList.Length)];
+    }
+
+    public static List<string> GetAssFrames(AssTypeEnum assType)
+    {
+        return Frames[assType.ToString()];
     }
 
     public static double GetPointsForAssType(AssTypeEnum assType)

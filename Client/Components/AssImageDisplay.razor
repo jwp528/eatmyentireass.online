@@ -1,0 +1,22 @@
+@using static BlazorApp.Shared.Assets
+
+@code {
+    [Parameter] public int piecesEaten { get; set; }
+    [Parameter] public List<string> AssFrames { get; set; } = new();
+    [Parameter] public AssTypeEnum CurrentAssType { get; set; }
+}
+
+@if (AssFrames?.Any() == true && piecesEaten >= 0 && piecesEaten < AssFrames.Count)
+{
+    <img class="game-img"
+         src="/images/Asses/@CurrentAssType.ToString()/@AssFrames[piecesEaten]"
+         alt="@CurrentAssType" />
+}
+else
+{
+    <div class="game-loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
