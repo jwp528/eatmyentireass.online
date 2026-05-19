@@ -23,10 +23,22 @@ namespace BlazorApp.Client.Services
 
         public async Task<GameStats?> GetStatsAsync()
         {
+            // Try the API first — this is the source of truth since all writes go through the API.
+            // The static stats.json on CDN is only the initial seed (all zeros) and does not
+            // reflect accumulated data written by the API at runtime.
             try
             {
-                // Read directly from the static file — bypass API cold-start.
-                // Use the app's own origin (not the API base address).
+                var json = await _httpClient.GetStringAsync("api/stats");
+                return JsonSerializer.Deserialize<GameStats>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[StatsService] API GetStats failed: {ex.Message}, falling back to static file");
+            }
+
+            // Fallback: read the static file (may be zeros if API is unreachable)
+            try
+            {
                 var bust = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 var url = new Uri(new Uri(_staticBase), $"data/stats.json?v={bust}");
                 var json = await _httpClient.GetStringAsync(url);
@@ -34,7 +46,7 @@ namespace BlazorApp.Client.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[StatsService] GetStats failed: {ex.Message}");
+                Console.WriteLine($"[StatsService] Static GetStats fallback failed: {ex.Message}");
                 return null;
             }
         }

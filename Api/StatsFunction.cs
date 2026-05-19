@@ -137,19 +137,67 @@ namespace Api
             }
         }
 
-        private static string GetStatsFilePath()
+        private string GetStatsFilePath()
         {
-            var dir = AppContext.BaseDirectory;
-            // Walk up to find Client/wwwroot/data
-            var current = new DirectoryInfo(dir);
-            while (current != null)
+            // Use the same multi-strategy path resolution as LeaderboardFunction
+            var strategies = new[]
             {
-                var candidate = Path.Combine(current.FullName, "Client", "wwwroot", "data", "stats.json");
-                if (File.Exists(candidate)) return candidate;
-                current = current.Parent;
+                // Strategy 1: Relative to current working directory (standard dev setup — func start from Api/)
+                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../Client/wwwroot/data/stats.json")),
+
+                // Strategy 2: Walk up directory tree looking for solution root
+                FindSolutionBasedStatsPath(),
+
+                // Strategy 3: Direct relative path
+                Path.GetFullPath(Path.Combine("../Client/wwwroot/data/stats.json")),
+            };
+
+            foreach (var strategy in strategies)
+            {
+                if (string.IsNullOrEmpty(strategy)) continue;
+                var directory = Path.GetDirectoryName(strategy);
+                if (string.IsNullOrEmpty(directory)) continue;
+
+                _logger.LogInformation($"[Stats] Trying path strategy: {strategy}");
+                if (!Directory.Exists(directory))
+                {
+                    try { Directory.CreateDirectory(directory); }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, $"[Stats] Could not create directory: {directory}");
+                        continue;
+                    }
+                }
+                _logger.LogInformation($"[Stats] Using stats path: {strategy}");
+                return strategy;
             }
-            // Fallback: same directory as Api
-            return Path.Combine(dir, "..", "Client", "wwwroot", "data", "stats.json");
+
+            var fallback = Path.Combine(Path.GetTempPath(), "stats.json");
+            _logger.LogWarning($"[Stats] All path strategies failed, using fallback: {fallback}");
+            return fallback;
+        }
+
+        private string? FindSolutionBasedStatsPath()
+        {
+            try
+            {
+                var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
+                while (currentDir != null)
+                {
+                    if (currentDir.GetFiles("*.sln").Length > 0 || currentDir.GetFiles("*.slnx").Length > 0)
+                    {
+                        var path = Path.Combine(currentDir.FullName, "Client", "wwwroot", "data", "stats.json");
+                        _logger.LogInformation($"[Stats] Found solution at {currentDir.FullName}, stats path: {path}");
+                        return path;
+                    }
+                    currentDir = currentDir.Parent;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[Stats] Error searching for solution directory");
+            }
+            return null;
         }
 
         private static GameStats CreateEmptyStats() => new GameStats

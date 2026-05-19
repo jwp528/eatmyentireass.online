@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      { "type": "command", "command": "powershell -NoProfile -File C:\\Users\\jwp52\\.claude\\hooks\\peon-ping\\adapters\\copilot.ps1 sessionStart" }
+    ],
+    "userPromptSubmitted": [
+      { "type": "command", "command": "powershell -NoProfile -File C:\\Users\\jwp52\\.claude\\hooks\\peon-ping\\adapters\\copilot.ps1 userPromptSubmitted" }
+    ],
+    "postToolUse": [
+      { "type": "command", "command": "powershell -NoProfile -File C:\\Users\\jwp52\\.claude\\hooks\\peon-ping\\adapters\\copilot.ps1 postToolUse" }
+    ],
+    "errorOccurred": [
+      { "type": "command", "command": "powershell -NoProfile -File C:\\Users\\jwp52\\.claude\\hooks\\peon-ping\\adapters\\copilot.ps1 errorOccurred" }
+    ]
+  }
+}
