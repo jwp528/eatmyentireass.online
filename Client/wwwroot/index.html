@@ -119,11 +119,26 @@
 
 <body data-bs-theme="dark">
     <div id="app">
-        <svg class="loading-progress">
+        <div id="emea-splash">
+            <div class="splash-body">
+                <img src="/images/Asses/Cartoon/entire_ass.png" class="splash-ass" alt="" />
+                <h1 class="splash-title">
+                    <span class="splash-eat">EAT MY ENTIRE</span>
+                    <span class="splash-big-ass">ASS</span>
+                </h1>
+                <p class="splash-url">eatmyentireass.online</p>
+                <div class="splash-progress-wrap">
+                    <div class="splash-progress-bar"></div>
+                </div>
+                <p class="splash-status">Loading the goods…</p>
+            </div>
+        </div>
+        <!-- kept for Blazor percentage tracking -->
+        <svg class="loading-progress" style="visibility:hidden;position:absolute;pointer-events:none">
             <circle r="40%" cx="50%" cy="50%" />
             <circle r="40%" cx="50%" cy="50%" />
         </svg>
-        <div class="loading-progress-text"></div>
+        <div class="loading-progress-text" style="display:none"></div>
     </div>
 
     <div id="blazor-error-ui">
