@@ -78,7 +78,7 @@
 
     private string GetRarity() => IsLegendary ? "Legendary" : "Common";
 
-    private int BaseClicks => BlazorApp.Shared.Assets.Frames[AssName].Count;
+    private int BaseClicks => BlazorApp.Shared.Assets.ClicksRequired[AssName];
     private double BasePoints => BlazorApp.Shared.Assets.GetPointsForAssType(_assType);
     private int EffectiveClicks => ProgressService.GetEffectiveCompleteThreshold(_assType, _progress) + 1;
     private double EffectivePoints => ProgressService.GetEffectivePoints(_assType, _progress);

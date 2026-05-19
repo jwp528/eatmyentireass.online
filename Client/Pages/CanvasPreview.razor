@@ -47,7 +47,7 @@
 
     private void RecalcTotal()
     {
-        _total = GetAssFrames(_type).Count - 1;
+        _total = BlazorApp.Shared.Assets.ClicksRequired[_type.ToString()];
         _bites = 0;
     }
 

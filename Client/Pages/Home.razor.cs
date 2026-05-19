@@ -115,7 +115,6 @@ namespace BlazorApp.Client.Pages
         };
 
         AssTypeEnum CurrentAssType;
-        List<string> AssFrames = new();
 
         string scoreText => assesEaten switch
         {
@@ -178,18 +177,12 @@ namespace BlazorApp.Client.Pages
             try
             {
                 CurrentAssType = PickNextAssType();
-                AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
                 _effectiveCompleteThreshold = ProgressService.GetEffectiveCompleteThreshold(CurrentAssType, _progressCache[CurrentAssType]);
-
-                if (piecesEaten >= AssFrames.Count)
-                {
-                    piecesEaten = 0;
-                }
+                piecesEaten = 0;
             }
             catch (Exception)
             {
                 CurrentAssType = AssTypeEnum.Flat;
-                AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
                 _effectiveCompleteThreshold = ProgressService.GetEffectiveCompleteThreshold(CurrentAssType, _progressCache[CurrentAssType]);
                 piecesEaten = 0;
             }
@@ -399,13 +392,6 @@ namespace BlazorApp.Client.Pages
             }
 
             totalClicks++; // Track every click
-
-            // Ensure we have valid frames before proceeding
-            if (AssFrames?.Any() != true)
-            {
-                GetNewAss();
-                return;
-            }
 
             // Check if we're about to complete the current ass
             if (piecesEaten >= _effectiveCompleteThreshold)
