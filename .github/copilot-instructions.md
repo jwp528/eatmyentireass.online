@@ -4,26 +4,9 @@ Always follow these instructions FIRST and only fallback to additional search an
 
 ## Quick Setup and Requirements
 
-Install .NET 9.0 SDK:
-```bash
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x dotnet-install.sh
-./dotnet-install.sh --version 9.0.101
-export PATH="$HOME/.dotnet:$PATH"
-```
-
-Install Azure Functions Core Tools:
-```bash
-curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
-sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-$(lsb_release -cs)-prod $(lsb_release -cs) main" > /etc/apt/sources.list.d/dotnetdev.list'
-sudo apt update && sudo apt install -y azure-functions-core-tools-4
-```
-
-Install Azure SWA CLI (optional):
-```bash
-npm install -g @azure/static-web-apps-cli
-```
+- **.NET 10.0 SDK** — required. Download from https://dotnet.microsoft.com/download
+- **Azure Functions Core Tools v4** — required for the API
+- **Azure SWA CLI** (optional): `npm install -g @azure/static-web-apps-cli`
 
 ## Modal Design Standards
 
@@ -31,6 +14,11 @@ npm install -g @azure/static-web-apps-cli
 - Use only `modal-body`, avoid `modal-header` and `modal-footer` for cleaner design
 - All content, including titles and actions, should be contained within the modal body
 - Use custom styling within the body for headers and action buttons
+
+### Modal CSS Pattern
+- Global `.modal-content` background is defined once in `Client/wwwroot/css/app.css` (`background: #1a1a2e`).
+- **Do NOT** add `background`, `background-image`, or gradient rules to individual `.razor.css` modal files. Let the global rule apply.
+- The only exception: inner content cards may use `rgba(255,255,255,0.05)` frosted-glass styling.
 
 ### Modal Behavior
 - Action buttons should be integrated into the modal body design
@@ -55,6 +43,8 @@ dotnet build EMEAOnline.slnx
 Expected time: **6 seconds** (after initial setup). **FIRST BUILD**: 60+ seconds. NEVER CANCEL - set timeout to 120+ minutes.
 
 Note: Build will succeed with warnings (nullable reference type warnings). This is normal.
+
+**DLL Locking on Windows**: If the build fails with "file is being used by another process", stop any running `dotnet run` or `func start` processes first, then retry.
 
 ### Step 3: Set Up API Local Settings
 ```bash
@@ -157,8 +147,8 @@ ALWAYS perform these validation steps after making code changes:
 
 2. **API Validation**:
    ```bash
-   curl http://localhost:7071/api/WeatherForecast
-   # Should return JSON weather data array
+   curl http://localhost:7071/api/leaderboard
+   # Should return JSON array of scores
    ```
 
 3. **Leaderboard API Validation**:
@@ -211,29 +201,32 @@ Expected time: **6 seconds**. NEVER CANCEL - set timeout to 120+ minutes.
 
 ## Project Structure
 
-- **Client/** - Blazor WebAssembly frontend (.NET 9.0)
+- **Client/** - Blazor WebAssembly frontend (.NET 10.0)
   - Main game UI and logic
+  - Services: `StatsService`, `ProgressService`, `CollectionService`, `VersionCheckService`, `DailyChallengeService`, `LeaderboardService`, `SettingsService`
   - Runs on port 5000 in development (or 5001 with Aspire)
-  - Builds to `Client/bin/Debug/net9.0/wwwroot`
+  - Builds to `Client/bin/Debug/net10.0/wwwroot`
 
-- **Api/** - Azure Functions backend (.NET 9.0)
-  - Weather forecast and leaderboard endpoints
+- **Api/** - Azure Functions backend (.NET 10.0)
+  - Leaderboard, stats, and daily challenge endpoints
   - Runs on port 7071 in development
   - Shared leaderboard system writes to `Client/wwwroot/data/leaderboard.json`
 
-- **Shared/** - Common models and utilities (.NET 9.0)
-  - Assets.cs contains game asset definitions
+- **Shared/** - Common models and utilities (.NET 10.0)
+  - `Assets.cs` — game asset definitions (`ClicksRequired`, `HasHole`, `AssTypeEnum`, point values)
   - Shared between Client and Api
 
-- **Aspire/** - .NET Aspire orchestrator (.NET 9.0)
+- **Aspire/** - .NET Aspire orchestrator (.NET 10.0)
   - Manages client project with dashboard
   - API should be started manually due to Azure Functions limitations
 
 ## Key Assets and Configuration
 
 ### Important Files to Monitor:
-- `Shared/Assets.cs` - Game asset definitions and point values
+- `Shared/Assets.cs` - Game asset definitions, `ClicksRequired` dict, point values
 - `Client/Pages/Home.razor.cs` - Main game logic
+- `Client/Components/AssCanvas.razor` - Canvas-based eating animation component
+- `Client/wwwroot/js/assCanvas.js` - Canvas eating JS module
 - `Client/wwwroot/` - Static assets (images, sounds)
 - `Client/wwwroot/data/leaderboard.json` - Shared leaderboard data
 - `Client/staticwebapp.config.json` - SWA deployment config
@@ -241,12 +234,16 @@ Expected time: **6 seconds**. NEVER CANCEL - set timeout to 120+ minutes.
 - `Api/LeaderboardFunction.cs` - Shared leaderboard API endpoints
 
 ### Asset Types and Points:
-The game includes multiple "ass types" with different point values and asset counts:
-- Regular: Standard points
-- Flat: Lower point value
-- Golden: High point value (25 assets)
-- GYAT: Special type (15 assets)
-- Hairy: Another variant
+The game includes multiple "ass types". Each has a `ClicksRequired` value (number of canvas bites to complete):
+- **Boney**: 4 clicks — no hole.png (stays erased)
+- **Cartoon**: 13 clicks
+- **Flat**: 9 clicks
+- **Golden**: 29 clicks — ~2% spawn rate
+- **GYAT**: 14 clicks
+- **Hairy**: 8 clicks
+
+### Canvas Eating System:
+Asses are eaten by erasing chunks from a single `entire_ass.png` using an HTML Canvas with `destination-out` compositing. No frame PNG files are used. The `AssCanvas.razor` component handles the display; `assCanvas.js` handles all canvas state.
 
 ## Shared Leaderboard System
 
@@ -285,9 +282,10 @@ If you see "service-producer annotation is invalid" error:
 3. See `ASPIRE-SETUP.md` for detailed explanation
 
 ### Build Fails:
-1. Ensure .NET 9.0 SDK is installed and in PATH
+1. Ensure .NET 10.0 SDK is installed and in PATH
 2. Run `dotnet restore` first
 3. Check for actual errors (warnings are OK)
+4. On Windows: stop any running `dotnet run`/`func start` processes if you see DLL lock errors
 
 ### API Won't Start:
 1. Ensure Azure Functions Core Tools v4.1.2+ installed
