@@ -1,0 +1,13 @@
+.ass-canvas-wrapper {
+    display: contents;
+}
+
+/* Canvas scales like the existing game-img rule in Home.razor.css */
+canvas.game-img {
+    max-width: 100%;
+    max-height: calc(100dvh - 64px);
+    height: auto;
+    width: auto;
+    display: block;
+    pointer-events: none;
+}

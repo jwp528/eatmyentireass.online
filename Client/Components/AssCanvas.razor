@@ -1,0 +1,73 @@
+@using static BlazorApp.Shared.Assets
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="ass-canvas-wrapper">
+    <canvas id="@_canvasId" class="game-img @(_showHole ? "d-none" : "")"></canvas>
+    @if (_showHole)
+    {
+        <img src="/images/Asses/@AssType.ToString()/hole.png" class="game-img" alt="hole" />
+    }
+</div>
+
+@code {
+    [Parameter] public AssTypeEnum AssType { get; set; }
+    [Parameter] public int BitesEaten { get; set; }
+    [Parameter] public int TotalBites { get; set; }
+
+    private readonly string _canvasId = $"ass-canvas-{Guid.NewGuid():N}";
+    private AssTypeEnum _prevType;
+    private int _prevBites = -1;
+    private bool _initialized;
+    private bool _showHole;
+
+    // All ass types except Boney have a hole.png end state
+    private bool HasHole => AssType != AssTypeEnum.Boney;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _prevType = AssType;
+        _prevBites = BitesEaten;
+        await InitAsync();
+        _initialized = true;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_initialized) return;
+
+        if (AssType != _prevType)
+        {
+            _prevType = AssType;
+            _prevBites = BitesEaten;
+            _showHole = false;
+            await InitAsync();
+            return;
+        }
+
+        if (BitesEaten != _prevBites)
+        {
+            _prevBites = BitesEaten;
+            var shouldShowHole = BitesEaten >= TotalBites && HasHole;
+            if (shouldShowHole != _showHole)
+            {
+                _showHole = shouldShowHole;
+                StateHasChanged();
+            }
+            if (!_showHole)
+                await JS.InvokeVoidAsync("assCanvas.setBites", _canvasId, BitesEaten);
+        }
+    }
+
+    private async Task InitAsync()
+    {
+        var url = $"/images/Asses/{AssType}/entire_ass.png";
+        await JS.InvokeVoidAsync("assCanvas.init", _canvasId, url, TotalBites);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try { await JS.InvokeVoidAsync("assCanvas.cleanup", _canvasId); } catch { }
+    }
+}

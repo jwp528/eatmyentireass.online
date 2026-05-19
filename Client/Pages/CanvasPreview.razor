@@ -1,0 +1,76 @@
+@page "/canvas-preview"
+@using static BlazorApp.Shared.Assets
+
+<div class="cp-page">
+    <div class="cp-header">
+        <h4 class="mb-0">🎨 Canvas Eating Preview</h4>
+        <a href="/" class="btn btn-sm btn-outline-secondary">← Back to Game</a>
+    </div>
+
+    <div class="cp-controls">
+        <select class="form-select form-select-sm w-auto" @onchange="OnTypeChanged">
+            @foreach (var t in AssTypes)
+            {
+                <option value="@t" selected="@(t == _type)">@t</option>
+            }
+        </select>
+        <span class="cp-counter">Bites: @_bites / @_total @(_showHoleState ? "🕳️ HOLE" : "")</span>
+        <button class="btn btn-sm btn-primary" @onclick="Bite" disabled="@(_bites >= _total)">
+            🍑 Bite!
+        </button>
+        <button class="btn btn-sm btn-outline-danger" @onclick="Reset">Reset</button>
+        @if (_bites >= _total)
+        {
+            <button class="btn btn-sm btn-success" @onclick="Complete">✅ Complete → Next</button>
+        }
+    </div>
+
+    <div class="cp-canvas-area" @onclick="Bite">
+        <AssCanvas AssType="@_type" BitesEaten="@_bites" TotalBites="@_total" />
+    </div>
+
+    <div class="cp-info">
+        <strong>Ass type:</strong> @_type &nbsp;|&nbsp;
+        <strong>Total bites needed:</strong> @_total &nbsp;|&nbsp;
+        <strong>Has hole:</strong> @(_type != AssTypeEnum.Boney ? "Yes" : "No") &nbsp;|&nbsp;
+        <strong>State:</strong> @(_bites >= _total ? (_type != AssTypeEnum.Boney ? "Showing hole.png" : "Fully erased") : $"Eating ({_bites}/{_total})")
+    </div>
+</div>
+
+@code {
+    private AssTypeEnum _type = AssTypeEnum.Cartoon;
+    private int _bites;
+    private int _total;
+    private bool _showHoleState => _bites >= _total && _type != AssTypeEnum.Boney;
+
+    protected override void OnInitialized() => RecalcTotal();
+
+    private void RecalcTotal()
+    {
+        _total = GetAssFrames(_type).Count - 1;
+        _bites = 0;
+    }
+
+    private void Bite()
+    {
+        if (_bites < _total)
+            _bites++;
+    }
+
+    private void Reset() => RecalcTotal();
+
+    private void Complete()
+    {
+        _type = BlazorApp.Shared.Assets.GetRandomAssType();
+        RecalcTotal();
+    }
+
+    private void OnTypeChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<AssTypeEnum>(e.Value?.ToString(), out var t))
+        {
+            _type = t;
+            RecalcTotal();
+        }
+    }
+}
