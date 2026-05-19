@@ -264,41 +264,51 @@
 
             var VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
 
-            // fBm fire border — flame-height field approach for distinct tongues shooting inward
+            // Fire border v4: narrow border (15%), always-on base strip + fBm tongue zone
+            // Full turbulence range 0-1 creates real transparent gaps between tongues
             var FS = [
                 'precision mediump float;',
                 'uniform float u_time;uniform vec2 u_res;',
-                // IQ-style hash: fract-bounds inputs before multiply, mediump-safe for any session length
+                // IQ-style hash — fract-bounded, mediump-safe for any session length
                 'float h(vec2 p){p=fract(p*0.3183099+vec2(0.71,0.113));p*=17.0;return fract(p.x*p.y*(p.x+p.y));}',
-                // Value noise with hermite smoothstep
+                // Value noise (hermite smoothstep)
                 'float n(vec2 x){vec2 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);return mix(mix(h(i),h(i+vec2(1.0,0.0)),f.x),mix(h(i+vec2(0.0,1.0)),h(i+vec2(1.0,1.0)),f.x),f.y);}',
                 // 4-octave fBm
                 'float fbm(vec2 p){float v=0.0,a=1.0;for(int i=0;i<4;i++){v+=a*n(p);p*=2.0;a*=0.5;}return v;}',
-                // Individual flame tongue from one edge
-                // d=dist-from-edge 0-1, a=along-edge 0-1, t=time+phase
+                // ef: flame intensity for one edge
+                // d=0 at screen edge → 1 at inner border, a=pos along edge, t=time
                 'float ef(float d,float a,float t){',
                 '  if(d>=1.0)return 0.0;',
-                // Slow fBm → flame height per column (creates distinct tall/short tongues with gaps)
-                '  float fh=clamp(fbm(vec2(a*4.0,t*0.18))*0.82+0.06,0.06,0.94);',
-                '  if(d>fh)return 0.0;',      // transparent gap beyond this flame tip
-                '  float ph=d/fh;',            // phase: 0=base at edge, 1=tip pointing inward
-                // Fast fBm for internal flame turbulence
-                '  float bdy=0.25+0.75*fbm(vec2(a*9.0,ph*2.5-t*1.1));',
-                // Sharp tip: solid for 60% of height then quick falloff
-                '  float tip=1.0-smoothstep(0.55,1.0,ph);',
-                '  return tip*bdy;}',
+                // Always-on base strip at the very screen edge (d<0.1 = first 10% of border zone)
+                // This creates the continuous fire ring like SSBU
+                '  if(d<0.1){return 0.75+0.25*n(vec2(a*22.0,t*6.0));}',
+                // Tongue zone: d from 0.1 to 1.0 of border zone
+                '  float d2=(d-0.1)/0.9;',
+                // Per-column flame height: pow sharpens distribution (taller peaks, deeper valleys)
+                '  float fh=pow(max(fbm(vec2(a*5.0,t*0.25)),0.001),0.6)*0.88+0.04;',
+                '  if(d2>fh)return 0.0;',     // transparent gap beyond tongue tip
+                '  float ph=d2/fh;',           // 0=base, 1=tip
+                // Full-range turbulence — 0-1 means real transparent pockets within tongues
+                '  float turb=fbm(vec2(a*14.0+t*0.8,ph*9.0-t*3.5));',
+                // Sharp tip taper
+                '  float tip=1.0-smoothstep(0.35,1.0,ph);',
+                '  return tip*(0.05+0.95*turb);}',
                 'void main(){',
                 '  vec2 uv=gl_FragCoord.xy/u_res;',
-                '  float brd=0.28;',
-                '  float md=min(min(uv.x,1.0-uv.x),min(uv.y,1.0-uv.y));',
-                '  if(md>brd){gl_FragColor=vec4(0.0);return;}',
+                '  float brd=0.15;',           // 15% border — tight, game is clearly visible
+                '  float dB=uv.y/brd,dT=(1.0-uv.y)/brd,dL=uv.x/brd,dR=(1.0-uv.x)/brd;',
+                '  if(min(min(dB,dT),min(dL,dR))>=1.0){gl_FragColor=vec4(0.0);return;}',
                 '  float t=u_time;',
-                '  float fi=max(max(ef(uv.y/brd,uv.x,t),ef((1.0-uv.y)/brd,1.0-uv.x,t+5.7)),',
-                '    max(ef(uv.x/brd,1.0-uv.y,t+11.3),ef((1.0-uv.x)/brd,uv.y,t+17.1)));',
-                // Color: orange-red at screen edge (base) fading to yellow-white at tip
-                '  float depth=md/brd;',       // 0=screen edge (base), 1=game area (tip)
-                '  vec3 col=mix(vec3(0.95,0.32,0.0),vec3(1.0,0.88,0.28),depth);',
-                '  gl_FragColor=vec4(col,clamp(fi*1.6,0.0,1.0));}',
+                '  float fi=max(max(ef(dB,uv.x,t),ef(dT,1.0-uv.x,t+5.7)),',
+                '    max(ef(dL,1.0-uv.y,t+11.3),ef(dR,uv.y,t+17.1)));',
+                '  if(fi<0.015){gl_FragColor=vec4(0.0);return;}',
+                // Fire palette: fi~1→white-yellow (hot base), fi~0.6→orange, fi~0.2→red, fi~0→dark red
+                '  vec3 col;',
+                '  if(fi>0.7)col=mix(vec3(1.0,0.6,0.05),vec3(1.0,1.0,0.65),(fi-0.7)/0.3);',
+                '  else if(fi>0.3)col=mix(vec3(0.82,0.1,0.0),vec3(1.0,0.6,0.05),(fi-0.3)/0.4);',
+                '  else col=mix(vec3(0.28,0.0,0.0),vec3(0.82,0.1,0.0),fi/0.3);',
+                '  float alpha=clamp(fi*1.6,0.0,1.0);',
+                '  gl_FragColor=vec4(col,alpha);}',
             ].join('\n');
 
             function compile(gl, type, src) {
