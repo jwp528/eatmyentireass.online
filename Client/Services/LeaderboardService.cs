@@ -23,8 +23,8 @@ namespace BlazorApp.Client.Services
             _staticBase = hostEnv.BaseAddress;
             Console.WriteLine($"[LeaderboardService] Initialized. API: {_httpClient.BaseAddress}, Static: {_staticBase}");
 
-            // Set a reasonable timeout to prevent hanging requests
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            // Keep a short timeout — if the API is down, fail fast with a clear message
+            _httpClient.Timeout = TimeSpan.FromSeconds(10);
         }
 
         public async Task<bool> TestApiConnectionAsync()
@@ -176,10 +176,10 @@ namespace BlazorApp.Client.Services
                 Console.WriteLine($"[LeaderboardService] {errorMessage}");
                 throw new Exception(errorMessage);
             }
-            catch (TaskCanceledException tcEx) when (tcEx.InnerException is TimeoutException)
+            catch (TaskCanceledException tcEx)
             {
                 Console.WriteLine($"[LeaderboardService] Timeout in SaveScoreAsync: {tcEx.Message}");
-                throw new Exception("Request timed out after 30 seconds. The API server may be overloaded or not responding.");
+                throw new Exception("Request timed out. The API server may be down or not responding.");
             }
             catch (Exception ex)
             {
