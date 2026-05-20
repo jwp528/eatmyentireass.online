@@ -16,6 +16,7 @@ namespace Api
         private static readonly Lazy<TableClient> _tableClient = new(() =>
         {
             var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
+                ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage")
                 ?? "UseDevelopmentStorage=true";
             return new TableClient(conn, TableName);
         });
