@@ -223,6 +223,11 @@ a, .btn-link {
     text-transform: uppercase;
 }
 
+@keyframes fart-emoji-rise {
+    from { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+    to   { transform: translateY(-65vh) rotate(var(--fart-rot, 18deg)); opacity: 0; }
+}
+
 /* Keep Blazor's tracking element out of sight */
 .loading-progress {
     display: none !important;
