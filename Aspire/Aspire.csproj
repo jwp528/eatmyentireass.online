@@ -12,9 +12,11 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="13.3.3" />
+    <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.3.4" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Api\Api.csproj" />
     <ProjectReference Include="..\Client\Client.csproj" />
   </ItemGroup>
 
