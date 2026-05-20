@@ -368,8 +368,8 @@ namespace BlazorApp.Client.Pages
                     await js.InvokeVoidAsync("playSound", gameOverSound, volume);
                 }
 
-                // Submit aggregate stats (fire-and-forget, don't block results)
-                _ = SubmitGameStatsAsync();
+                // Write stats to file before showing results so Global Stats tab is current
+                await SubmitGameStatsAsync();
 
                 // Check daily challenge progress
                 _ = CheckDailyChallengesAsync();
