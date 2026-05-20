@@ -359,20 +359,20 @@ namespace Api
 
         private string GetSharedLeaderboardPath()
         {
-            // Try multiple path resolution strategies
+            // Try multiple path resolution strategies — solution-based first so it wins over CWD-relative
             var strategies = new[]
             {
-                // Strategy 1: Relative to current directory (standard dev setup)
-                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../Client/wwwroot/data/leaderboard.json")),
-                
-                // Strategy 2: Look for solution directory by finding .sln file
+                // Strategy 1: Walk up tree for solution root (.sln or .slnx) — works from any working dir
                 FindSolutionBasedPath(),
-                
-                // Strategy 3: Direct relative path from Api folder
+
+                // Strategy 2: Absolute path based on current directory structure
+                GetAbsolutePathFromCurrentDirectory(),
+
+                // Strategy 3: Relative to current directory (works when func start is run from Api/)
+                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../Client/wwwroot/data/leaderboard.json")),
+
+                // Strategy 4: Direct relative path
                 Path.GetFullPath(Path.Combine("../Client/wwwroot/data/leaderboard.json")),
-                
-                // Strategy 4: Absolute path based on current directory structure
-                GetAbsolutePathFromCurrentDirectory()
             };
 
             foreach (var strategy in strategies)
@@ -422,7 +422,8 @@ namespace Api
                 while (currentDir != null)
                 {
                     var solutionFiles = currentDir.GetFiles("*.sln");
-                    if (solutionFiles.Length > 0)
+                    var slnxFiles = currentDir.GetFiles("*.slnx");
+                    if (solutionFiles.Length > 0 || slnxFiles.Length > 0)
                     {
                         // Found solution directory, construct path relative to it
                         var solutionDir = currentDir.FullName;
