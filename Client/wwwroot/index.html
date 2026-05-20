@@ -570,20 +570,23 @@
             };
         })();
 
-        // Trigger fart transition when Blazor finishes its first render
-        document.addEventListener('blazor:afterStarted', function () {
-            // One rAF delay ensures Blazor's first DOM paint is complete
-            requestAnimationFrame(function () {
-                window.playFartTransition(function () {
-                    var splash = document.getElementById('emea-splash');
-                    if (splash) {
-                        splash.style.transition = 'opacity 0.25s ease';
-                        splash.style.opacity = '0';
-                        setTimeout(function () { if (splash.parentNode) splash.remove(); }, 300);
-                    }
-                });
+        // Called by Blazor's MainLayout on first render — guaranteed timing
+        window.triggerSplashTransition = function () {
+            window.playFartTransition(function () {
+                var splash = document.getElementById('emea-splash');
+                if (splash) {
+                    splash.style.transition = 'opacity 0.25s ease';
+                    splash.style.opacity = '0';
+                    setTimeout(function () { if (splash.parentNode) splash.remove(); }, 300);
+                }
             });
-        });
+        };
+
+        // Safety net: if Blazor never calls triggerSplashTransition, hide splash after 12s
+        setTimeout(function () {
+            var splash = document.getElementById('emea-splash');
+            if (splash) { splash.style.display = 'none'; }
+        }, 12000);
     </script>
 </body>
 
