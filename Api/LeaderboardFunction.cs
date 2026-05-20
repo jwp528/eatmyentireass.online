@@ -173,7 +173,8 @@ namespace Api
                 ["PlayerName"] = entry.PlayerName,
                 ["Score"] = entry.Score,
                 ["TotalClicks"] = entry.TotalClicks,
-                ["GameDate"] = new DateTimeOffset(entry.GameDate, TimeSpan.Zero),
+                ["GameDate"] = new DateTimeOffset(DateTime.SpecifyKind(
+                    entry.GameDate == default ? DateTime.UtcNow : entry.GameDate, DateTimeKind.Utc)),
                 ["GameDurationSeconds"] = entry.GameDurationSeconds,
                 ["AssTypeBreakdown"] = JsonSerializer.Serialize(entry.AssTypeBreakdown)
             };

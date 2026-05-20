@@ -77,7 +77,7 @@ namespace BlazorApp.Client.Components
                     PlayerName = playerName.Trim(),
                     Score = Score,
                     TotalClicks = TotalClicks,
-                    GameDate = DateTime.Now,
+                    GameDate = DateTime.UtcNow,
                     AssTypeBreakdown = AssBreakdown.ToDictionary(
                         kvp => kvp.Key.ToString(),
                         kvp => kvp.Value
@@ -87,7 +87,7 @@ namespace BlazorApp.Client.Components
 
                 Console.WriteLine($"[SaveScoreModal] Saving score to shared leaderboard via API for {entry.PlayerName}: {entry.Score}");
 
-                // Save to shared leaderboard via API (this will write to Client/wwwroot/data/leaderboard.json)
+                // Save to shared leaderboard via API
                 await SharedLeaderboardService.SaveScoreAsync(entry);
 
                 // Also save to local leaderboard as backup
@@ -120,7 +120,7 @@ namespace BlazorApp.Client.Components
                         PlayerName = playerName.Trim(),
                         Score = Score,
                         TotalClicks = TotalClicks,
-                        GameDate = DateTime.Now,
+                        GameDate = DateTime.UtcNow,
                         AssTypeBreakdown = AssBreakdown.ToDictionary(
                             kvp => kvp.Key.ToString(),
                             kvp => kvp.Value
