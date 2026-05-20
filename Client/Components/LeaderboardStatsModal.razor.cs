@@ -11,58 +11,80 @@ namespace BlazorApp.Client.Components
 
         public BSModal? Modal;
 
-        private string activeTab = "leaderboard";
-        private List<LeaderboardEntry> topScores = new();
-        private GameStats? stats;
+        private string activeTab = "alltime";
         private bool isLoadingLeaderboard;
         private bool isLoadingStats;
+        private GameStats? stats;
+
+        // Per-period leaderboard data
+        private readonly Dictionary<string, List<LeaderboardEntry>> _periodScores = new();
+        private readonly HashSet<string> _loadedPeriods = new();
+
+        private static readonly string[] LeaderboardPeriods = ["alltime", "daily", "monthly", "yearly"];
+
+        private List<LeaderboardEntry> CurrentScores =>
+            _periodScores.TryGetValue(activeTab, out var list) ? list : new();
 
         public async Task ShowLeaderboard()
         {
-            activeTab = "leaderboard";
+            activeTab = "alltime";
             await Modal!.Show();
-            _ = LoadLeaderboard();
-            _ = LoadStats();
+            _ = LoadPeriodAsync("alltime");
         }
 
         public async Task ShowStats()
         {
             activeTab = "stats";
             await Modal!.Show();
-            _ = LoadLeaderboard();
-            _ = LoadStats();
+            _ = LoadStatsAsync();
         }
 
-        private void SwitchTab(string tab)
+        private async Task SwitchTab(string tab)
         {
             activeTab = tab;
+
+            if (tab == "stats")
+            {
+                await LoadStatsAsync();
+            }
+            else if (!_loadedPeriods.Contains(tab))
+            {
+                await LoadPeriodAsync(tab);
+            }
         }
 
         private async Task Refresh()
         {
-            if (activeTab == "leaderboard")
-                await LoadLeaderboard();
+            if (activeTab == "stats")
+            {
+                await LoadStatsAsync();
+            }
             else
-                await LoadStats();
+            {
+                _loadedPeriods.Remove(activeTab);
+                await LoadPeriodAsync(activeTab);
+            }
         }
 
-        private async Task LoadLeaderboard()
+        private async Task LoadPeriodAsync(string period)
         {
             isLoadingLeaderboard = true;
             StateHasChanged();
             try
             {
-                topScores = await LeaderboardService.GetTopScoresAsync(10);
+                var entries = await LeaderboardService.GetTopScoresAsync(period);
+                _periodScores[period] = entries;
+                _loadedPeriods.Add(period);
             }
             catch
             {
-                topScores = new();
+                _periodScores[period] = new();
             }
             isLoadingLeaderboard = false;
             StateHasChanged();
         }
 
-        private async Task LoadStats()
+        private async Task LoadStatsAsync()
         {
             isLoadingStats = true;
             StateHasChanged();

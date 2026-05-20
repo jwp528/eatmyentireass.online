@@ -37,7 +37,7 @@ namespace BlazorApp.Client.Components
             // Check if this is a high score using shared leaderboard via API
             try
             {
-                var topScores = await SharedLeaderboardService.GetTopScoresAsync(10);
+                var topScores = await SharedLeaderboardService.GetTopScoresAsync(count: 10);
                 isHighScore = topScores.Count < 10 || score > (topScores.LastOrDefault()?.Score ?? 0);
                 playerRank = topScores.Count(x => x.Score > score) + 1;
             }

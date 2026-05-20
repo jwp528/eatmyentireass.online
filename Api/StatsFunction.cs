@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using Azure;
+using Azure.Data.Tables;
 using BlazorApp.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,7 +12,18 @@ namespace Api
     public class StatsFunction
     {
         private readonly ILogger _logger;
-        private static readonly SemaphoreSlim FileSemaphore = new(1, 1);
+        private const string TableName = "gamestats";
+        private const string PartitionKey = "global";
+        private const string RowKey = "totals";
+
+        private static readonly Lazy<TableClient> _tableClient = new(() =>
+        {
+            var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
+                ?? "UseDevelopmentStorage=true";
+            var client = new TableClient(conn, TableName);
+            client.CreateIfNotExists();
+            return client;
+        });
 
         public StatsFunction(ILoggerFactory loggerFactory)
         {
@@ -27,7 +40,7 @@ namespace Api
             _logger.LogInformation("GetStats triggered");
             try
             {
-                var stats = await ReadStatsFromFile();
+                var stats = await ReadStatsAsync();
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 AddCorsHeaders(response);
                 await response.WriteAsJsonAsync(stats);
@@ -67,7 +80,7 @@ namespace Api
                     return bad;
                 }
 
-                await ApplyStatsUpdate(update);
+                await ApplyStatsUpdateAsync(update);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 AddCorsHeaders(response);
@@ -84,123 +97,88 @@ namespace Api
             }
         }
 
-        private async Task<GameStats> ReadStatsFromFile()
+        private async Task<GameStats> ReadStatsAsync()
         {
-            await FileSemaphore.WaitAsync();
+            var table = _tableClient.Value;
             try
             {
-                var path = GetStatsFilePath();
-                if (!File.Exists(path)) return CreateEmptyStats();
-
-                var json = await File.ReadAllTextAsync(path);
-                return JsonSerializer.Deserialize<GameStats>(json, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }) ?? CreateEmptyStats();
+                var resp = await table.GetEntityAsync<TableEntity>(PartitionKey, RowKey);
+                return EntityToStats(resp.Value);
             }
-            finally
+            catch (RequestFailedException ex) when (ex.Status == 404)
             {
-                FileSemaphore.Release();
+                return CreateEmptyStats();
             }
         }
 
-        private async Task ApplyStatsUpdate(GameStatsUpdate update)
+        private async Task ApplyStatsUpdateAsync(GameStatsUpdate update)
         {
-            await FileSemaphore.WaitAsync();
-            try
+            var table = _tableClient.Value;
+
+            for (var attempt = 0; attempt < 2; attempt++)
             {
-                var path = GetStatsFilePath();
-                var stats = File.Exists(path)
-                    ? JsonSerializer.Deserialize<GameStats>(await File.ReadAllTextAsync(path), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? CreateEmptyStats()
-                    : CreateEmptyStats();
-
-                stats.TotalClicks += update.Clicks;
-                stats.RoundsPlayed += 1;
-                stats.TotalTimePlayedSeconds += update.DurationSeconds;
-                stats.LastUpdated = DateTime.UtcNow;
-
-                foreach (var kvp in update.AssTypeBreakdown)
+                try
                 {
-                    if (stats.AssTypeStats.ContainsKey(kvp.Key))
-                        stats.AssTypeStats[kvp.Key] += kvp.Value;
+                    TableEntity entity;
+                    Azure.ETag etag;
+                    var isNew = false;
+
+                    try
+                    {
+                        var resp = await table.GetEntityAsync<TableEntity>(PartitionKey, RowKey);
+                        entity = resp.Value;
+                        etag = entity.ETag;
+                    }
+                    catch (RequestFailedException ex) when (ex.Status == 404)
+                    {
+                        entity = new TableEntity(PartitionKey, RowKey);
+                        etag = Azure.ETag.All;
+                        isNew = true;
+                    }
+
+                    entity["TotalClicks"] = (entity.GetInt64("TotalClicks") ?? 0) + update.Clicks;
+                    entity["RoundsPlayed"] = (entity.GetInt64("RoundsPlayed") ?? 0) + 1;
+                    entity["TotalTimePlayedSeconds"] = (entity.GetInt64("TotalTimePlayedSeconds") ?? 0) + update.DurationSeconds;
+                    entity["LastUpdated"] = DateTimeOffset.UtcNow;
+
+                    foreach (var kvp in update.AssTypeBreakdown)
+                        entity[$"Stat_{kvp.Key}"] = (entity.GetInt64($"Stat_{kvp.Key}") ?? 0) + kvp.Value;
+
+                    if (isNew)
+                        await table.AddEntityAsync(entity);
                     else
-                        stats.AssTypeStats[kvp.Key] = kvp.Value;
+                        await table.UpdateEntityAsync(entity, etag, TableUpdateMode.Replace);
+
+                    _logger.LogInformation("Stats updated: +{Clicks} clicks, +1 round", update.Clicks);
+                    return;
                 }
-
-                var json = JsonSerializer.Serialize(stats, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-                await File.WriteAllTextAsync(path, json);
-                _logger.LogInformation($"Stats updated: {stats.RoundsPlayed} rounds, {stats.TotalClicks} total clicks");
-            }
-            finally
-            {
-                FileSemaphore.Release();
-            }
-        }
-
-        private string GetStatsFilePath()
-        {
-            // Use the same multi-strategy path resolution as LeaderboardFunction
-            var strategies = new[]
-            {
-                // Strategy 1: Relative to current working directory (standard dev setup — func start from Api/)
-                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../Client/wwwroot/data/stats.json")),
-
-                // Strategy 2: Walk up directory tree looking for solution root
-                FindSolutionBasedStatsPath(),
-
-                // Strategy 3: Direct relative path
-                Path.GetFullPath(Path.Combine("../Client/wwwroot/data/stats.json")),
-            };
-
-            foreach (var strategy in strategies)
-            {
-                if (string.IsNullOrEmpty(strategy)) continue;
-                var directory = Path.GetDirectoryName(strategy);
-                if (string.IsNullOrEmpty(directory)) continue;
-
-                _logger.LogInformation($"[Stats] Trying path strategy: {strategy}");
-                if (!Directory.Exists(directory))
+                catch (RequestFailedException ex) when (ex.Status == 412 && attempt == 0)
                 {
-                    try { Directory.CreateDirectory(directory); }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, $"[Stats] Could not create directory: {directory}");
-                        continue;
-                    }
+                    _logger.LogWarning("Stats update conflict (412), retrying...");
                 }
-                _logger.LogInformation($"[Stats] Using stats path: {strategy}");
-                return strategy;
             }
 
-            var fallback = Path.Combine(Path.GetTempPath(), "stats.json");
-            _logger.LogWarning($"[Stats] All path strategies failed, using fallback: {fallback}");
-            return fallback;
+            throw new Exception("Failed to update stats after 2 attempts");
         }
 
-        private string? FindSolutionBasedStatsPath()
+        private static GameStats EntityToStats(TableEntity entity) => new()
         {
-            try
+            TotalClicks = entity.GetInt64("TotalClicks") ?? 0,
+            RoundsPlayed = entity.GetInt64("RoundsPlayed") ?? 0,
+            TotalTimePlayedSeconds = entity.GetInt64("TotalTimePlayedSeconds") ?? 0,
+            LastUpdated = entity.GetDateTimeOffset("LastUpdated")?.UtcDateTime ?? DateTime.UtcNow,
+            AssTypeStats = new Dictionary<string, long>
             {
-                var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
-                while (currentDir != null)
-                {
-                    if (currentDir.GetFiles("*.sln").Length > 0 || currentDir.GetFiles("*.slnx").Length > 0)
-                    {
-                        var path = Path.Combine(currentDir.FullName, "Client", "wwwroot", "data", "stats.json");
-                        _logger.LogInformation($"[Stats] Found solution at {currentDir.FullName}, stats path: {path}");
-                        return path;
-                    }
-                    currentDir = currentDir.Parent;
-                }
+                ["Boney"] = entity.GetInt64("Stat_Boney") ?? 0,
+                ["Cartoon"] = entity.GetInt64("Stat_Cartoon") ?? 0,
+                ["Flat"] = entity.GetInt64("Stat_Flat") ?? 0,
+                ["Golden"] = entity.GetInt64("Stat_Golden") ?? 0,
+                ["GYAT"] = entity.GetInt64("Stat_GYAT") ?? 0,
+                ["Hairy"] = entity.GetInt64("Stat_Hairy") ?? 0
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "[Stats] Error searching for solution directory");
-            }
-            return null;
-        }
+        };
 
-        private static GameStats CreateEmptyStats() => new GameStats
+        private static GameStats CreateEmptyStats() => new()
         {
             AssTypeStats = new Dictionary<string, long>
             {
@@ -213,7 +191,7 @@ namespace Api
             }
         };
 
-        private HttpResponseData CorsOptions(HttpRequestData req)
+        private static HttpResponseData CorsOptions(HttpRequestData req)
         {
             var res = req.CreateResponse(HttpStatusCode.OK);
             AddCorsHeaders(res);

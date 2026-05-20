@@ -31,7 +31,7 @@ namespace BlazorApp.Client.Services
                     // Test leaderboard endpoint
                     try
                     {
-                        var scores = await _leaderboardService.GetTopScoresAsync(1);
+                        var scores = await _leaderboardService.GetTopScoresAsync(count: 1);
                         Console.WriteLine($"[StartupDiagnostics] ? LEADERBOARD ENDPOINT WORKING - Retrieved {scores.Count} scores");
                     }
                     catch (Exception ex)

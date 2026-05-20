@@ -5,22 +5,40 @@
         <div class="lb-stats-container">
             <!-- Tab navigation -->
             <div class="tab-header mb-4">
-                <button class="tab-btn @(activeTab == "leaderboard" ? "active" : "")"
-                        @onclick='() => SwitchTab("leaderboard")'>
-                    <i class="fas fa-trophy me-2"></i>Leaderboard
+                <button class="tab-btn @(activeTab == "alltime" ? "active" : "")"
+                        @onclick='() => SwitchTab("alltime")'>
+                    <i class="fas fa-globe me-1"></i>All Time
+                </button>
+                <button class="tab-btn @(activeTab == "daily" ? "active" : "")"
+                        @onclick='() => SwitchTab("daily")'>
+                    <i class="fas fa-sun me-1"></i>Daily
+                </button>
+                <button class="tab-btn @(activeTab == "monthly" ? "active" : "")"
+                        @onclick='() => SwitchTab("monthly")'>
+                    <i class="fas fa-calendar-alt me-1"></i>Monthly
+                </button>
+                <button class="tab-btn @(activeTab == "yearly" ? "active" : "")"
+                        @onclick='() => SwitchTab("yearly")'>
+                    <i class="fas fa-star me-1"></i>Yearly
                 </button>
                 <button class="tab-btn @(activeTab == "stats" ? "active" : "")"
                         @onclick='() => SwitchTab("stats")'>
-                    <i class="fas fa-chart-bar me-2"></i>Global Stats
+                    <i class="fas fa-chart-bar me-1"></i>Stats
                 </button>
             </div>
 
-            <!-- Leaderboard tab -->
-            @if (activeTab == "leaderboard")
+            <!-- Leaderboard tabs (All Time / Daily / Monthly / Yearly) -->
+            @if (activeTab != "stats")
             {
                 <div class="text-center mb-3">
                     <small class="text-muted">
-                        <i class="fas fa-globe me-1"></i>Shared across all players worldwide
+                        <i class="fas fa-globe me-1"></i>
+                        @(activeTab switch {
+                            "daily" => "Today's top scores",
+                            "monthly" => "This month's top scores",
+                            "yearly" => "This year's top scores",
+                            _ => "All-time top scores"
+                        })
                     </small>
                 </div>
 
@@ -31,7 +49,7 @@
                         <p class="mt-2 text-muted">Loading scores...</p>
                     </div>
                 }
-                else if (!topScores.Any())
+                else if (!CurrentScores.Any())
                 {
                     <div class="text-center py-5">
                         <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
@@ -44,10 +62,7 @@
                     <div class="lb-content">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="text-muted small">
-                                <i class="fas fa-list-ol me-1"></i>Top @topScores.Count Scores
-                            </span>
-                            <span class="text-muted small">
-                                <i class="fas fa-globe me-1"></i>Global scores
+                                <i class="fas fa-list-ol me-1"></i>Top @CurrentScores.Count Scores
                             </span>
                         </div>
 
@@ -60,9 +75,9 @@
                             <div class="col-2">Date</div>
                         </div>
 
-                        @for (int i = 0; i < topScores.Count; i++)
+                        @for (int i = 0; i < CurrentScores.Count; i++)
                         {
-                            var entry = topScores[i];
+                            var entry = CurrentScores[i];
                             var rank = i + 1;
                             <div class="row align-items-center py-2 my-1 @(rank <= 3 ? "top-score" : "") border-bottom lb-row">
                                 <div class="col-1">

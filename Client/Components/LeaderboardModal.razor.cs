@@ -32,7 +32,7 @@ namespace BlazorApp.Client.Components
             try
             {
                 Console.WriteLine("[LeaderboardModal] Loading shared scores from API...");
-                topScores = await LeaderboardService.GetTopScoresAsync(10);
+                topScores = await LeaderboardService.GetTopScoresAsync(count: 10);
                 Console.WriteLine($"[LeaderboardModal] ? Loaded {topScores.Count} scores from shared leaderboard");
             }
             catch (Exception ex)

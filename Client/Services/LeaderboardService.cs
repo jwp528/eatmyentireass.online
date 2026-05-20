@@ -1,47 +1,40 @@
 using BlazorApp.Shared;
 using System.Text.Json;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace BlazorApp.Client.Services
 {
     public interface ILeaderboardService
     {
-        Task<List<LeaderboardEntry>> GetTopScoresAsync(int count = 10);
+        Task<List<LeaderboardEntry>> GetTopScoresAsync(string period = "alltime", int count = 10);
         Task SaveScoreAsync(LeaderboardEntry entry);
-        Task<List<LeaderboardEntry>> GetAllScoresAsync();
         Task<bool> TestApiConnectionAsync();
     }
 
     public class LeaderboardService : ILeaderboardService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _staticBase;
 
-        public LeaderboardService(HttpClient httpClient, IWebAssemblyHostEnvironment hostEnv)
+        public LeaderboardService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _staticBase = hostEnv.BaseAddress;
         }
 
         public Task<bool> TestApiConnectionAsync() => Task.FromResult(true);
 
-        public async Task<List<LeaderboardEntry>> GetAllScoresAsync() =>
-            await GetTopScoresAsync(100);
-
-        public async Task<List<LeaderboardEntry>> GetTopScoresAsync(int count = 10)
+        public async Task<List<LeaderboardEntry>> GetTopScoresAsync(string period = "alltime", int count = 10)
         {
             try
             {
-                var bust = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var url = new Uri(new Uri(_staticBase), $"data/leaderboard.json?v={bust}");
-                var json = await _httpClient.GetStringAsync(url);
-                var wrapper = JsonSerializer.Deserialize<LeaderboardFileWrapper>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                var entries = wrapper?.Entries ?? new List<LeaderboardEntry>();
-                return entries.OrderByDescending(e => e.Score).ThenByDescending(e => e.GameDate).Take(count).ToList();
+                var json = await _httpClient.GetStringAsync($"api/leaderboard?period={period}");
+                var entries = JsonSerializer.Deserialize<List<LeaderboardEntry>>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new List<LeaderboardEntry>();
+                return entries.Take(count).ToList();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[LeaderboardService] GetTopScores failed: {ex.Message}");
+                Console.WriteLine($"[LeaderboardService] GetTopScores({period}) failed: {ex.Message}");
                 return new List<LeaderboardEntry>();
             }
         }
@@ -61,11 +54,5 @@ namespace BlazorApp.Client.Services
                 throw new Exception($"Failed to save score: {response.StatusCode} — {error}");
             }
         }
-
-        private sealed class LeaderboardFileWrapper
-        {
-            public List<LeaderboardEntry> Entries { get; set; } = new();
-        }
     }
 }
-

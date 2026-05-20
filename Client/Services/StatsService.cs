@@ -1,6 +1,5 @@
 using BlazorApp.Shared;
 using System.Text.Json;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace BlazorApp.Client.Services
 {
@@ -13,22 +12,21 @@ namespace BlazorApp.Client.Services
     public class StatsService : IStatsService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _staticBase;
 
-        public StatsService(HttpClient httpClient, IWebAssemblyHostEnvironment hostEnv)
+        public StatsService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _staticBase = hostEnv.BaseAddress;
         }
 
         public async Task<GameStats?> GetStatsAsync()
         {
             try
             {
-                var bust = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var url = new Uri(new Uri(_staticBase), $"data/stats.json?v={bust}");
-                var json = await _httpClient.GetStringAsync(url);
-                return JsonSerializer.Deserialize<GameStats>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var json = await _httpClient.GetStringAsync("api/stats");
+                return JsonSerializer.Deserialize<GameStats>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
             }
             catch (Exception ex)
             {

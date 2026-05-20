@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Azure.Data.Tables;
 using BlazorApp.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,18 +11,16 @@ namespace Api
     public class DailyChallengeFunction
     {
         private readonly ILogger _logger;
-        private static readonly SemaphoreSlim FileSemaphore = new(1, 1);
+        private const string TableName = "dailyleaderboard";
 
-        private static readonly JsonSerializerOptions JsonOptions = new()
+        private static readonly Lazy<TableClient> _tableClient = new(() =>
         {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
-        private static readonly JsonSerializerOptions ReadOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
+            var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
+                ?? "UseDevelopmentStorage=true";
+            var client = new TableClient(conn, TableName);
+            client.CreateIfNotExists();
+            return client;
+        });
 
         public DailyChallengeFunction(ILoggerFactory loggerFactory)
         {
@@ -39,10 +38,16 @@ namespace Api
             try
             {
                 var todayKey = DailyChallenge.GetChallengeDateKey(DateOnly.FromDateTime(DateTime.UtcNow));
-                var leaderboard = await ReadDailyLeaderboardUnsafe();
+                var table = _tableClient.Value;
+                var entries = new List<DailyLeaderboardEntry>();
 
-                var todayEntries = leaderboard
-                    .Where(e => e.ChallengeDate == todayKey)
+                await foreach (var entity in table.QueryAsync<TableEntity>(
+                    filter: $"PartitionKey eq '{todayKey}'", maxPerPage: 100))
+                {
+                    entries.Add(EntityToEntry(entity));
+                }
+
+                var top10 = entries
                     .OrderByDescending(e => e.Score)
                     .ThenByDescending(e => e.GameDate)
                     .Take(10)
@@ -50,16 +55,16 @@ namespace Api
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 AddCorsHeaders(response);
-                await response.WriteAsJsonAsync(new { date = todayKey, entries = todayEntries });
+                await response.WriteAsJsonAsync(new { date = todayKey, entries = top10 });
                 return response;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving daily leaderboard");
-                var response = req.CreateResponse(HttpStatusCode.InternalServerError);
-                AddCorsHeaders(response);
-                await response.WriteStringAsync("Error retrieving daily leaderboard");
-                return response;
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error retrieving daily leaderboard");
+                return error;
             }
         }
 
@@ -74,7 +79,10 @@ namespace Api
             try
             {
                 var body = await new StreamReader(req.Body).ReadToEndAsync();
-                var entry = JsonSerializer.Deserialize<DailyLeaderboardEntry>(body, ReadOptions);
+                var entry = JsonSerializer.Deserialize<DailyLeaderboardEntry>(body, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
 
                 if (entry == null || string.IsNullOrWhiteSpace(entry.PlayerName))
                 {
@@ -84,15 +92,16 @@ namespace Api
                     return bad;
                 }
 
-                // Stamp the challenge date if not provided
                 if (string.IsNullOrWhiteSpace(entry.ChallengeDate))
                     entry.ChallengeDate = DailyChallenge.GetChallengeDateKey(DateOnly.FromDateTime(DateTime.UtcNow));
 
                 if (entry.GameDate == default)
                     entry.GameDate = DateTime.UtcNow;
 
-                await SaveDailyEntry(entry);
+                var table = _tableClient.Value;
+                await table.AddEntityAsync(EntryToEntity(entry, Guid.NewGuid().ToString()));
 
+                _logger.LogInformation("Daily score saved: {Score} for {Player} on {Date}", entry.Score, entry.PlayerName, entry.ChallengeDate);
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 AddCorsHeaders(response);
                 await response.WriteStringAsync("Daily score saved");
@@ -101,127 +110,35 @@ namespace Api
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving daily score");
-                var response = req.CreateResponse(HttpStatusCode.InternalServerError);
-                AddCorsHeaders(response);
-                await response.WriteStringAsync("Error saving daily score");
-                return response;
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error saving daily score");
+                return error;
             }
         }
 
-        // ── file helpers ────────────────────────────────────────────────────────
-
-        private async Task<List<DailyLeaderboardEntry>> ReadDailyLeaderboardUnsafe()
-        {
-            var path = GetDailyLeaderboardPath();
-            if (!File.Exists(path))
+        private static TableEntity EntryToEntity(DailyLeaderboardEntry entry, string rowKey) =>
+            new(entry.ChallengeDate, rowKey)
             {
-                await WriteDailyLeaderboard(new List<DailyLeaderboardEntry>(), path);
-                return new List<DailyLeaderboardEntry>();
-            }
-
-            var json = await File.ReadAllTextAsync(path);
-            try
-            {
-                var data = JsonSerializer.Deserialize<DailyLeaderboardData>(json, ReadOptions);
-                return data?.Entries ?? new List<DailyLeaderboardEntry>();
-            }
-            catch
-            {
-                return new List<DailyLeaderboardEntry>();
-            }
-        }
-
-        private async Task SaveDailyEntry(DailyLeaderboardEntry entry)
-        {
-            await FileSemaphore.WaitAsync();
-            try
-            {
-                var path = GetDailyLeaderboardPath();
-                var entries = await ReadDailyLeaderboardUnsafe();
-                entries.Add(entry);
-
-                // Retain only the last 30 days of entries, capped at 1000 total
-                var cutoff = DailyChallenge.GetChallengeDateKey(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)));
-                entries = entries
-                    .Where(e => string.Compare(e.ChallengeDate, cutoff, StringComparison.Ordinal) >= 0)
-                    .OrderByDescending(e => e.ChallengeDate)
-                    .ThenByDescending(e => e.Score)
-                    .Take(1000)
-                    .ToList();
-
-                await WriteDailyLeaderboard(entries, path);
-                _logger.LogInformation($"Daily score saved: {entry.Score} for {entry.PlayerName} on {entry.ChallengeDate}");
-            }
-            finally
-            {
-                FileSemaphore.Release();
-            }
-        }
-
-        private async Task WriteDailyLeaderboard(List<DailyLeaderboardEntry> entries, string path)
-        {
-            var dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            var json = JsonSerializer.Serialize(new DailyLeaderboardData { Entries = entries }, JsonOptions);
-            await File.WriteAllTextAsync(path, json);
-        }
-
-        private string GetDailyLeaderboardPath()
-        {
-            // Walk up from current directory to find solution root then locate the data file
-            var candidates = new[]
-            {
-                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../Client/wwwroot/data/daily_leaderboard.json")),
-                FindSolutionBasedPath(),
-                Path.GetFullPath(Path.Combine("../Client/wwwroot/data/daily_leaderboard.json")),
+                ["PlayerName"] = entry.PlayerName,
+                ["Score"] = entry.Score,
+                ["ChallengeDate"] = entry.ChallengeDate,
+                ["GameDate"] = new DateTimeOffset(entry.GameDate, TimeSpan.Zero)
             };
 
-            foreach (var path in candidates)
-            {
-                if (string.IsNullOrEmpty(path)) continue;
-                var dir = Path.GetDirectoryName(path);
-                if (string.IsNullOrEmpty(dir)) continue;
-
-                if (!Directory.Exists(dir))
-                {
-                    try { Directory.CreateDirectory(dir); }
-                    catch { continue; }
-                }
-
-                _logger.LogInformation($"Using daily leaderboard path: {path}");
-                return path;
-            }
-
-            var fallback = Path.Combine(Path.GetTempPath(), "daily_leaderboard.json");
-            _logger.LogWarning($"Falling back to temp path: {fallback}");
-            return fallback;
-        }
-
-        private string FindSolutionBasedPath()
+        private static DailyLeaderboardEntry EntityToEntry(TableEntity entity) => new()
         {
-            try
-            {
-                var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
-                while (dir != null)
-                {
-                    if (dir.GetFiles("*.sln").Length > 0 || dir.GetFiles("*.slnx").Length > 0)
-                        return Path.Combine(dir.FullName, "Client", "wwwroot", "data", "daily_leaderboard.json");
-                    dir = dir.Parent;
-                }
-            }
-            catch { /* ignored */ }
-            return null;
-        }
-
-        // ── CORS helpers ─────────────────────────────────────────────────────────
+            PlayerName = entity.GetString("PlayerName") ?? "",
+            Score = entity.GetDouble("Score") ?? 0,
+            ChallengeDate = entity.GetString("ChallengeDate") ?? entity.PartitionKey,
+            GameDate = entity.GetDateTimeOffset("GameDate")?.UtcDateTime ?? DateTime.UtcNow
+        };
 
         private static HttpResponseData CorsOptions(HttpRequestData req)
         {
-            var r = req.CreateResponse(HttpStatusCode.OK);
-            AddCorsHeaders(r);
-            return r;
+            var res = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(res);
+            return res;
         }
 
         private static void AddCorsHeaders(HttpResponseData response)
@@ -232,18 +149,11 @@ namespace Api
         }
     }
 
-    // ── inline DTOs ──────────────────────────────────────────────────────────────
-
     public class DailyLeaderboardEntry
     {
         public string PlayerName { get; set; } = "";
         public double Score { get; set; }
         public string ChallengeDate { get; set; } = "";
         public DateTime GameDate { get; set; }
-    }
-
-    public class DailyLeaderboardData
-    {
-        public List<DailyLeaderboardEntry> Entries { get; set; } = new();
     }
 }
