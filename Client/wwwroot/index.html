@@ -259,61 +259,95 @@
             }, 350);
         };
 
-        // ── WebGL border fire effect ─────────────────────────────────────────
+        // ── WebGL border fire effect (v5: CodeSandbox mBBS technique) ────────
         (function () {
             var _s = {
                 canvas: null, gl: null, prog: null, buf: null,
-                uTime: null, uRes: null, raf: null, running: false,
-                t0: 0, obs: null
+                uTime: null, uRes: null, uNZW: null, uFire: null,
+                texNoise: null, texFire: null,
+                raf: null, running: false, t0: 0, obs: null
             };
+
+            // Preload texture images immediately so they're ready before first frenzy
+            var _imgs = { noise: null, fire: null };
+            (function () {
+                var n = new Image(); n.onload = function () { _imgs.noise = n; };
+                n.src = '/images/noise.png';
+                var f = new Image(); f.onload = function () { _imgs.fire = f; };
+                f.src = '/images/texture.png';
+            })();
 
             var VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
 
-            // Fire border v4: narrow border (15%), always-on base strip + fBm tongue zone
-            // Full turbulence range 0-1 creates real transparent gaps between tongues
+            // Fragment shader — near-verbatim port of the CodeSandbox fire shader
+            // adapted from https://codesandbox.io/p/sandbox/affectionate-jennings-lb78iq
             var FS = [
                 'precision mediump float;',
-                'uniform float u_time;uniform vec2 u_res;',
-                // IQ-style hash — fract-bounded, mediump-safe for any session length
-                'float h(vec2 p){p=fract(p*0.3183099+vec2(0.71,0.113));p*=17.0;return fract(p.x*p.y*(p.x+p.y));}',
-                // Value noise (hermite smoothstep)
-                'float n(vec2 x){vec2 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);return mix(mix(h(i),h(i+vec2(1.0,0.0)),f.x),mix(h(i+vec2(0.0,1.0)),h(i+vec2(1.0,1.0)),f.x),f.y);}',
-                // 4-octave fBm
-                'float fbm(vec2 p){float v=0.0,a=1.0;for(int i=0;i<4;i++){v+=a*n(p);p*=2.0;a*=0.5;}return v;}',
-                // ef: flame intensity for one edge
-                // d=0 at screen edge → 1 at inner border, a=pos along edge, t=time
-                'float ef(float d,float a,float t){',
-                '  if(d>=1.0)return 0.0;',
-                // Always-on base strip at the very screen edge (d<0.1 = first 10% of border zone)
-                // This creates the continuous fire ring like SSBU
-                '  if(d<0.1){return 0.75+0.25*n(vec2(a*22.0,t*6.0));}',
-                // Tongue zone: d from 0.1 to 1.0 of border zone
-                '  float d2=(d-0.1)/0.9;',
-                // Per-column flame height: pow sharpens distribution (taller peaks, deeper valleys)
-                '  float fh=pow(max(fbm(vec2(a*5.0,t*0.25)),0.001),0.6)*0.88+0.04;',
-                '  if(d2>fh)return 0.0;',     // transparent gap beyond tongue tip
-                '  float ph=d2/fh;',           // 0=base, 1=tip
-                // Full-range turbulence — 0-1 means real transparent pockets within tongues
-                '  float turb=fbm(vec2(a*14.0+t*0.8,ph*9.0-t*3.5));',
-                // Sharp tip taper
-                '  float tip=1.0-smoothstep(0.35,1.0,ph);',
-                '  return tip*(0.05+0.95*turb);}',
+                'uniform float u_time;',
+                'uniform vec2 u_res;',
+                'uniform sampler2D u_nzw;',    // noise.png  — mBBS gradient noise
+                'uniform sampler2D u_fire;',   // texture.png — fire profile color ramp
+
+                // Constants matching the CodeSandbox
+                'const float lacunarity=2.0;',
+                'const float gain=0.5;',
+                'const float magnitude=1.3;',
+                'const float modulus=61.0;',
+
+                // Modified Blum Blum Shub (verbatim from CodeSandbox)
+                'vec2 mBBS(vec2 val,float mod_){val=mod(val,mod_);return mod(val*val,mod_);}',
+
+                // Modified noise (verbatim from CodeSandbox)
+                'float mnoise(vec3 pos){',
+                '  float iz=floor(pos.z),fz=fract(pos.z);',
+                '  vec2 hash=mBBS(iz*3.0+vec2(0.0,3.0),modulus);',
+                '  vec4 g=vec4(',
+                '    texture2D(u_nzw,vec2(pos.x,pos.y+hash.x)/modulus).xy,',
+                '    texture2D(u_nzw,vec2(pos.x,pos.y+hash.y)/modulus).xy)*2.0-1.0;',
+                '  return mix(g.x+g.y*fz,g.z+g.w*(fz-1.0),smoothstep(0.0,1.0,fz));}',
+
+                // Turbulence: abs() sums create ridged/spiky fire shapes (key difference vs fBm)
+                'float turbulence(vec3 pos){',
+                '  float v=0.0,f=1.0,a=1.0;',
+                '  for(int i=0;i<4;i++){v+=abs(mnoise(pos*f))*a;f*=lacunarity;a*=gain;}',
+                '  return v;}',
+
+                // Sample fire for one screen edge
+                // d = depth from edge into border zone (0=screen edge, 1=inner boundary)
+                // a = position along edge (0..1)
+                // t = time (phase-offset per edge)
+                'vec4 sampleEdge(float d,float a,float t){',
+                '  if(d>=1.0)return vec4(0.0);',
+
+                // Noise space: a=along-edge scale, h=height scale + upward scroll, z=time drift
+                // Scales (1.0, 2.0, 0.5) match CodeSandbox vec4(1.0,2.0,1.0,0.5)
+                '  vec3 np=vec3(a*1.0,d*2.0-t*0.5,t*0.3);',
+
+                // Height-scaled turbulence (verbatim from CodeSandbox: sqrt(height)*magnitude)
+                '  float offset=sqrt(d)*magnitude*turbulence(np);',
+                '  float h=d+offset;',
+
+                // Outside flame tip → transparent
+                '  if(h>1.0)return vec4(0.0);',
+
+                // Sample fire profile texture at (center-column, height)
+                '  vec4 result=texture2D(u_fire,vec2(0.5,h));',
+
+                // Fade near the base to avoid abrupt start (from CodeSandbox)
+                '  if(h<0.1)result*=h/0.1;',
+
+                '  return result;}',
+
                 'void main(){',
                 '  vec2 uv=gl_FragCoord.xy/u_res;',
-                '  float brd=0.15;',           // 15% border — tight, game is clearly visible
+                '  float brd=0.15;',
                 '  float dB=uv.y/brd,dT=(1.0-uv.y)/brd,dL=uv.x/brd,dR=(1.0-uv.x)/brd;',
                 '  if(min(min(dB,dT),min(dL,dR))>=1.0){gl_FragColor=vec4(0.0);return;}',
                 '  float t=u_time;',
-                '  float fi=max(max(ef(dB,uv.x,t),ef(dT,1.0-uv.x,t+5.7)),',
-                '    max(ef(dL,1.0-uv.y,t+11.3),ef(dR,uv.y,t+17.1)));',
-                '  if(fi<0.015){gl_FragColor=vec4(0.0);return;}',
-                // Fire palette: fi~1→white-yellow (hot base), fi~0.6→orange, fi~0.2→red, fi~0→dark red
-                '  vec3 col;',
-                '  if(fi>0.7)col=mix(vec3(1.0,0.6,0.05),vec3(1.0,1.0,0.65),(fi-0.7)/0.3);',
-                '  else if(fi>0.3)col=mix(vec3(0.82,0.1,0.0),vec3(1.0,0.6,0.05),(fi-0.3)/0.4);',
-                '  else col=mix(vec3(0.28,0.0,0.0),vec3(0.82,0.1,0.0),fi/0.3);',
-                '  float alpha=clamp(fi*1.6,0.0,1.0);',
-                '  gl_FragColor=vec4(col,alpha);}',
+                // Composite all 4 edges; staggered time offsets keep each edge independent
+                '  vec4 fc=max(max(sampleEdge(dB,uv.x,t),sampleEdge(dT,1.0-uv.x,t+5.7)),',
+                '             max(sampleEdge(dL,1.0-uv.y,t+11.3),sampleEdge(dR,uv.y,t+17.1)));',
+                '  gl_FragColor=fc;}',
             ].join('\n');
 
             function compile(gl, type, src) {
@@ -323,6 +357,18 @@
                 if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
                     console.error('[Fire shader]', gl.getShaderInfoLog(s));
                 return s;
+            }
+
+            function uploadTexture(gl, img, wrap) {
+                var tex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, tex);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                return tex;
             }
 
             function initGL(canvas) {
@@ -345,6 +391,14 @@
                 gl.vertexAttribPointer(ap, 2, gl.FLOAT, false, 0, 0);
                 _s.uTime = gl.getUniformLocation(_s.prog, 'u_time');
                 _s.uRes = gl.getUniformLocation(_s.prog, 'u_res');
+                _s.uNZW = gl.getUniformLocation(_s.prog, 'u_nzw');
+                _s.uFire = gl.getUniformLocation(_s.prog, 'u_fire');
+                // Upload textures (images preloaded at IIFE init time)
+                if (_imgs.noise) _s.texNoise = uploadTexture(gl, _imgs.noise, gl.REPEAT);
+                if (_imgs.fire) _s.texFire = uploadTexture(gl, _imgs.fire, gl.CLAMP_TO_EDGE);
+                // Bind sampler uniforms to texture units 0 and 1
+                gl.uniform1i(_s.uNZW, 0);
+                gl.uniform1i(_s.uFire, 1);
                 gl.enable(gl.BLEND);
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
                 gl.clearColor(0, 0, 0, 0);
@@ -366,11 +420,17 @@
 
             function render() {
                 if (!_s.running || !_s.gl) return;
+                var gl = _s.gl;
                 var t = (performance.now() - _s.t0) / 1000;
-                _s.gl.clear(_s.gl.COLOR_BUFFER_BIT);
-                _s.gl.uniform1f(_s.uTime, t);
-                _s.gl.uniform2f(_s.uRes, _s.canvas.width, _s.canvas.height);
-                _s.gl.drawArrays(_s.gl.TRIANGLE_STRIP, 0, 4);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.uniform1f(_s.uTime, t);
+                gl.uniform2f(_s.uRes, _s.canvas.width, _s.canvas.height);
+                // Bind noise texture to unit 0, fire profile to unit 1
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, _s.texNoise);
+                gl.activeTexture(gl.TEXTURE1);
+                gl.bindTexture(gl.TEXTURE_2D, _s.texFire);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
                 _s.raf = requestAnimationFrame(render);
             }
 
@@ -379,7 +439,7 @@
                 var c = document.getElementById(canvasId);
                 if (!c) { console.warn('[Fire] canvas not found:', canvasId); return; }
                 _s.canvas = c;
-                c.style.display = 'block'; // show first so layout dimensions are available
+                c.style.display = 'block';
                 if (!_s.gl && !initGL(c)) { c.style.display = 'none'; return; }
                 resize();
                 if (window.ResizeObserver) {
@@ -408,10 +468,13 @@
                 if (_s.gl) {
                     if (_s.buf) { _s.gl.deleteBuffer(_s.buf); _s.buf = null; }
                     if (_s.prog) { _s.gl.deleteProgram(_s.prog); _s.prog = null; }
+                    if (_s.texNoise) { _s.gl.deleteTexture(_s.texNoise); _s.texNoise = null; }
+                    if (_s.texFire) { _s.gl.deleteTexture(_s.texFire); _s.texFire = null; }
                     try { _s.gl.getExtension('WEBGL_lose_context').loseContext(); } catch (e) { }
                     _s.gl = null;
                 }
                 _s.canvas = null; _s.uTime = null; _s.uRes = null;
+                _s.uNZW = null; _s.uFire = null;
             };
         })();
 
