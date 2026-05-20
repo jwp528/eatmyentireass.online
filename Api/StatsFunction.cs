@@ -20,10 +20,21 @@ namespace Api
         {
             var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
                 ?? "UseDevelopmentStorage=true";
-            var client = new TableClient(conn, TableName);
-            client.CreateIfNotExists();
-            return client;
+            return new TableClient(conn, TableName);
         });
+
+        private static volatile bool _tableEnsured = false;
+
+        private static async Task<TableClient> GetTableAsync()
+        {
+            var client = _tableClient.Value;
+            if (!_tableEnsured)
+            {
+                await client.CreateIfNotExistsAsync();
+                _tableEnsured = true;
+            }
+            return client;
+        }
 
         public StatsFunction(ILoggerFactory loggerFactory)
         {
@@ -99,7 +110,7 @@ namespace Api
 
         private async Task<GameStats> ReadStatsAsync()
         {
-            var table = _tableClient.Value;
+            var table = await GetTableAsync();
             try
             {
                 var resp = await table.GetEntityAsync<TableEntity>(PartitionKey, RowKey);
@@ -113,7 +124,7 @@ namespace Api
 
         private async Task ApplyStatsUpdateAsync(GameStatsUpdate update)
         {
-            var table = _tableClient.Value;
+            var table = await GetTableAsync();
 
             for (var attempt = 0; attempt < 2; attempt++)
             {

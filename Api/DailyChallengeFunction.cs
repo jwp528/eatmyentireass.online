@@ -17,10 +17,21 @@ namespace Api
         {
             var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
                 ?? "UseDevelopmentStorage=true";
-            var client = new TableClient(conn, TableName);
-            client.CreateIfNotExists();
-            return client;
+            return new TableClient(conn, TableName);
         });
+
+        private static volatile bool _tableEnsured = false;
+
+        private static async Task<TableClient> GetTableAsync()
+        {
+            var client = _tableClient.Value;
+            if (!_tableEnsured)
+            {
+                await client.CreateIfNotExistsAsync();
+                _tableEnsured = true;
+            }
+            return client;
+        }
 
         public DailyChallengeFunction(ILoggerFactory loggerFactory)
         {
@@ -38,7 +49,7 @@ namespace Api
             try
             {
                 var todayKey = DailyChallenge.GetChallengeDateKey(DateOnly.FromDateTime(DateTime.UtcNow));
-                var table = _tableClient.Value;
+                var table = await GetTableAsync();
                 var entries = new List<DailyLeaderboardEntry>();
 
                 await foreach (var entity in table.QueryAsync<TableEntity>(
@@ -98,7 +109,7 @@ namespace Api
                 if (entry.GameDate == default)
                     entry.GameDate = DateTime.UtcNow;
 
-                var table = _tableClient.Value;
+                var table = await GetTableAsync();
                 await table.AddEntityAsync(EntryToEntity(entry, Guid.NewGuid().ToString()));
 
                 _logger.LogInformation("Daily score saved: {Score} for {Player} on {Date}", entry.Score, entry.PlayerName, entry.ChallengeDate);
@@ -123,7 +134,8 @@ namespace Api
                 ["PlayerName"] = entry.PlayerName,
                 ["Score"] = entry.Score,
                 ["ChallengeDate"] = entry.ChallengeDate,
-                ["GameDate"] = new DateTimeOffset(entry.GameDate, TimeSpan.Zero)
+                ["GameDate"] = new DateTimeOffset(DateTime.SpecifyKind(
+                    entry.GameDate == default ? DateTime.UtcNow : entry.GameDate, DateTimeKind.Utc))
             };
 
         private static DailyLeaderboardEntry EntityToEntry(TableEntity entity) => new()

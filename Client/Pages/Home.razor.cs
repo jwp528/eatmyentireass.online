@@ -461,15 +461,22 @@ namespace BlazorApp.Client.Pages
 
         async Task SubmitGameStatsAsync()
         {
-            var update = new GameStatsUpdate
+            try
             {
-                Clicks = totalClicks,
-                DurationSeconds = 60,
-                AssTypeBreakdown = Breakdown.ToDictionary(
-                    kvp => kvp.Key.ToString(),
-                    kvp => kvp.Value)
-            };
-            await StatsService.UpdateStatsAsync(update);
+                var update = new GameStatsUpdate
+                {
+                    Clicks = totalClicks,
+                    DurationSeconds = 60,
+                    AssTypeBreakdown = Breakdown.ToDictionary(
+                        kvp => kvp.Key.ToString(),
+                        kvp => kvp.Value)
+                };
+                await StatsService.UpdateStatsAsync(update);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Home] Stats submission failed (non-critical): {ex.Message}");
+            }
         }
 
         async Task ShowResultsDialog()

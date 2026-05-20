@@ -17,10 +17,21 @@ namespace Api
         {
             var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
                 ?? "UseDevelopmentStorage=true";
-            var client = new TableClient(conn, TableName);
-            client.CreateIfNotExists();
-            return client;
+            return new TableClient(conn, TableName);
         });
+
+        private static volatile bool _tableEnsured = false;
+
+        private static async Task<TableClient> GetTableAsync()
+        {
+            var client = _tableClient.Value;
+            if (!_tableEnsured)
+            {
+                await client.CreateIfNotExistsAsync();
+                _tableEnsured = true;
+            }
+            return client;
+        }
 
         public LeaderboardFunction(ILoggerFactory loggerFactory)
         {
@@ -40,7 +51,7 @@ namespace Api
 
             try
             {
-                var table = _tableClient.Value;
+                var table = await GetTableAsync();
                 var entries = new List<LeaderboardEntry>();
                 await foreach (var entity in table.QueryAsync<TableEntity>(
                     filter: $"PartitionKey eq '{partitionKey}'", maxPerPage: 200))
@@ -96,7 +107,7 @@ namespace Api
                 if (entry.GameDate == default)
                     entry.GameDate = DateTime.UtcNow;
 
-                var table = _tableClient.Value;
+                var table = await GetTableAsync();
                 var now = DateTime.UtcNow;
                 var periods = new[]
                 {
@@ -135,7 +146,7 @@ namespace Api
             _logger.LogInformation("ClearLeaderboard triggered");
             try
             {
-                var table = _tableClient.Value;
+                var table = await GetTableAsync();
                 var deleted = 0;
                 await foreach (var entity in table.QueryAsync<TableEntity>(select: new[] { "PartitionKey", "RowKey" }))
                 {
