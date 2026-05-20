@@ -56,7 +56,19 @@
           @onclick="EatPiece"
           @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
           role="button" tabindex="0">
-        <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
+
+        @* Stack: frenzy label (when active) + ass image *@
+        <div class="game-content-stack">
+            @if (gamePlaying && frenzyActive)
+            {
+                <div class="frenzy-above-image">
+                    <span class="frenzy-title">🔥 FRENZY!</span>
+                    <span class="frenzy-timer">@frenzySecondsLeft</span>
+                    <span class="frenzy-hold-hint">HOLD</span>
+                </div>
+            }
+            <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
+        </div>
 
         @* Timer — top-center, always visible while game is active *@
         @if (gamePlaying)
@@ -99,16 +111,6 @@
                         <i class="fas fa-rotate"></i> Play Again
                     </button>
                 </div>
-            </div>
-        }
-
-        @* Frenzy overlays *@
-        @if (gamePlaying && frenzyActive)
-        {
-            <div class="frenzy-overlay">
-                <span class="frenzy-title">🔥 FRENZY!</span>
-                <span class="frenzy-timer">@frenzySecondsLeft</span>
-                <span class="frenzy-hold-hint">HOLD</span>
             </div>
         }
 
