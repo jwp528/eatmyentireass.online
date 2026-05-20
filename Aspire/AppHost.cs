@@ -1,14 +1,14 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+// Azure Functions must be launched via 'func start', not 'dotnet run'.
+// Using AddExecutable prevents Aspire from injecting ASPNETCORE_URLS, which
+// would conflict with the inner Kestrel that ConfigureFunctionsWebApplication() starts.
+var apiPath = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "..", "Api"));
+builder.AddExecutable("api", "cmd", apiPath, "/c", "func", "start")
+    .WithHttpEndpoint(port: 7071, name: "http");
+
 // Configure the client project
 builder.AddProject<Projects.Client>("client")
     .WithHttpEndpoint(port: 5001, name: "https");
-
-// Azure Functions API must be started separately — do NOT add it here.
-// When Aspire manages it via AddProject, it sets ASPNETCORE_URLS=http://localhost:7071
-// which conflicts with the inner Kestrel that ConfigureFunctionsWebApplication() starts,
-// causing the func host to accept TCP connections but never return HTTP responses.
-//
-// To start the API: open a terminal in the Api/ directory and run: func start
 
 builder.Build().Run();
