@@ -40,7 +40,6 @@ namespace BlazorApp.Client.Pages
         bool frenzyActive = false;
         int frenzySecondsLeft = 0;
         int frenzyCount = 0;
-        bool frenzyShaking = false;
         bool _mouseHeld = false;
         CancellationTokenSource? _autoEatCts;
         Timer? FrenzyCountdownTimer;
@@ -141,6 +140,7 @@ namespace BlazorApp.Client.Pages
         {
             await base.OnInitializedAsync();
             _progressCache = await ProgressService.LoadAsync();
+            _currentPlayerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
             await LoadSettings();
         }
 
@@ -449,6 +449,11 @@ namespace BlazorApp.Client.Pages
             await HelpDialog?.Modal?.Show();
         }
 
+        async Task OpenAssDexFromHelp()
+        {
+            await AssdexDialog?.Show();
+        }
+
         async Task ShowAboutDialog()
         {
             await AboutDialog?.Modal?.Show();
@@ -486,11 +491,24 @@ namespace BlazorApp.Client.Pages
 
         async Task CheckAndPromptScoreSave()
         {
-            // Always show results dialog immediately
             await ShowResultsDialog();
 
-            // Don't check for leaderboard qualification - let user decide if they want to save
-            // This eliminates the delay from API calls
+            var savedName = await SettingsService.GetLastPlayerNameAsync();
+            if (string.IsNullOrWhiteSpace(savedName)) return;
+
+            try
+            {
+                var playerBest = await LeaderboardService.GetPlayerBestScoreAsync(savedName);
+                if (playerBest == null || assesEaten > playerBest.Score)
+                {
+                    await Task.Delay(300);
+                    await SaveScoreDialog?.Show((double)assesEaten, totalClicks, Breakdown);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Home] Auto-show save score check failed (non-critical): {ex.Message}");
+            }
         }
 
         async Task TryAgain()
@@ -577,14 +595,12 @@ namespace BlazorApp.Client.Pages
             {
                 frenzyActive = true;
                 frenzyCount++;
-                frenzyShaking = true; // Earthquake shake for entire frenzy duration
+                _ = js.InvokeVoidAsync("toggleBodyShake", true);
 
                 FrenzyCountdownTimer = new Timer(1000);
                 FrenzyCountdownTimer.Elapsed += OnFrenzyCountdownTick;
                 FrenzyCountdownTimer.AutoReset = true;
                 FrenzyCountdownTimer.Enabled = true;
-
-                _ = js.InvokeVoidAsync("startFireEffect", "fire-canvas");
 
                 // If the mouse is already held, kick off auto-eat immediately
                 if (_mouseHeld)
@@ -605,12 +621,11 @@ namespace BlazorApp.Client.Pages
         {
             frenzyActive = false;
             frenzySecondsLeft = 0;
-            frenzyShaking = false;
+            _ = js.InvokeVoidAsync("toggleBodyShake", false);
             FrenzyCountdownTimer?.Stop();
             FrenzyCountdownTimer?.Dispose();
             FrenzyCountdownTimer = null;
             StopFrenzyAutoClick();
-            _ = js.InvokeVoidAsync("stopFireEffect");
             StateHasChanged();
         }
 

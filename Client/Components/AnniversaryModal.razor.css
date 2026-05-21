@@ -1,84 +1,83 @@
-.anniversary-container {
-    color: #ffffff;
-    padding: 2rem 1.5rem 1.5rem;
-    position: relative;
-    overflow: hidden;
+.av-shell {
+    padding: 2rem 1.75rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
-.anniversary-emoji {
-    font-size: 3rem;
-    line-height: 1;
-    animation: float 3s ease-in-out infinite;
-}
-
-@@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-
-.anniversary-title {
-    font-size: 2rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #ffd700, #ffaa00, #ffd700);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.5rem;
-    line-height: 1.2;
-}
-
-.anniversary-subtitle {
-    font-size: 1rem;
-    opacity: 0.9;
-}
-
-.anniversary-divider {
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
-    border: none;
-}
-
-.anniversary-message {
-    color: rgba(255, 255, 255, 0.88);
-    line-height: 1.7;
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
-}
-
-.anniversary-message.lead {
-    font-size: 1.15rem;
-    color: #ffffff;
-}
-
-.btn-anniversary {
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    border: none;
-    color: #1a0533;
+.av-tag {
+    font-size: 0.68rem;
     font-weight: 700;
-    font-size: 1.1rem;
-    padding: 0.75rem 2.5rem;
-    border-radius: 50px;
-    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
-    transition: all 0.3s ease;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7986cb;
 }
 
-.btn-anniversary:hover {
-    background: linear-gradient(135deg, #ffe033, #ffaa00);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.5);
-    color: #1a0533;
+.av-header-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
-@@media (max-width: 576px) {
-    .anniversary-title {
-        font-size: 1.5rem;
-    }
+.av-ass-img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 6px;
+}
 
-    .anniversary-stats {
-        gap: 1rem;
-    }
 
-    .anniversary-stat {
-        padding: 0.5rem 1rem;
-    }
+    font-size: 1.75rem;
+    font-weight: 300;
+    color: #fff;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.av-date {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.04em;
+}
+
+.av-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+    margin: 0.5rem 0;
+}
+
+.av-lead {
+    font-size: 1rem;
+    color: #fff;
+    margin: 0;
+}
+
+.av-body {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.av-actions {
+    margin-top: 0.75rem;
+}
+
+.av-btn {
+    background: #5c6bc0;
+    border: none;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.av-btn:hover {
+    background: #7986cb;
 }

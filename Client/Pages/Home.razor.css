@@ -53,6 +53,23 @@
     justify-content: flex-end;
 }
 
+.icon-btn--named {
+    color: #7986cb !important;
+    background: rgba(92, 107, 192, 0.15) !important;
+    font-weight: 600;
+}
+
+.icon-btn--named:hover {
+    background: rgba(92, 107, 192, 0.3) !important;
+}
+
+.player-btn-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1;
+}
+
 /* ── Icon Button ─────────────────────────────────────────────────── */
 .icon-btn {
     display: flex;
@@ -258,14 +275,8 @@
 .canvas-btn-primary:hover {
     background: rgba(92, 107, 192, 0.65);
     color: #fff;
-}/* ── Frenzy: screen shake ────────────────────────────────────────── */
-.frenzy-shaking {
-    animation: frenzy-shake 0.3s linear infinite;
-}
-
-/* ── Frenzy: fire border on game area ───────────────────────────── */
+}/* ── Frenzy: game area marker (no animation) ─────────────────────── */
 .game-main.frenzy-active {
-    animation: fire-border 0.4s ease-in-out infinite alternate;
 }
 
 /* ── Game content stack (image + frenzy label) ──────────────────── */
@@ -312,15 +323,58 @@
     padding-bottom: 0.5rem;
 }
 
-/* ── WebGL fire canvas ───────────────────────────────────────────── */
-.fire-canvas {
-    position: absolute;
+/* ── Fire border GIF overlay ─────────────────────────────────────── */
+.fire-border-overlay {
+    position: fixed;
     inset: 0;
-    width: 100%;
-    height: 100%;
     pointer-events: none;
-    z-index: 4;
-    display: none;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.fire-border-top,
+.fire-border-bottom,
+.fire-border-left,
+.fire-border-right {
+    position: absolute;
+    display: block;
+}
+
+/* Top — fire points downward from the top edge */
+.fire-border-top {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 160px;
+    transform: scaleY(-1);
+}
+
+/* Bottom — fire rises naturally from the bottom edge */
+.fire-border-bottom {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 160px;
+}
+
+/* Left — rotate 90deg CW so fire points right (inward).
+   Visible strip width = height / 2 = 160px */
+.fire-border-left {
+    top: 50%;
+    left: 0;
+    width: 100vh;
+    height: 320px;
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* Right — rotate 90deg CCW so fire points left (inward).
+   Visible strip width = height / 2 = 160px */
+.fire-border-right {
+    top: 50%;
+    right: 0;
+    width: 100vh;
+    height: 320px;
+    transform: translate(50%, -50%) rotate(-90deg);
 }
 
 /* ── Animations ──────────────────────────────────────────────────── */
@@ -344,52 +398,6 @@
     to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
-@@keyframes frenzy-shake {
-    0%   { transform: translate(0px,    0px)   rotate(0deg);   }
-    8%   { transform: translate(-10px,  -5px)  rotate(-0.4deg); }
-    16%  { transform: translate(9px,    6px)   rotate(0.35deg); }
-    24%  { transform: translate(-8px,   7px)   rotate(-0.3deg); }
-    32%  { transform: translate(11px,  -6px)   rotate(0.45deg); }
-    40%  { transform: translate(-9px,   5px)   rotate(-0.35deg); }
-    48%  { transform: translate(8px,   -8px)   rotate(0.3deg);  }
-    56%  { transform: translate(-11px,  6px)   rotate(-0.45deg); }
-    64%  { transform: translate(10px,  -5px)   rotate(0.4deg);  }
-    72%  { transform: translate(-7px,   9px)   rotate(-0.3deg); }
-    80%  { transform: translate(9px,   -7px)   rotate(0.35deg); }
-    88%  { transform: translate(-10px,  4px)   rotate(-0.3deg); }
-    100% { transform: translate(6px,   -4px)   rotate(0.2deg);  }
-}
-
-@@keyframes fire-border {
-    0% {
-        box-shadow:
-            0 0 0 3px rgba(190, 25, 0, 0.80),
-            0 0 28px rgba(255, 75, 0, 0.62),
-            0 0 60px rgba(170, 15, 0, 0.38),
-            0 0 105px rgba(120, 5, 0, 0.18);
-    }
-    40% {
-        box-shadow:
-            0 0 0 5px rgba(255, 150, 0, 1.0),
-            0 0 52px rgba(255, 105, 0, 0.92),
-            0 0 98px rgba(215, 50, 0, 0.58),
-            0 0 155px rgba(165, 12, 0, 0.28);
-    }
-    70% {
-        box-shadow:
-            0 0 0 3px rgba(255, 80, 0, 0.82),
-            0 0 34px rgba(255, 88, 0, 0.70),
-            0 0 70px rgba(205, 32, 0, 0.44),
-            0 0 112px rgba(145, 8, 0, 0.20);
-    }
-    100% {
-        box-shadow:
-            0 0 0 5px rgba(255, 195, 10, 1.0),
-            0 0 62px rgba(255, 135, 0, 0.96),
-            0 0 115px rgba(230, 65, 0, 0.62),
-            0 0 175px rgba(185, 18, 0, 0.30);
-    }
-}
 
 
 /* ── Mobile ──────────────────────────────────────────────────────── */

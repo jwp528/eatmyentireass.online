@@ -41,6 +41,9 @@ builder.Services.AddScoped<IDailyChallengeService, DailyChallengeService>();
 // Use API-based shared leaderboard service (writes to shared file via API)
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 
+// Player name claiming service
+builder.Services.AddScoped<IPlayerService, PlayerService>();
+
 // Also keep local leaderboard service as fallback
 builder.Services.AddScoped<ILocalLeaderboardService, LocalLeaderboardService>();
 

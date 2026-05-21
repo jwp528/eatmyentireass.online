@@ -15,6 +15,7 @@ namespace BlazorApp.Client.Components
         private bool isLoadingLeaderboard;
         private bool isLoadingStats;
         private GameStats? stats;
+        private string _searchText = string.Empty;
 
         // Per-period leaderboard data
         private readonly Dictionary<string, List<LeaderboardEntry>> _periodScores = new();
@@ -24,6 +25,11 @@ namespace BlazorApp.Client.Components
 
         private List<LeaderboardEntry> CurrentScores =>
             _periodScores.TryGetValue(activeTab, out var list) ? list : new();
+
+        private List<LeaderboardEntry> CurrentScoresFiltered =>
+            string.IsNullOrWhiteSpace(_searchText)
+                ? CurrentScores
+                : CurrentScores.Where(e => e.PlayerName.Contains(_searchText, StringComparison.OrdinalIgnoreCase)).ToList();
 
         public async Task ShowLeaderboard()
         {
@@ -42,6 +48,7 @@ namespace BlazorApp.Client.Components
         private async Task SwitchTab(string tab)
         {
             activeTab = tab;
+            _searchText = string.Empty;
 
             if (tab == "stats")
             {
@@ -72,7 +79,7 @@ namespace BlazorApp.Client.Components
             StateHasChanged();
             try
             {
-                var entries = await LeaderboardService.GetTopScoresAsync(period);
+                var entries = await LeaderboardService.GetTopScoresAsync(period, count: 100);
                 _periodScores[period] = entries;
                 _loadedPeriods.Add(period);
             }

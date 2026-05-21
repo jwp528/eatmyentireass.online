@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Azure;
 using Azure.Data.Tables;
 using BlazorApp.Shared;
 using Microsoft.Azure.Functions.Worker;
@@ -13,7 +14,7 @@ namespace Api
         private readonly ILogger _logger;
         private const string TableName = "leaderboard";
 
-        private static readonly Lazy<TableClient> _tableClient = new(() =>
+        private static readonly Lazy<TableClient> _leaderboardTableClient = new(() =>
         {
             var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
                 ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage")
@@ -21,11 +22,19 @@ namespace Api
             return new TableClient(conn, TableName);
         });
 
+        private static readonly Lazy<TableClient> _playersTableClient = new(() =>
+        {
+            var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
+                ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage")
+                ?? "UseDevelopmentStorage=true";
+            return new TableClient(conn, "players");
+        });
+
         private static volatile bool _tableEnsured = false;
 
         private static async Task<TableClient> GetTableAsync()
         {
-            var client = _tableClient.Value;
+            var client = _leaderboardTableClient.Value;
             if (!_tableEnsured)
             {
                 await client.CreateIfNotExistsAsync();
@@ -60,15 +69,18 @@ namespace Api
                     entries.Add(EntityToEntry(entity));
                 }
 
-                var top10 = entries
+                // Deduplicate by player name (handles legacy multi-row entries), take top 100
+                var top100 = entries
+                    .GroupBy(e => PlayerNameHelper.Normalize(e.PlayerName))
+                    .Select(g => g.OrderByDescending(e => e.Score).First())
                     .OrderByDescending(e => e.Score)
                     .ThenByDescending(e => e.GameDate)
-                    .Take(10)
+                    .Take(100)
                     .ToList();
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 AddCorsHeaders(response);
-                await response.WriteAsJsonAsync(top10);
+                await response.WriteAsJsonAsync(top100);
                 return response;
             }
             catch (Exception ex)
@@ -92,11 +104,12 @@ namespace Api
             try
             {
                 var body = await new StreamReader(req.Body).ReadToEndAsync();
-                var entry = JsonSerializer.Deserialize<LeaderboardEntry>(body, new JsonSerializerOptions
+                var request = JsonSerializer.Deserialize<SaveScoreRequest>(body, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
 
+                var entry = request?.Entry;
                 if (entry == null || string.IsNullOrWhiteSpace(entry.PlayerName))
                 {
                     var bad = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -108,6 +121,32 @@ namespace Api
                 if (entry.GameDate == default)
                     entry.GameDate = DateTime.UtcNow;
 
+                // Auth check — fail closed if player table is unreachable
+                var normalizedName = PlayerNameHelper.Normalize(entry.PlayerName);
+                var playersTable = _playersTableClient.Value;
+                await playersTable.CreateIfNotExistsAsync();
+
+                var authResult = await PlayerFunction.VerifyTokenAsync(playersTable, normalizedName, request?.AuthToken);
+                switch (authResult)
+                {
+                    case TokenVerifyResult.TokenRequired:
+                    case TokenVerifyResult.Invalid:
+                        {
+                            var denied = req.CreateResponse(HttpStatusCode.Unauthorized);
+                            AddCorsHeaders(denied);
+                            await denied.WriteStringAsync("Name is claimed. Verify identity first.");
+                            return denied;
+                        }
+                    case TokenVerifyResult.Error:
+                        {
+                            _logger.LogWarning("Player auth lookup failed for {Name} — rejecting save", normalizedName);
+                            var svcErr = req.CreateResponse(HttpStatusCode.ServiceUnavailable);
+                            AddCorsHeaders(svcErr);
+                            await svcErr.WriteStringAsync("Unable to verify identity. Try again later.");
+                            return svcErr;
+                        }
+                }
+
                 var table = await GetTableAsync();
                 var now = DateTime.UtcNow;
                 var periods = new[]
@@ -118,8 +157,27 @@ namespace Api
                     $"yearly:{now:yyyy}"
                 };
 
-                var tasks = periods.Select(p => table.AddEntityAsync(EntryToEntity(entry, p, Guid.NewGuid().ToString())));
-                await Task.WhenAll(tasks);
+                foreach (var p in periods)
+                {
+                    // Only save if this is the player's best score for the period
+                    try
+                    {
+                        var existingResponse = await table.GetEntityAsync<TableEntity>(p, normalizedName);
+                        var existingScore = existingResponse.Value.GetDouble("Score") ?? 0;
+                        if (entry.Score <= existingScore)
+                        {
+                            _logger.LogInformation("Score {Score} for {Player} in {Period} not higher than {Existing}, skipping",
+                                entry.Score, normalizedName, p, existingScore);
+                            continue;
+                        }
+                    }
+                    catch (RequestFailedException ex) when (ex.Status == 404)
+                    {
+                        // No existing entry — proceed
+                    }
+
+                    await table.UpsertEntityAsync(EntryToEntity(entry, p, normalizedName));
+                }
 
                 _logger.LogInformation("Score saved: {Score} for {Player}", entry.Score, entry.PlayerName);
                 var response = req.CreateResponse(HttpStatusCode.OK);
@@ -133,6 +191,54 @@ namespace Api
                 var error = req.CreateResponse(HttpStatusCode.InternalServerError);
                 AddCorsHeaders(error);
                 await error.WriteStringAsync("Error saving score");
+                return error;
+            }
+        }
+
+        [Function("GetPlayerBest")]
+        public async Task<HttpResponseData> GetPlayerBest(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "options", Route = "leaderboard/player")] HttpRequestData req)
+        {
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            var name = GetQueryParam(req.Url, "name", string.Empty);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("name is required");
+                return bad;
+            }
+
+            try
+            {
+                var table = await GetTableAsync();
+                var normalized = PlayerNameHelper.Normalize(name);
+                LeaderboardEntry? best = null;
+
+                await foreach (var entity in table.QueryAsync<TableEntity>(
+                    filter: $"PartitionKey eq 'alltime'", maxPerPage: 500))
+                {
+                    var entryName = PlayerNameHelper.Normalize(entity.GetString("PlayerName") ?? "");
+                    if (entryName != normalized) continue;
+
+                    var entry = EntityToEntry(entity);
+                    if (best == null || entry.Score > best.Score)
+                        best = entry;
+                }
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+                await response.WriteAsJsonAsync(best);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting player best for {Name}", name);
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error getting player best");
                 return error;
             }
         }

@@ -30,6 +30,11 @@
             <!-- Leaderboard tabs (All Time / Daily / Monthly / Yearly) -->
             @if (activeTab != "stats")
             {
+                <div class="lb-search mb-3">
+                    <input type="text" class="lb-search-input" placeholder="Search player…"
+                           @bind="_searchText" @bind:event="oninput" />
+                </div>
+
                 <div class="text-center mb-3">
                     <small class="text-muted">
                         <i class="fas fa-globe me-1"></i>
@@ -57,12 +62,27 @@
                         <p class="text-muted mb-0">Be the first to set a high score!</p>
                     </div>
                 }
+                else if (!CurrentScoresFiltered.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No players match "@_searchText".</p>
+                    </div>
+                }
                 else
                 {
                     <div class="lb-content">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="text-muted small">
-                                <i class="fas fa-list-ol me-1"></i>Top @CurrentScores.Count Scores
+                                <i class="fas fa-list-ol me-1"></i>
+                                @if (!string.IsNullOrWhiteSpace(_searchText))
+                                {
+                                    <span>@CurrentScoresFiltered.Count of @CurrentScores.Count</span>
+                                }
+                                else
+                                {
+                                    <span>Top @CurrentScores.Count Scores</span>
+                                }
                             </span>
                         </div>
 
@@ -75,10 +95,11 @@
                             <div class="col-2">Date</div>
                         </div>
 
-                        @for (int i = 0; i < CurrentScores.Count; i++)
+                        @for (int i = 0; i < CurrentScoresFiltered.Count; i++)
                         {
-                            var entry = CurrentScores[i];
-                            var rank = i + 1;
+                            var entry = CurrentScoresFiltered[i];
+                            var globalRank = CurrentScores.IndexOf(entry) + 1;
+                            var rank = globalRank;
                             <div class="row align-items-center py-2 my-1 @(rank <= 3 ? "top-score" : "") border-bottom lb-row">
                                 <div class="col-1">
                                     @if (rank == 1)      { <i class="fas fa-crown text-warning fs-5"></i> }

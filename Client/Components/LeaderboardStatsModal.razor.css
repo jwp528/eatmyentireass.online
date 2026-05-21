@@ -38,6 +38,31 @@
     border-bottom-color: #fcd34d;
 }
 
+/* Search input */
+.lb-search {
+    position: relative;
+}
+
+.lb-search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    color: #fff;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.lb-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.lb-search-input:focus {
+    border-color: #5c6bc0;
+}
+
 /* Leaderboard */
 .lb-content {
     max-height: 55vh;

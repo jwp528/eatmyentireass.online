@@ -5,6 +5,7 @@
 @inject IJSRuntime js
 @inject ILeaderboardService LeaderboardService
 @inject ISettingsService SettingsService
+@inject IPlayerService PlayerService
 @inject IVersionCheckService VersionCheckService
 @inject IStatsService StatsService
 @inject ICollectionService CollectionService
@@ -13,7 +14,7 @@
 
 <PageTitle>Eat my entire ass</PageTitle>
 
-<div class="app-shell @(frenzyShaking ? "frenzy-shaking" : "")"  >
+<div class="app-shell">
 
     <header class="app-bar">
         <div class="app-bar-brand">
@@ -37,6 +38,18 @@
         </nav>
 
         <div class="app-bar-end">
+            <button class="icon-btn @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "" : "icon-btn--named")"
+                    @onclick="ShowPlayerNameDialog"
+                    title="@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Player Name" : _currentPlayerName)">
+                @if (string.IsNullOrWhiteSpace(_currentPlayerName))
+                {
+                    <i class="fas fa-user"></i>
+                }
+                else
+                {
+                    <span class="player-btn-label">@_currentPlayerName[..Math.Min(_currentPlayerName.Length, 2)].ToUpper()</span>
+                }
+            </button>
             <button class="icon-btn @(playSounds ? "icon-btn-active" : "")" @onclick="ToggleSound"
                     title="@(playSounds ? "Sound On" : "Sound Off")">
                 <i class="@(playSounds ? "bi bi-volume-up-fill" : "bi bi-volume-mute-fill")"></i>
@@ -114,13 +127,22 @@
             </div>
         }
 
-        @* WebGL fire canvas — always in DOM, shown/hidden by JS *@
-        <canvas id="fire-canvas" class="fire-canvas"></canvas>
     </main>
 
 </div>
 
-<HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" />
+@* Fire border GIFs — fixed overlay, outside app-shell to avoid overflow clipping *@
+@if (gamePlaying && frenzyActive)
+{
+    <div class="fire-border-overlay" aria-hidden="true">
+        <img src="/images/fire-border.gif" class="fire-border-top" alt="" />
+        <img src="/images/fire-border.gif" class="fire-border-bottom" alt="" />
+        <img src="/images/fire-border.gif" class="fire-border-left" alt="" />
+        <img src="/images/fire-border.gif" class="fire-border-right" alt="" />
+    </div>
+}
+
+<HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" OnOpenAssDex="OpenAssDexFromHelp" />
 <AboutModal @ref="AboutDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />
@@ -142,16 +164,25 @@
               OnShowAssdex="OpenAssdexForType" />
 <LeaderboardStatsModal @ref="LeaderboardStatsDialog" />
 <SaveScoreModal @ref="SaveScoreDialog" OnScoreSaved="OnScoreSaved" />
+<PlayerNameModal @ref="PlayerNameDialog" OnNameSaved="OnPlayerNameChanged" />
 
 @code {
     LeaderboardStatsModal? LeaderboardStatsDialog;
     SaveScoreModal? SaveScoreDialog;
+    PlayerNameModal? PlayerNameDialog;
     AssdexModal? AssdexDialog;
     AssDetailModal? AssDetailDialog;
     DailyModal? DailyDialog;
 
+    string _currentPlayerName = string.Empty;
+
     // Make totalClicks accessible in the template
     public int totalClicks = 0;
+
+    async Task ShowPlayerNameDialog()
+    {
+        if (PlayerNameDialog != null) await PlayerNameDialog.Show();
+    }
 
     async Task ShowLeaderboardDialog()
     {
@@ -195,6 +226,14 @@
     async Task OnScoreSaved()
     {
         hasScoreSaved = true;
+        _currentPlayerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
         StateHasChanged();
+    }
+
+    async Task OnPlayerNameChanged(string name)
+    {
+        _currentPlayerName = name;
+        StateHasChanged();
+        await Task.CompletedTask;
     }
 }
