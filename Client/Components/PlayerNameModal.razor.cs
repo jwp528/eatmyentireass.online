@@ -142,7 +142,8 @@ namespace BlazorApp.Client.Components
                 await PlayerService.StoreTokenAsync(_name, token);
                 _nameState = NameState.ClaimedOwned;
                 _password = string.Empty;
-                _ = LoadStatsAsync(_name);
+                // Don't fire LoadStatsAsync here — the caller may be about to close the modal.
+                // Stats will load the next time the user opens the modal (CheckNameStateAsync).
             }
             catch (Exception ex)
             {
