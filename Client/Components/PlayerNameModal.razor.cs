@@ -1,4 +1,5 @@
 using BlazorApp.Client.Services;
+using BlazorApp.Shared;
 using Microsoft.AspNetCore.Components;
 
 namespace BlazorApp.Client.Components
@@ -19,6 +20,7 @@ namespace BlazorApp.Client.Components
         private bool _showPasswordField = false;
         private bool _isBusy = false;
         private string _errorMessage = string.Empty;
+        private PlayerStats? _stats = null;
 
         private enum NameState { Unknown, Checking, Free, ClaimedOwned, ClaimedNotOwned }
         private NameState _nameState = NameState.Unknown;
@@ -34,6 +36,7 @@ namespace BlazorApp.Client.Components
             _isBusy = false;
             _errorMessage = string.Empty;
             _nameState = NameState.Unknown;
+            _stats = null;
 
             Modal?.Show();
 
@@ -86,6 +89,9 @@ namespace BlazorApp.Client.Components
                 _nameState = string.IsNullOrWhiteSpace(storedToken)
                     ? NameState.ClaimedNotOwned
                     : NameState.ClaimedOwned;
+
+                if (_nameState == NameState.ClaimedOwned)
+                    _ = LoadStatsAsync(name);
             }
 
             await InvokeAsync(StateHasChanged);
@@ -136,6 +142,7 @@ namespace BlazorApp.Client.Components
                 await PlayerService.StoreTokenAsync(_name, token);
                 _nameState = NameState.ClaimedOwned;
                 _password = string.Empty;
+                _ = LoadStatsAsync(_name);
             }
             catch (Exception ex)
             {
@@ -195,8 +202,19 @@ namespace BlazorApp.Client.Components
         private async Task Logout()
         {
             await PlayerService.ClearTokenAsync(_name);
+            _stats = null;
             _nameState = NameState.ClaimedNotOwned;
             StateHasChanged();
+        }
+
+        private async Task LoadStatsAsync(string name)
+        {
+            try
+            {
+                _stats = await PlayerService.GetPlayerStatsAsync(name);
+                await InvokeAsync(StateHasChanged);
+            }
+            catch { }
         }
 
         private void Cancel()

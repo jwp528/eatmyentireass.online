@@ -156,6 +156,7 @@
               AssTypes="@Breakdown.Keys.ToList()"
               Breakdown="@Breakdown"
               hasScoreSaved="@hasScoreSaved"
+              IsPersonalBest="@_isPersonalBest"
               clicksPerSecondPolls="@clicksPerSecondPolls"
               peakComboCount="@frenzyCount"
               OnTryAgain="TryAgain"
@@ -175,6 +176,7 @@
     DailyModal? DailyDialog;
 
     string _currentPlayerName = string.Empty;
+    bool _isPersonalBest = false;
 
     // Make totalClicks accessible in the template
     public int totalClicks = 0;

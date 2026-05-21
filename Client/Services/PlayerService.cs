@@ -12,6 +12,7 @@ namespace BlazorApp.Client.Services
         Task<string?> GetStoredTokenAsync(string name);
         Task StoreTokenAsync(string name, string token);
         Task ClearTokenAsync(string name);
+        Task<PlayerStats?> GetPlayerStatsAsync(string playerName);
     }
 
     public class PlayerService : IPlayerService
@@ -106,6 +107,21 @@ namespace BlazorApp.Client.Services
                 await _localStorage.RemoveItemAsync(TokenKey(name));
             }
             catch { }
+        }
+
+        public async Task<PlayerStats?> GetPlayerStatsAsync(string playerName)
+        {
+            try
+            {
+                var json = await _http.GetStringAsync($"api/player/stats?name={Uri.EscapeDataString(playerName)}");
+                if (string.IsNullOrWhiteSpace(json)) return null;
+                return JsonSerializer.Deserialize<PlayerStats>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PlayerService] GetPlayerStatsAsync failed: {ex.Message}");
+                return null;
+            }
         }
 
         private static string TokenKey(string name) =>

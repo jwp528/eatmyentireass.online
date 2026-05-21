@@ -21,6 +21,49 @@
     letter-spacing: -2px;
 }
 
+.rm-score-pb {
+    animation: rm-pb-glow 1.4s ease-out forwards;
+}
+
+@keyframes rm-pb-glow {
+    0%   { color: #fff; text-shadow: none; }
+    35%  { color: #fcd34d; text-shadow: 0 0 40px rgba(252,211,77,0.9), 0 0 80px rgba(251,146,60,0.5); }
+    100% { color: #fcd34d; text-shadow: 0 0 18px rgba(252,211,77,0.35); }
+}
+
+/* ── Personal Best badge ── */
+.rm-pb-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(252,211,77,0.45);
+    background: linear-gradient(135deg, rgba(252,211,77,0.12), rgba(251,146,60,0.10));
+    color: #fcd34d;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    animation: rm-pb-badge-in 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.rm-pb-star {
+    animation: rm-pb-star-pulse 1.8s ease-in-out infinite;
+    transform-origin: center;
+}
+
+@keyframes rm-pb-badge-in {
+    from { opacity: 0; transform: scale(0.55) translateY(-10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes rm-pb-star-pulse {
+    0%, 100% { transform: scale(1) rotate(0deg);   opacity: 1; }
+    50%       { transform: scale(1.3) rotate(20deg); opacity: 0.8; }
+}
+
 .rm-score-label {
     font-size: 0.85rem;
     font-weight: 500;

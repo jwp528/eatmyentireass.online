@@ -180,6 +180,11 @@ namespace Api
                 }
 
                 _logger.LogInformation("Score saved: {Score} for {Player}", entry.Score, entry.PlayerName);
+
+                // Update per-player stats for claimed names (fire-and-forget, non-critical)
+                if (authResult == TokenVerifyResult.Valid)
+                    _ = PlayerFunction.UpdatePlayerStatsAsync(playersTable, normalizedName, entry);
+
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 AddCorsHeaders(response);
                 await response.WriteStringAsync("Score saved");

@@ -270,6 +270,123 @@ namespace Api
             }
         }
 
+        [Function("GetPlayerStats")]
+        public async Task<HttpResponseData> GetPlayerStats(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "options", Route = "player/stats")] HttpRequestData req)
+        {
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            var name = GetQueryParam(req.Url, "name", string.Empty);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("name is required");
+                return bad;
+            }
+
+            try
+            {
+                var normalized = PlayerNameHelper.Normalize(name);
+                var table = await GetTableAsync();
+                var statsRow = await TryGetStatsAsync(table, normalized);
+
+                if (statsRow == null)
+                {
+                    var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+                    AddCorsHeaders(notFound);
+                    await notFound.WriteStringAsync("No stats found");
+                    return notFound;
+                }
+
+                var breakdownJson = statsRow.GetString("AssTypeBreakdown") ?? "{}";
+                Dictionary<string, int> breakdown;
+                try { breakdown = JsonSerializer.Deserialize<Dictionary<string, int>>(breakdownJson) ?? new(); }
+                catch { breakdown = new(); }
+
+                var stats = new PlayerStats
+                {
+                    PlayerName = name,
+                    GamesPlayed = statsRow.GetInt32("GamesPlayed") ?? 0,
+                    TotalClicks = statsRow.GetInt64("TotalClicks") ?? 0,
+                    TotalTimeSeconds = statsRow.GetInt64("TotalTimeSeconds") ?? 0,
+                    BestScore = statsRow.GetDouble("BestScore") ?? 0,
+                    LastPlayed = statsRow.GetDateTimeOffset("LastPlayed")?.UtcDateTime ?? DateTime.UtcNow,
+                    AssTypeBreakdown = breakdown
+                };
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+                await response.WriteAsJsonAsync(stats);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting player stats for {Name}", name);
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error getting player stats");
+                return error;
+            }
+        }
+
+        // Called by LeaderboardFunction to update claimed player stats after a successful save
+        public static async Task UpdatePlayerStatsAsync(TableClient table, string normalizedName, LeaderboardEntry entry)
+        {
+            try
+            {
+                var statsRow = await TryGetStatsAsync(table, normalizedName);
+
+                int gamesPlayed = 1;
+                long totalClicks = entry.TotalClicks;
+                long totalTimeSeconds = entry.GameDurationSeconds;
+                double bestScore = entry.Score;
+                var breakdown = entry.AssTypeBreakdown != null
+                    ? new Dictionary<string, int>(entry.AssTypeBreakdown)
+                    : new Dictionary<string, int>();
+
+                if (statsRow != null)
+                {
+                    gamesPlayed += statsRow.GetInt32("GamesPlayed") ?? 0;
+                    totalClicks += statsRow.GetInt64("TotalClicks") ?? 0;
+                    totalTimeSeconds += statsRow.GetInt64("TotalTimeSeconds") ?? 0;
+                    var existingBest = statsRow.GetDouble("BestScore") ?? 0;
+                    if (existingBest > bestScore) bestScore = existingBest;
+
+                    var existingJson = statsRow.GetString("AssTypeBreakdown") ?? "{}";
+                    try
+                    {
+                        var existing = JsonSerializer.Deserialize<Dictionary<string, int>>(existingJson) ?? new();
+                        foreach (var kv in existing)
+                        {
+                            if (breakdown.ContainsKey(kv.Key))
+                                breakdown[kv.Key] += kv.Value;
+                            else
+                                breakdown[kv.Key] = kv.Value;
+                        }
+                    }
+                    catch { }
+                }
+
+                var newStats = new TableEntity("stats", normalizedName)
+                {
+                    ["GamesPlayed"] = gamesPlayed,
+                    ["TotalClicks"] = totalClicks,
+                    ["TotalTimeSeconds"] = totalTimeSeconds,
+                    ["BestScore"] = bestScore,
+                    ["LastPlayed"] = DateTimeOffset.UtcNow,
+                    ["AssTypeBreakdown"] = JsonSerializer.Serialize(breakdown)
+                };
+
+                await table.UpsertEntityAsync(newStats);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PlayerFunction] Stats update failed for {normalizedName}: {ex.Message}");
+            }
+        }
+
         // Called by LeaderboardFunction to verify a claimed name's token before saving
         public static async Task<TokenVerifyResult> VerifyTokenAsync(TableClient table, string normalizedName, string? token)
         {
@@ -302,6 +419,19 @@ namespace Api
             try
             {
                 var response = await table.GetEntityAsync<TableEntity>("player", normalizedName);
+                return response.Value;
+            }
+            catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+            {
+                return null;
+            }
+        }
+
+        private static async Task<TableEntity?> TryGetStatsAsync(TableClient table, string normalizedName)
+        {
+            try
+            {
+                var response = await table.GetEntityAsync<TableEntity>("stats", normalizedName);
                 return response.Value;
             }
             catch (Azure.RequestFailedException ex) when (ex.Status == 404)
