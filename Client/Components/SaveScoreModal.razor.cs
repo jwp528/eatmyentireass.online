@@ -139,25 +139,26 @@ namespace BlazorApp.Client.Components
                     errorMessage = "Enter the password for this name.";
                     return;
                 }
-                await RunVerifyAsync();
+                await RunVerifyAsync(skipFinalRender: true);
                 if (_nameState != NameState.ClaimedOwned) return;
             }
 
             // If showing claim form, run claim first
             if (_showClaimForm)
             {
-                await RunClaimAsync();
+                await RunClaimAsync(skipFinalRender: true);
                 if (_nameState != NameState.ClaimedOwned) return;
             }
 
             await DoSaveAsync();
         }
 
-        private async Task RunVerifyAsync()
+        private async Task RunVerifyAsync(bool skipFinalRender = false)
         {
             isSaving = true;
             errorMessage = string.Empty;
             StateHasChanged();
+            bool hadError = false;
             try
             {
                 var token = await PlayerService.VerifyNameAsync(playerName, password);
@@ -167,17 +168,18 @@ namespace BlazorApp.Client.Components
             }
             catch (Exception ex)
             {
+                hadError = true;
                 errorMessage = ex.Message.Contains("429") ? "Too many attempts. Try again later."
                     : "Incorrect password.";
             }
             finally
             {
                 isSaving = false;
-                StateHasChanged();
+                if (hadError || !skipFinalRender) StateHasChanged();
             }
         }
 
-        private async Task RunClaimAsync()
+        private async Task RunClaimAsync(bool skipFinalRender = false)
         {
             if (password != confirmPassword)
             {
@@ -192,6 +194,7 @@ namespace BlazorApp.Client.Components
             isSaving = true;
             errorMessage = string.Empty;
             StateHasChanged();
+            bool hadError = false;
             try
             {
                 var token = await PlayerService.ClaimNameAsync(playerName, password);
@@ -203,6 +206,7 @@ namespace BlazorApp.Client.Components
             }
             catch (Exception ex)
             {
+                hadError = true;
                 errorMessage = ex.Message.Contains("already claimed")
                     ? "Name was just claimed by someone else."
                     : ex.Message;
@@ -210,7 +214,7 @@ namespace BlazorApp.Client.Components
             finally
             {
                 isSaving = false;
-                StateHasChanged();
+                if (hadError || !skipFinalRender) StateHasChanged();
             }
         }
 
@@ -219,6 +223,7 @@ namespace BlazorApp.Client.Components
             isSaving = true;
             errorMessage = string.Empty;
             StateHasChanged();
+            bool saved = false;
             try
             {
                 var authToken = _nameState == NameState.ClaimedOwned
@@ -238,10 +243,7 @@ namespace BlazorApp.Client.Components
                 await SharedLeaderboardService.SaveScoreAsync(entry, authToken);
                 await LocalLeaderboardService.SaveScoreAsync(entry);
                 await SettingsService.SetLastPlayerNameAsync(playerName.Trim());
-
-                Modal?.Hide();
-                if (OnScoreSaved.HasDelegate)
-                    await OnScoreSaved.InvokeAsync();
+                saved = true;
             }
             catch (Exception ex)
             {
@@ -274,7 +276,16 @@ namespace BlazorApp.Client.Components
             finally
             {
                 isSaving = false;
-                StateHasChanged();
+                // Only re-render here if we're NOT closing — if saved=true we hide the modal
+                // next and re-rendering after DOM removal causes "r.parentNode is null".
+                if (!saved) StateHasChanged();
+            }
+
+            if (saved)
+            {
+                Modal?.Hide();
+                if (OnScoreSaved.HasDelegate)
+                    await OnScoreSaved.InvokeAsync();
             }
         }
 

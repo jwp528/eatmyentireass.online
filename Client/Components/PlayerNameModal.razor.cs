@@ -108,13 +108,13 @@ namespace BlazorApp.Client.Components
                     _errorMessage = "Enter the password for this name.";
                     return;
                 }
-                await RunVerifyAsync();
+                await RunVerifyAsync(skipFinalRender: true);
                 if (_nameState != NameState.ClaimedOwned) return;
             }
 
             if (_showClaimForm)
             {
-                await RunClaimAsync();
+                await RunClaimAsync(skipFinalRender: true);
                 if (_nameState != NameState.ClaimedOwned) return;
             }
 
@@ -124,11 +124,12 @@ namespace BlazorApp.Client.Components
                 await OnNameSaved.InvokeAsync(_name.Trim());
         }
 
-        private async Task RunVerifyAsync()
+        private async Task RunVerifyAsync(bool skipFinalRender = false)
         {
             _isBusy = true;
             _errorMessage = string.Empty;
             StateHasChanged();
+            bool hadError = false;
             try
             {
                 var token = await PlayerService.VerifyNameAsync(_name, _password);
@@ -138,17 +139,21 @@ namespace BlazorApp.Client.Components
             }
             catch (Exception ex)
             {
+                hadError = true;
                 _errorMessage = ex.Message.Contains("429") ? "Too many attempts. Try again later."
                     : "Incorrect password.";
             }
             finally
             {
                 _isBusy = false;
-                StateHasChanged();
+                // Only re-render here if there was an error (so error message shows).
+                // On success the caller is about to close the modal — re-rendering after
+                // the modal is removed from the DOM causes "r.parentNode is null".
+                if (hadError || !skipFinalRender) StateHasChanged();
             }
         }
 
-        private async Task RunClaimAsync()
+        private async Task RunClaimAsync(bool skipFinalRender = false)
         {
             if (_password != _confirmPassword)
             {
@@ -163,6 +168,7 @@ namespace BlazorApp.Client.Components
             _isBusy = true;
             _errorMessage = string.Empty;
             StateHasChanged();
+            bool hadError = false;
             try
             {
                 var token = await PlayerService.ClaimNameAsync(_name, _password);
@@ -174,6 +180,7 @@ namespace BlazorApp.Client.Components
             }
             catch (Exception ex)
             {
+                hadError = true;
                 _errorMessage = ex.Message.Contains("already claimed")
                     ? "Name was just claimed by someone else."
                     : ex.Message;
@@ -181,7 +188,7 @@ namespace BlazorApp.Client.Components
             finally
             {
                 _isBusy = false;
-                StateHasChanged();
+                if (hadError || !skipFinalRender) StateHasChanged();
             }
         }
 
