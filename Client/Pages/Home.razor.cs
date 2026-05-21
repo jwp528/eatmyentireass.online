@@ -492,6 +492,7 @@ namespace BlazorApp.Client.Pages
         async Task CheckAndPromptScoreSave()
         {
             _isPersonalBest = false;
+            _personalBestScore = null;
             await ShowResultsDialog();
 
             var savedName = await SettingsService.GetLastPlayerNameAsync();
@@ -502,10 +503,12 @@ namespace BlazorApp.Client.Pages
                 var playerBest = await LeaderboardService.GetPlayerBestScoreAsync(savedName);
                 bool isNewBest = playerBest == null || assesEaten > playerBest.Score;
 
+                _personalBestScore = playerBest?.Score;
+                _isPersonalBest = isNewBest;
+                await InvokeAsync(StateHasChanged);
+
                 if (isNewBest)
                 {
-                    _isPersonalBest = true;
-                    await InvokeAsync(StateHasChanged);
                     await Task.Delay(300);
                     await SaveScoreDialog?.Show((double)assesEaten, totalClicks, Breakdown);
                 }
@@ -564,7 +567,8 @@ namespace BlazorApp.Client.Pages
 
             gamePlaying = false;
             gameJustEnded = true; // Set flag to prevent immediate restart
-            _isPersonalBest = false; // Set flag to prevent immediate restart
+            _isPersonalBest = false;
+            _personalBestScore = null;
             StopFrenzy();
 
             // Auto-clear the flag after 5 seconds to allow restart if modals are closed

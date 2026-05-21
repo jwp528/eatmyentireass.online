@@ -11,6 +11,7 @@
     [Parameter] public Dictionary<AssTypeEnum, int> Breakdown { get; set; } = new();
     [Parameter] public bool hasScoreSaved { get; set; }
     [Parameter] public bool IsPersonalBest { get; set; }
+    [Parameter] public double? PersonalBestScore { get; set; }
     [Parameter] public int peakComboCount { get; set; }
     [Parameter] public List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
@@ -93,6 +94,12 @@
                     <div class="rm-pb-badge">
                         <i class="bi bi-stars rm-pb-star"></i>
                         <span>Personal Best</span>
+                    </div>
+                }
+                else if (PersonalBestScore.HasValue)
+                {
+                    <div class="rm-prev-best">
+                        Your best: @Math.Truncate(PersonalBestScore.Value)
                     </div>
                 }
                 @if (!string.IsNullOrEmpty(scoreText))
@@ -312,7 +319,10 @@
                 }
                 else
                 {
-                    <button class="rm-btn rm-btn-primary" @onclick="() => OnSaveScore.InvokeAsync()">
+                    var isBeatableScore = !PersonalBestScore.HasValue || assesEaten > PersonalBestScore.Value;
+                    <button class="rm-btn rm-btn-primary" @onclick="() => OnSaveScore.InvokeAsync()"
+                            disabled="@(!isBeatableScore)"
+                            title="@(!isBeatableScore ? "Score doesn't beat your personal best" : "")">
                         <i class="bi bi-floppy"></i> Save Score
                     </button>
                 }

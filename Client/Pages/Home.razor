@@ -171,6 +171,7 @@
               Breakdown="@Breakdown"
               hasScoreSaved="@hasScoreSaved"
               IsPersonalBest="@_isPersonalBest"
+              PersonalBestScore="@_personalBestScore"
               clicksPerSecondPolls="@clicksPerSecondPolls"
               peakComboCount="@frenzyCount"
               OnTryAgain="TryAgain"
@@ -191,6 +192,7 @@
 
     string _currentPlayerName = string.Empty;
     bool _isPersonalBest = false;
+    double? _personalBestScore = null;
 
     // Make totalClicks accessible in the template
     public int totalClicks = 0;

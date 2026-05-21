@@ -73,6 +73,13 @@
     margin-top: 4px;
 }
 
+.rm-prev-best {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.5px;
+}
+
 .rm-score-msg {
     font-size: 0.95rem;
     color: rgba(255,255,255,0.7);
