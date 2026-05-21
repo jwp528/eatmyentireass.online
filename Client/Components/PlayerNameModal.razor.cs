@@ -19,6 +19,7 @@ namespace BlazorApp.Client.Components
         private bool _showClaimForm = false;
         private bool _showPasswordField = false;
         private bool _isBusy = false;
+        private bool _modalVisible = false;
         private string _errorMessage = string.Empty;
         private PlayerStats? _stats = null;
 
@@ -28,6 +29,7 @@ namespace BlazorApp.Client.Components
 
         public async Task Show()
         {
+            _modalVisible = true;
             _name = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
             _password = string.Empty;
             _confirmPassword = string.Empty;
@@ -125,6 +127,7 @@ namespace BlazorApp.Client.Components
             }
 
             await SettingsService.SetLastPlayerNameAsync(_name.Trim());
+            _modalVisible = false;
             Modal?.Hide();
             if (OnNameSaved.HasDelegate)
                 await OnNameSaved.InvokeAsync(_name.Trim());
@@ -213,13 +216,15 @@ namespace BlazorApp.Client.Components
             try
             {
                 _stats = await PlayerService.GetPlayerStatsAsync(name);
-                await InvokeAsync(StateHasChanged);
+                if (_modalVisible)
+                    await InvokeAsync(StateHasChanged);
             }
             catch { }
         }
 
         private void Cancel()
         {
+            _modalVisible = false;
             Modal?.Hide();
         }
     }

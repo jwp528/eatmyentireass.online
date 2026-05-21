@@ -80,6 +80,20 @@
                     <span class="frenzy-hold-hint">HOLD</span>
                 </div>
             }
+            <button class="game-player-chip @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-chip--named" : "")"
+                    @onclick:stopPropagation="true"
+                    @onclick="ShowPlayerNameDialog">
+                @if (string.IsNullOrWhiteSpace(_currentPlayerName))
+                {
+                    <i class="fas fa-user-plus"></i>
+                    <span>Set name</span>
+                }
+                else
+                {
+                    <i class="fas fa-user"></i>
+                    <span>@_currentPlayerName</span>
+                }
+            </button>
             <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
         </div>
 
