@@ -87,8 +87,12 @@
         <div class="game-content-stack">
             @if (gamePlaying && frenzyActive)
             {
-                <div class="frenzy-above-image">
+                <div class="frenzy-above-image @(frenzyChainLevel >= 2 ? "frenzy-chaining" : "")">
                     <span class="frenzy-title">🔥 FRENZY!</span>
+                    @if (frenzyChainLevel >= 2)
+                    {
+                        <span class="frenzy-chain-badge" key="@frenzyChainLevel">X@frenzyChainLevel</span>
+                    }
                     <span class="frenzy-timer">@frenzySecondsLeft</span>
                     <span class="frenzy-hold-hint">HOLD</span>
                 </div>
@@ -187,6 +191,7 @@
               PersonalBestScore="@_personalBestScore"
               clicksPerSecondPolls="@clicksPerSecondPolls"
               peakComboCount="@frenzyCount"
+              PeakChainLevel="@_peakChainLevel"
               CurrentPlayerName="@_currentPlayerName"
               ChallengeScore="@_challengeScore"
               ChallengerName="@_challengerName"

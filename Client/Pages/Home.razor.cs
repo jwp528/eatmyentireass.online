@@ -40,6 +40,8 @@ namespace BlazorApp.Client.Pages
         bool frenzyActive = false;
         int frenzySecondsLeft = 0;
         int frenzyCount = 0;
+        int frenzyChainLevel = 0;  // 1 = base frenzy, 2+ = chained (applies ×n score multiplier)
+        int _peakChainLevel = 0;   // highest chain level reached this game
         bool _mouseHeld = false;
         CancellationTokenSource? _autoEatCts;
         Timer? FrenzyCountdownTimer;
@@ -250,6 +252,8 @@ namespace BlazorApp.Client.Pages
             frenzyActive = false;
             frenzySecondsLeft = 0;
             frenzyCount = 0;
+            frenzyChainLevel = 0;
+            _peakChainLevel = 0;
             _mouseHeld = false;
             StopFrenzy();
             GameTimeInSeconds = 60;
@@ -438,7 +442,9 @@ namespace BlazorApp.Client.Pages
                 var completedType = CurrentAssType;
                 var clicksUsed = piecesEaten + 1;
                 piecesEaten = 0;
-                assesEaten += ProgressService.GetEffectivePoints(completedType, _progressCache[completedType]);
+                var basePoints = ProgressService.GetEffectivePoints(completedType, _progressCache[completedType]);
+                var chainMultiplier = frenzyActive && frenzyChainLevel >= 2 ? frenzyChainLevel : 1;
+                assesEaten += basePoints * chainMultiplier;
                 Breakdown[completedType]++;
 
                 // Update progress cache synchronously before getting next ass
@@ -625,11 +631,12 @@ namespace BlazorApp.Client.Pages
         {
             // Reset countdown (always extend to 10s on re-trigger)
             frenzySecondsLeft = 10;
+            frenzyCount++;
 
             if (!frenzyActive)
             {
                 frenzyActive = true;
-                frenzyCount++;
+                frenzyChainLevel = 1;
                 _ = js.InvokeVoidAsync("toggleBodyShake", true);
 
                 FrenzyCountdownTimer = new Timer(1000);
@@ -641,6 +648,14 @@ namespace BlazorApp.Client.Pages
                 if (_mouseHeld)
                     _ = StartFrenzyAutoClickLoop();
             }
+            else
+            {
+                // Frenzy within a frenzy — escalate the chain!
+                frenzyChainLevel++;
+            }
+
+            _peakChainLevel = Math.Max(_peakChainLevel, frenzyChainLevel);
+            StateHasChanged();
         }
 
         void OnFrenzyCountdownTick(object? sender, System.Timers.ElapsedEventArgs e)
@@ -656,6 +671,7 @@ namespace BlazorApp.Client.Pages
         {
             frenzyActive = false;
             frenzySecondsLeft = 0;
+            frenzyChainLevel = 0;
             _ = js.InvokeVoidAsync("toggleBodyShake", false);
             FrenzyCountdownTimer?.Stop();
             FrenzyCountdownTimer?.Dispose();

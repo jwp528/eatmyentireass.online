@@ -15,6 +15,7 @@
     [Parameter] public bool IsPersonalBest { get; set; }
     [Parameter] public double? PersonalBestScore { get; set; }
     [Parameter] public int peakComboCount { get; set; }
+    [Parameter] public int PeakChainLevel { get; set; }
     [Parameter] public List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
     [Parameter] public EventCallback OnSaveScore { get; set; }
@@ -178,6 +179,15 @@
                         <span class="rm-stat-val rm-stat-fire">@peakComboCount</span>
                         <span class="rm-stat-lbl">Frenzies</span>
                     </div>
+                    @if (PeakChainLevel >= 2)
+                    {
+                        <div class="rm-stat-divider"></div>
+                        <div class="rm-stat">
+                            <i class="bi bi-lightning-charge-fill rm-stat-icon rm-stat-chain"></i>
+                            <span class="rm-stat-val rm-stat-chain">X@PeakChainLevel</span>
+                            <span class="rm-stat-lbl">Peak Chain</span>
+                        </div>
+                    }
                 }
             </div>
 

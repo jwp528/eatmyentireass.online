@@ -130,6 +130,10 @@
     color: #ff7043 !important;
 }
 
+.rm-stat-chain {
+    color: #ff4500 !important;
+}
+
 .rm-stat-divider {
     width: 1px;
     height: 32px;
