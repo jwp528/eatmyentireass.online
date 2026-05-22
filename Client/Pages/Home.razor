@@ -42,14 +42,8 @@
             <button class="icon-btn @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "" : "icon-btn--named")"
                     @onclick="ShowPlayerNameDialog"
                     title="@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Player Name" : _currentPlayerName)">
-                @if (string.IsNullOrWhiteSpace(_currentPlayerName))
-                {
-                    <i class="fas fa-user"></i>
-                }
-                else
-                {
-                    <span class="player-btn-label">@_currentPlayerName[..Math.Min(_currentPlayerName.Length, 2)].ToUpper()</span>
-                }
+                <i class="fas fa-user" style="@(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "display:none" : "")"></i>
+                <span class="player-btn-label" style="@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "display:none" : "")">@(_currentPlayerName?.Length > 0 ? _currentPlayerName[..Math.Min(_currentPlayerName.Length, 2)].ToUpper() : "")</span>
             </button>
             <button class="icon-btn @(playSounds ? "icon-btn-active" : "")" @onclick="ToggleSound"
                     title="@(playSounds ? "Sound On" : "Sound Off")">
@@ -100,17 +94,10 @@
             <button class="game-player-chip @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-chip--named" : "")"
                     @onclick:stopPropagation="true"
                     @onclick="ShowPlayerNameDialog">
-                @if (string.IsNullOrWhiteSpace(_currentPlayerName))
-                {
-                    <i class="fas fa-user-plus"></i>
-                    <span>Set name</span>
-                }
-                else
-                {
-                    <i class="fas fa-user"></i>
-                    <span>@_currentPlayerName</span>
-                }
+                <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
+                <span>@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Name" : _currentPlayerName)</span>
             </button>
+            
             <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
         </div>
 
@@ -274,10 +261,9 @@
         StateHasChanged();
     }
 
-    async Task OnPlayerNameChanged(string name)
+    void OnPlayerNameChanged(string name)
     {
         _currentPlayerName = name;
         StateHasChanged();
-        await Task.CompletedTask;
     }
 }

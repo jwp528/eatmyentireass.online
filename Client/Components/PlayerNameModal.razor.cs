@@ -27,6 +27,13 @@ namespace BlazorApp.Client.Components
         private NameState _nameState = NameState.Unknown;
         private CancellationTokenSource? _checkCts;
 
+        // Block all re-renders once the modal is closed. Without this, Save() being
+        // an async Task event handler causes Blazor to fire StateHasChanged 2-3 times
+        // concurrently (once mid-execution, once on completion, once via the parent
+        // cascade from OnNameSaved). Those concurrent renders fight over the @if blocks
+        // in the template, causing "r.parentNode is null".
+        protected override bool ShouldRender() => _modalVisible;
+
         public async Task Show()
         {
             _modalVisible = true;
@@ -101,36 +108,79 @@ namespace BlazorApp.Client.Components
             if (_modalVisible) await InvokeAsync(StateHasChanged);
         }
 
+        // Called when the user clicks Save.
+        // This method is a multi-step state machine — it may return early several times
+        // before it finally saves. Each early return leaves the modal open so the user
+        // can complete the next required step.
+        //
+        // Flow:
+        //   1. Name is free          → just save immediately
+        //   2. Name is claimed by someone else
+        //        a. First Save click  → show the password field, stop (return)
+        //        b. Second Save click → verify the password via API, then save
+        //   3. User chose to claim a free name
+        //        → create the name + password via API, then save
+        //
+        // ⚠️  DOUBLE-RENDER HAZARD: Save() is an async Task event handler.
+        //     Blazor calls StateHasChanged() on this component both at the first
+        //     await AND again when the task completes. OnNameSaved.InvokeAsync()
+        //     also triggers a re-render cascade from the parent. That means this
+        //     component can re-render 2-3 times concurrently, which causes the
+        //     @if blocks in the template to fight over DOM nodes → r.parentNode crash.
         private async Task Save()
         {
             if (string.IsNullOrWhiteSpace(_name)) return;
 
-            _checkCts?.Cancel(); if (_nameState == NameState.ClaimedNotOwned)
+            // Cancel any in-flight name-check debounce so it can't fire mid-save.
+            _checkCts?.Cancel();
+
+            // ── Step 2: Name is already claimed by someone else ──────────────────
+            if (_nameState == NameState.ClaimedNotOwned)
             {
                 if (!_showPasswordField)
                 {
+                    // First Save click: reveal the password field and stop here.
+                    // The user must enter the password and click Save again.
                     _showPasswordField = true;
                     StateHasChanged();
                     return;
                 }
+
                 if (string.IsNullOrWhiteSpace(_password))
                 {
                     _errorMessage = "Enter the password for this name.";
                     return;
                 }
+
+                // Second Save click: verify the entered password against the API.
+                // If it fails, RunVerifyAsync sets _errorMessage and leaves
+                // _nameState as ClaimedNotOwned, so we bail out below.
                 await RunVerifyAsync(skipFinalRender: true);
                 if (_nameState != NameState.ClaimedOwned) return;
             }
 
+            // ── Step 3: User is claiming a free name (creating a new account) ───
             if (_showClaimForm)
             {
+                // Sends the name + new password to the API to register ownership.
+                // If it fails, RunClaimAsync sets _errorMessage and we bail out.
                 await RunClaimAsync(skipFinalRender: true);
                 if (_nameState != NameState.ClaimedOwned) return;
             }
 
+            // ── All checks passed — commit the name and close ─────────────────
             await SettingsService.SetLastPlayerNameAsync(_name.Trim());
+
+            // Guard flag: stops any async CheckNameStateAsync continuations from
+            // calling InvokeAsync(StateHasChanged) after we close.
             _modalVisible = false;
+
+            // Hide the modal (sets display:none via CSS toggle).
             Modal?.Hide();
+
+            // Notify the parent (Home) so it can update the player name in the UI.
+            // ⚠️  This triggers Home's StateHasChanged → cascades back down here,
+            //     causing the double-render that crashes. This is the problem line.
             if (OnNameSaved.HasDelegate)
                 await OnNameSaved.InvokeAsync(_name.Trim());
         }

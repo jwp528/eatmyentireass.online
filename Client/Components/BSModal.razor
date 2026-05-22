@@ -1,26 +1,24 @@
-@if (_isVisible)
-{
-    <div class="emea-backdrop"></div>
-    <div class="emea-modal" id="@Id" tabindex="-1" aria-modal="true" role="dialog"
-         @onclick="OnBackdropClick">
-        <div class="modal-dialog @(IsVerticallyCentered ? "modal-dialog-centered" : "") @GetSizeClass()"
-             @onclick:stopPropagation="true">
-            <div class="modal-content">
-                @if (Header is not null)
-                {
-                    <div class="modal-header">@Header</div>
-                }
-                <div class="modal-body">
-                    @Body
-                </div>
-                @if (Footer is not null)
-                {
-                    <div class="modal-footer">@Footer</div>
-                }
+<div class="modal-backdrop fade @(_isVisible ? "show" : "")"
+     style="display:@(_isVisible ? "block" : "none")"></div>
+<div class="modal @(_isVisible ? "show" : "")" id="@Id" tabindex="-1" aria-modal="true" role="dialog"
+     style="display:@(_isVisible ? "block" : "none");" @onclick="OnBackdropClick">
+    <div class="modal-dialog @(IsVerticallyCentered ? "modal-dialog-centered" : "") @GetSizeClass()"
+         @onclick:stopPropagation="true">
+        <div class="modal-content">
+            @if (Header is not null)
+            {
+                <div class="modal-header">@Header</div>
+            }
+            <div class="modal-body">
+                @Body
             </div>
+            @if (Footer is not null)
+            {
+                <div class="modal-footer">@Footer</div>
+            }
         </div>
     </div>
-}
+</div>
 
 @code {
     [Parameter] public string Id { get; set; } = "exampleModal";
