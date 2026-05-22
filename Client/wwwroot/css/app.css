@@ -285,3 +285,21 @@ code {
     color: #e89477;
 }
 
+/* ── Full-screen modals on mobile ────────────────────────────────── */
+@media (max-width: 480px) {
+    .modal-dialog {
+        width: 100vw !important;
+        max-width: 100% !important;
+        height: 100dvh !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .modal-content {
+        border-radius: 0 !important;
+        flex: 1;
+        overflow-y: auto;
+    }
+}
+

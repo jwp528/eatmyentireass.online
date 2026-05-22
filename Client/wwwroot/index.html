@@ -198,6 +198,8 @@
         }
 
         window.copyToClipboard = (text) => navigator.clipboard.writeText(text);
+        window.localStorageGet = (key) => localStorage.getItem(key);
+        window.localStorageSet = (key, value) => localStorage.setItem(key, value);
 
         // Image preloading function for better performance
         window.preloadGameImages = () => {

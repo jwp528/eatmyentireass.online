@@ -6,6 +6,108 @@
     color: #fff;
 }
 
+.ab-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.ab-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+
+.ab-subtitle {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
+}
+
+.ab-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+    margin: 0.15rem 0;
+}
+
+.ab-bio {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+}
+
+.ab-link-inline {
+    color: #7986cb;
+    text-decoration: none;
+}
+
+.ab-link-inline:hover {
+    color: #9fa8da;
+    text-decoration: underline;
+}
+
+.ab-links-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.ab-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.ab-link:hover {
+    color: #7986cb;
+}
+
+.ab-footer {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    background: #5c6bc0;
+    color: #fff;
+    border: none;
+    transition: background 0.15s;
+}
+
+.ab-btn:hover {
+    background: #7986cb;
+    color: #fff;
+}
+
+.ab-btn--ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.ab-btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.8);
+}
+
 /* Header */
 .ab-header {
     display: flex;

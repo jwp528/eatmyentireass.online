@@ -17,19 +17,19 @@
                     <Assdex Size="1em" Color="@(_tab == 1 ? "#7986cb" : "rgba(255,255,255,0.4)")" Style="Assdex.AssdexIconStyle.Outline" />
                     AssDex
                 </button>
-                <button class="hp-tab @(_tab == 2 ? "hp-tab--on" : "")" @onclick="@(() => _tab = 2)">
-                    <i class="fas fa-lightbulb"></i> Tips
-                </button>
             </div>
 
             @if (_tab == 0)
             {
                 <div class="hp-panel">
-                    <p class="hp-label">Steps</p>
+                    <p class="hp-tagline">Tap fast. Eat ass. Beat everyone.</p>
+
+                    <p class="hp-label">How to Play</p>
                     <ol class="hp-steps">
                         <li>Click the ass to start the 60-second timer</li>
-                        <li>Keep clicking to devour each ass completely</li>
+                        <li>Keep clicking to eat each ass completely</li>
                         <li>Finish eating to score points and get a new ass</li>
+                        <li>The more you eat, the higher your score — compete with friends!</li>
                     </ol>
 
                     <div class="hp-divider"></div>
@@ -37,16 +37,12 @@
                     <p class="hp-label">Scoring</p>
                     <div class="hp-list">
                         <div class="hp-row">
-                            <span class="hp-row-name">Complete to Score</span>
-                            <span class="hp-row-desc">You must finish eating an ass completely to earn points. Partial asses don't count.</span>
+                            <span class="hp-row-name">Finish to Score</span>
+                            <span class="hp-row-desc">You must fully eat an ass to earn its points. Partial asses don't count.</span>
                         </div>
                         <div class="hp-row">
-                            <span class="hp-row-name">Click Efficiency</span>
-                            <span class="hp-row-desc">Every click counts toward your efficiency rating, even on incomplete asses.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Final Score</span>
-                            <span class="hp-row-desc">Scores round down to whole numbers. No participation awards.</span>
+                            <span class="hp-row-name">Ass Rarity</span>
+                            <span class="hp-row-desc">Different ass types are worth different points. Rarer asses = more points.</span>
                         </div>
                     </div>
 
@@ -55,16 +51,16 @@
                     <p class="hp-label">🔥 Frenzy Mode</p>
                     <div class="hp-list">
                         <div class="hp-row">
-                            <span class="hp-row-name">What is it?</span>
-                            <span class="hp-row-desc">A 10-second turbo mode that pauses the main timer so every frenzy second is bonus time.</span>
+                            <span class="hp-row-name">Find the Golden Ass</span>
+                            <span class="hp-row-desc">Eat a rare Golden Ass to trigger Frenzy Mode — a 10-second turbo boost where you hold to auto-eat at hyperspeed.</span>
                         </div>
                         <div class="hp-row">
-                            <span class="hp-row-name">How it works</span>
-                            <span class="hp-row-desc">Hold the ass to auto-eat at 10 bites per second. Fire borders erupt and the screen shakes — you'll know.</span>
+                            <span class="hp-row-name">Frenzy Chain</span>
+                            <span class="hp-row-desc">Eat a Golden Ass <em>while already in Frenzy</em> to start a Frenzy Chain. Every chained frenzy multiplies your score (×2, ×3, ×4…).</span>
                         </div>
                         <div class="hp-row">
-                            <span class="hp-row-name">Why you want it</span>
-                            <span class="hp-row-desc">The clock stops and you eat for free. Chain multiple frenzies for a monster score.</span>
+                            <span class="hp-row-name">Chain More, Score More</span>
+                            <span class="hp-row-desc">Keep finding Golden Asses during Frenzy to push the multiplier higher. The bigger the chain, the bigger the score.</span>
                         </div>
                     </div>
                 </div>
@@ -104,27 +100,6 @@
                             <Assdex Size="1em" Color="#fff" Style="Assdex.AssdexIconStyle.Outline" />
                             Open
                         </button>
-                    </div>
-                </div>
-            }
-
-            @if (_tab == 2)
-            {
-                <div class="hp-panel">
-                    <p class="hp-label">Pro Tips</p>
-                    <div class="hp-list">
-                        <div class="hp-row">
-                            <span class="hp-row-name">Speed is Key</span>
-                            <span class="hp-row-desc">Click rapidly to maximize your score.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Golden Opportunity</span>
-                            <span class="hp-row-desc">Golden asses are rare (~2% chance), worth the most points, and instantly trigger Frenzy mode.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Efficiency Matters</span>
-                            <span class="hp-row-desc">Your click efficiency is tracked — make every click count.</span>
-                        </div>
                     </div>
                 </div>
             }

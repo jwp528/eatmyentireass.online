@@ -21,6 +21,8 @@ namespace BlazorApp.Client.Pages
         bool gameStartTransition = false; // Drives the hint→timer tween animation
         bool hasScoreSaved; // Track if score has been saved for current game
         bool playSounds = true;
+        bool _dailyPanelExpanded = false;
+        bool _autoShowHtp = false;
         double volume = 1;
         Timer? GameTimer;
         Timer? StatsUpdateTimer; // Add timer for updating dynamic stats
@@ -176,6 +178,42 @@ namespace BlazorApp.Client.Pages
             if (!firstRender) return;
             await AnniversaryDialog.ShowIfEligibleAsync();
             await CheckForUpdateAsync();
+            await CheckAutoPopupsAsync();
+        }
+
+        private async Task CheckAutoPopupsAsync()
+        {
+            await Task.Delay(400);
+
+            // Auto-show name dialog if no name set yet
+            if (string.IsNullOrWhiteSpace(_currentPlayerName))
+            {
+                _autoShowHtp = true; // after name, check HTP
+                await ShowPlayerNameDialog();
+            }
+            else
+            {
+                // Name already set — check if HTP needs to be shown
+                await TryShowHelpFirstTimeAsync();
+            }
+        }
+
+        private async Task AfterPlayerNameSet()
+        {
+            if (!_autoShowHtp) return;
+            _autoShowHtp = false;
+            await TryShowHelpFirstTimeAsync();
+        }
+
+        private async Task TryShowHelpFirstTimeAsync()
+        {
+            var seen = await js.InvokeAsync<string?>("localStorageGet", "htp-seen");
+            if (string.IsNullOrEmpty(seen))
+            {
+                await js.InvokeVoidAsync("localStorageSet", "htp-seen", "1");
+                await Task.Delay(200);
+                await HelpDialog?.Modal?.Show();
+            }
         }
 
         private async Task CheckForUpdateAsync()
@@ -524,7 +562,6 @@ namespace BlazorApp.Client.Pages
         {
             _isPersonalBest = false;
             _personalBestScore = null;
-            await ShowResultsDialog();
 
             var savedName = await SettingsService.GetLastPlayerNameAsync();
             if (string.IsNullOrWhiteSpace(savedName)) return;
