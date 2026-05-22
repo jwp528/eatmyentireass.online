@@ -1,0 +1,25 @@
+{
+  "name": "Eat My Entire Ass",
+  "short_name": "EMEA",
+  "description": "A browser game where you eat entire asses as fast as possible. Unlock rare types, hit Frenzy mode, and climb the global leaderboard.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1a1a2e",
+  "background_color": "#1a1a2e",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
