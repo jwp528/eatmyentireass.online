@@ -6,12 +6,29 @@
     color: #ffffff;
 }
 
-/* Blazor-rendered modal fade-in */
-.bs-modal-blazor {
+/* Blazor-rendered modal — custom class names so Bootstrap JS never detects them */
+.emea-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1055;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
     animation: modal-fade-in 0.18s ease-out both;
 }
 
-.bs-modal-backdrop {
+.emea-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1050;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
     animation: backdrop-fade-in 0.18s ease-out both;
 }
 

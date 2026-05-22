@@ -1,8 +1,8 @@
 @if (_isVisible)
 {
-    <div class="modal-backdrop fade show bs-modal-backdrop"></div>
-    <div class="modal show bs-modal-blazor" id="@Id" tabindex="-1" aria-modal="true" role="dialog"
-         style="display:block;" @onclick="OnBackdropClick">
+    <div class="emea-backdrop"></div>
+    <div class="emea-modal" id="@Id" tabindex="-1" aria-modal="true" role="dialog"
+         @onclick="OnBackdropClick">
         <div class="modal-dialog @(IsVerticallyCentered ? "modal-dialog-centered" : "") @GetSizeClass()"
              @onclick:stopPropagation="true">
             <div class="modal-content">

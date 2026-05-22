@@ -41,11 +41,9 @@ namespace BlazorApp.Client.Components
             _stats = null;
 
             Modal?.Show();
-
-            await Task.Delay(100);
             await InvokeAsync(StateHasChanged);
 
-            if (!string.IsNullOrWhiteSpace(_name))
+            if (_modalVisible && !string.IsNullOrWhiteSpace(_name))
                 await CheckNameStateAsync(_name);
         }
 
@@ -73,14 +71,16 @@ namespace BlazorApp.Client.Components
             if (string.IsNullOrWhiteSpace(name))
             {
                 _nameState = NameState.Unknown;
-                await InvokeAsync(StateHasChanged);
+                if (_modalVisible) await InvokeAsync(StateHasChanged);
                 return;
             }
 
             _nameState = NameState.Checking;
-            await InvokeAsync(StateHasChanged);
+            if (_modalVisible) await InvokeAsync(StateHasChanged);
 
             var isClaimed = await PlayerService.IsNameClaimedAsync(name);
+            if (!_modalVisible) return;
+
             if (!isClaimed)
             {
                 _nameState = NameState.Free;
@@ -88,6 +88,8 @@ namespace BlazorApp.Client.Components
             else
             {
                 var storedToken = await PlayerService.GetStoredTokenAsync(name);
+                if (!_modalVisible) return;
+
                 _nameState = string.IsNullOrWhiteSpace(storedToken)
                     ? NameState.ClaimedNotOwned
                     : NameState.ClaimedOwned;
@@ -96,14 +98,14 @@ namespace BlazorApp.Client.Components
                     _ = LoadStatsAsync(name);
             }
 
-            await InvokeAsync(StateHasChanged);
+            if (_modalVisible) await InvokeAsync(StateHasChanged);
         }
 
         private async Task Save()
         {
             if (string.IsNullOrWhiteSpace(_name)) return;
 
-            if (_nameState == NameState.ClaimedNotOwned)
+            _checkCts?.Cancel(); if (_nameState == NameState.ClaimedNotOwned)
             {
                 if (!_showPasswordField)
                 {
@@ -224,6 +226,7 @@ namespace BlazorApp.Client.Components
 
         private void Cancel()
         {
+            _checkCts?.Cancel();
             _modalVisible = false;
             Modal?.Hide();
         }
