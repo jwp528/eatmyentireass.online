@@ -1,142 +1,478 @@
-﻿.game-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    color: #e2e2e2;
+﻿/* ── App Shell ──────────────────────────────────────────────────── */
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: #0d0d1a;
+    color: #e8eaf6;
 }
 
-.game-title {
-    text-shadow: 0 0 20px rgba(82, 109, 255, 0.3);
+/* ── App Bar ──────────────────────────────────────────────────────── */
+.app-bar {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    padding: 0 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+    gap: 4px;
+    z-index: 10;
+}
+
+.app-bar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 80px;
+    user-select: none;
+}
+
+.app-bar-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     color: #fff;
 }
 
-.game-info-bar {
-    gap: 2rem;
-    margin-top: 1rem;
-    /* Always keep flex-direction: row (default) to maintain side-by-side layout */
-}
-
-.timer-container, .stats-container {
+.app-bar-actions {
     display: flex;
     align-items: center;
+    gap: 2px;
+    flex: 1;
     justify-content: center;
 }
 
-.timer {
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    background: rgba(82, 109, 255, 0.1);
-    border: 2px solid rgba(82, 109, 255, 0.2);
-    border-radius: 1rem;
-    transition: all 0.3s ease;
-    padding: 0.5rem 1.5rem;
-    color: #fff;
+.app-bar-end {
     display: flex;
     align-items: center;
+    gap: 2px;
+    min-width: 80px;
+    justify-content: flex-end;
 }
 
-.timer-warning {
-    color: #ff4757;
-    border-color: rgba(255, 71, 87, 0.4);
-    background: rgba(255, 71, 87, 0.1);
-    animation: pulse 1s infinite;
+.icon-btn--named {
+    color: #7986cb !important;
+    background: rgba(92, 107, 192, 0.15) !important;
+    font-weight: 600;
 }
 
-.cps-display {
-    font-size: clamp(1.2rem, 3.5vw, 2rem);
-    background: rgba(34, 139, 34, 0.1);
-    border: 2px solid rgba(34, 139, 34, 0.2);
-    border-radius: 1rem;
-    padding: 0.4rem 1.2rem;
-    color: #fff;
-    transition: all 0.3s ease;
+.icon-btn--named:hover {
+    background: rgba(92, 107, 192, 0.3) !important;
 }
 
-.cps-display .stat-value {
-    color: #32CD32;
+.player-btn-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1;
 }
 
-.game-display {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(82, 109, 255, 0.1);
-    border-radius: 2rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s ease;
+/* ── Icon Button ─────────────────────────────────────────────────── */
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-size: 1rem;
+    padding: 0;
+    text-decoration: none;
+    flex-shrink: 0;
 }
 
-.game-display:hover, .game-display:focus {
-    transform: scale(1.02);
-    border-color: rgba(82, 109, 255, 0.2);
-    background: rgba(255, 255, 255, 0.05);
+.icon-btn:hover,
+.icon-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
     outline: none;
 }
 
-.game-display:active {
-    transform: scale(0.98);
+.icon-btn:active {
+    background: rgba(255, 255, 255, 0.16);
 }
 
-.start-prompt {
-    animation: bounce 1s infinite;
+.icon-btn-active {
+    color: #7986cb !important;
+    background: rgba(121, 134, 203, 0.15) !important;
+}
+
+.icon-btn-img {
+    border-radius: 50%;
+}
+
+/* ── Game Main Area ──────────────────────────────────────────────── */
+.game-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.game-main:focus {
+    outline: none;
+}
+
+::deep .game-img {
+    max-width: 100%;
+    max-height: calc(100dvh - 64px);
+    height: auto;
+    width: auto;
+    display: block;
+    pointer-events: none;
+}
+
+::deep .game-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.45;
+}
+
+/* ── Canvas Overlays ─────────────────────────────────────────────── */
+
+/* Timer: top-center pill, always visible during game */
+.canvas-timer {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.9rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 4px 22px;
+    border-radius: 40px;
+    pointer-events: none;
+    z-index: 5;
+    letter-spacing: 0.03em;
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+}
+
+.canvas-timer-warning {
+    color: #ef5350;
+    animation: pulse-glow 1s infinite;
+}
+
+/* CPS: bottom-right corner */
+.canvas-cps {
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    font-size: 0.82rem;
+    color: #66bb6a;
+    pointer-events: none;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0.85;
+}
+
+.canvas-cps small {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* Pre-game / idle hint */
+.canvas-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
+    pointer-events: none;
+    z-index: 5;
+    animation: fade-pulse 2.5s ease-in-out infinite;
+    letter-spacing: 0.03em;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7);
+}
+
+.canvas-hint-exit {
+    animation: hint-exit 0.42s ease-in forwards;
+}
+
+.canvas-timer-enter {
+    animation: timer-enter 0.42s ease-out forwards !important;
+}
+
+/* Post-game results overlay */
+.canvas-results {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    pointer-events: none;
+    z-index: 6;
+}
+
+.canvas-score {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.canvas-actions {
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.canvas-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(0, 0, 0, 0.55);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.canvas-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.canvas-btn-primary {
+    background: rgba(92, 107, 192, 0.45);
+    border-color: rgba(92, 107, 192, 0.6);
+    color: #c5cae9;
+}
+
+.canvas-btn-primary:hover {
+    background: rgba(92, 107, 192, 0.65);
+    color: #fff;
+}/* ── Frenzy: game area marker (no animation) ─────────────────────── */
+.game-main.frenzy-active {
+}
+
+/* ── Game content stack (image + frenzy label) ──────────────────── */
+.game-content-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+/* ── Player name chip above the ass ─────────────────────────────── */
+.game-player-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    pointer-events: all;
+    line-height: 1.4;
+}
+
+.game-player-chip:hover {
+    background: rgba(255, 255, 255, 0.11);
     color: rgba(255, 255, 255, 0.9);
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); }
-    50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+.game-player-chip--named {
+    color: #7986cb;
+    border-color: rgba(92, 107, 192, 0.35);
+    background: rgba(92, 107, 192, 0.1);
 }
 
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+.game-player-chip--named:hover {
+    background: rgba(92, 107, 192, 0.18);
+    color: #9fa8da;
 }
 
-/* Mobile-specific adjustments - Keep side by side but reduce spacing and sizes */
-@media (max-width: 768px) {
-    .game-info-bar {
-        gap: 1rem;
-        /* Removed flex-direction: column to keep side-by-side layout */
-    }
-    
-    .timer {
-        padding: 0.4rem 1rem;
-        font-size: clamp(1.2rem, 3.5vw, 2rem);
-    }
-    
-    .cps-display {
-        padding: 0.3rem 0.8rem;
-        font-size: clamp(1rem, 3vw, 1.5rem);
-    }
+/* ── Frenzy label above the ass image ───────────────────────────── */
+.frenzy-above-image {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    pointer-events: none;
+    animation: fade-pulse 0.6s ease-in-out infinite alternate;
 }
 
-/* Small mobile adjustments - Even more compact but still side by side */
+.frenzy-title {
+    font-weight: 800;
+    font-size: 2.2rem;
+    color: #fff;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 18px rgba(255, 100, 0, 0.95), 0 0 6px rgba(255, 200, 0, 0.7);
+}
+
+.frenzy-timer {
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: #ffd700;
+    min-width: 2.2rem;
+    text-align: center;
+    line-height: 1;
+    text-shadow: 0 0 14px rgba(255, 215, 0, 0.9);
+}
+
+.frenzy-hold-hint {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    align-self: flex-end;
+    padding-bottom: 0.5rem;
+}
+
+/* ── Fire border GIF overlay ─────────────────────────────────────── */
+.fire-border-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.fire-border-top,
+.fire-border-bottom,
+.fire-border-left,
+.fire-border-right {
+    position: absolute;
+    display: block;
+}
+
+/* Top — fire points downward from the top edge */
+.fire-border-top {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 160px;
+    transform: scaleY(-1);
+}
+
+/* Bottom — fire rises naturally from the bottom edge */
+.fire-border-bottom {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 160px;
+}
+
+/* Left — rotate 90deg CW so fire points right (inward).
+   Visible strip width = height / 2 = 160px */
+.fire-border-left {
+    top: 50%;
+    left: 0;
+    width: 100vh;
+    height: 320px;
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* Right — rotate 90deg CCW so fire points left (inward).
+   Visible strip width = height / 2 = 160px */
+.fire-border-right {
+    top: 50%;
+    right: 0;
+    width: 100vh;
+    height: 320px;
+    transform: translate(50%, -50%) rotate(-90deg);
+}
+
+/* ── Animations ──────────────────────────────────────────────────── */
+@@keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+}
+
+@@keyframes fade-pulse {
+    0%, 100% { opacity: 0.75; }
+    50%       { opacity: 1; }
+}
+
+@@keyframes hint-exit {
+    from { opacity: 0.92; transform: translateY(0); }
+    to   { opacity: 0;    transform: translateY(-40px); }
+}
+
+@@keyframes timer-enter {
+    from { opacity: 0; transform: translate(-50%, 32px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+
+
+/* ── Mobile ──────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-    .game-info-bar {
-        gap: 0.5rem;
+    .app-bar {
+        padding: 0 4px;
+        gap: 0;
     }
-    
-    .timer {
-        padding: 0.3rem 0.8rem;
-        font-size: clamp(1rem, 3vw, 1.5rem);
-    }
-    
-    .cps-display {
-        padding: 0.25rem 0.6rem;
-        font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-    }
-}
 
-/* Extra small screens - Ultra compact side by side */
-@media (max-width: 320px) {
-    .game-info-bar {
-        gap: 0.25rem;
+    .app-bar-brand {
+        min-width: 44px;
     }
-    
-    .timer {
-        padding: 0.25rem 0.6rem;
+
+    .app-bar-title {
+        display: none;
     }
-    
-    .cps-display {
-        padding: 0.2rem 0.5rem;
+
+    .app-bar-end {
+        min-width: 44px;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    .canvas-timer {
+        font-size: 1.4rem;
+        padding: 3px 14px;
+    }
+
+    .canvas-score {
+        font-size: 2.2rem;
+    }
+
+    .canvas-btn {
+        padding: 7px 14px;
+        font-size: 0.82rem;
+    }
+
+    .hide-xs {
+        display: none !important;
     }
 }

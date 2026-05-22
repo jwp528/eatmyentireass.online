@@ -1,0 +1,170 @@
+@using BlazorApp.Shared
+@using static BlazorApp.Shared.Assets
+@using BlazorApp.Client.Services
+@inject IJSRuntime JS
+@inject IProgressService ProgressService
+
+@code {
+    public BSModal? Modal;
+
+    [Microsoft.AspNetCore.Components.Inject]
+    public ICollectionService CollectionService { get; set; } = default!;
+
+    [Microsoft.AspNetCore.Components.Parameter]
+    public Microsoft.AspNetCore.Components.EventCallback<AssTypeEnum> OnShowDetail { get; set; }
+
+    private HashSet<AssTypeEnum> unlockedTypes = new();
+    private Dictionary<AssTypeEnum, AssTypeProgress> _progressData = new();
+    private bool isLoading;
+    private AssTypeEnum? _focusType;
+
+    private static readonly AssTypeEnum[] AllTypes = (AssTypeEnum[])Enum.GetValues(typeof(AssTypeEnum));
+
+    public async Task Show()
+    {
+        _focusType = null;
+        await Modal!.Show();
+        await LoadCollection();
+    }
+
+    public async Task ShowForType(AssTypeEnum focusType)
+    {
+        _focusType = focusType;
+        await Modal!.Show();
+        await LoadCollection();
+        await JS.InvokeVoidAsync("scrollAssdexTo", focusType.ToString());
+    }
+
+    private async Task LoadCollection()
+    {
+        isLoading = true;
+        StateHasChanged();
+        unlockedTypes = await CollectionService.GetUnlockedTypesAsync();
+        _progressData = await ProgressService.LoadAsync();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private string GetDescription(AssTypeEnum assType) => assType switch
+    {
+        AssTypeEnum.Boney   => "0.5 pts · Weirdly crunchy. 0 nutritional value.",
+        AssTypeEnum.Cartoon => "1 pt · Hand drawn. Tastes like MS Paint.",
+        AssTypeEnum.Flat    => "1 pt · Flatter than most boards at Home Depot.",
+        AssTypeEnum.Hairy   => "1 pt · Never shaven. The way God intended.",
+        AssTypeEnum.GYAT    => "2 pts · GYAT damn. One thicc juicy thang.",
+        AssTypeEnum.Golden  => "10 pts · The holy grail. Rare. Metallic.",
+        _                   => "???"
+    };
+
+    private (string biIcon, string name, string tierCls)? GetTierBadge(AssTypeEnum assType)
+    {
+        if (!_progressData.TryGetValue(assType, out var p)) return null;
+        return p.Eaten switch
+        {
+            >= 100 => ("bi-crown-fill",     "Master",  "tier-plat"),
+            >= 50  => ("bi-lightning-fill", "Expert",  "tier-gold"),
+            >= 25  => ("bi-star-fill",      "Regular", "tier-silver"),
+            >= 10  => ("bi-award",          "Taster",  "tier-bronze"),
+            _      => null
+        };
+    }
+}
+
+<BSModal @ref="Modal" Id="assdexModal" IsVerticallyCentered="true" Size="ModalSize.ExtraLarge">
+    <Body>
+        <div class="assdex-container">
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-white mb-0">
+                    <span class="me-2"><Assdex Size="1.3em" Style="Assdex.AssdexIconStyle.Fill" Color="#0dcaf0" /></span>
+                    Assdex
+                </h4>
+                <small class="text-muted">
+                    <i class="fas fa-lock-open me-1"></i>
+                    @unlockedTypes.Count / @AllTypes.Length types discovered
+                </small>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            }
+            else
+            {
+                <div class="assdex-grid">
+                    @foreach (var assType in AllTypes)
+                    {
+                        var isUnlocked = unlockedTypes.Contains(assType);
+                        var isFocused = _focusType == assType;
+                        var tier = isUnlocked ? GetTierBadge(assType) : null;
+                        <div id="assdex-@assType.ToString()" class="assdex-card @(isUnlocked ? "unlocked" : "locked") @(isFocused ? "assdex-focused" : "") @(isUnlocked && OnShowDetail.HasDelegate ? "assdex-clickable" : "")"
+                             @onclick="async () => { if (isUnlocked && OnShowDetail.HasDelegate) await OnShowDetail.InvokeAsync(assType); }">
+                            <div class="assdex-image-wrap">
+                                <img src="/images/Asses/@assType.ToString()/entire_ass.png"
+                                     class="assdex-img"
+                                     alt="@(isUnlocked ? assType.ToString() : "???")" />
+                                @if (!isUnlocked)
+                                {
+                                    <div class="lock-overlay">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                }
+                                @if (isUnlocked)
+                                {
+                                    <div class="unlock-badge">✓</div>
+                                }
+                            </div>
+                            <div class="assdex-name">@(isUnlocked ? assType.ToString() : "???") </div>
+                            @if (isUnlocked)
+                            {
+                                <div class="assdex-desc">@GetDescription(assType)</div>
+                                @if (tier != null)
+                                {
+                                    <div class="assdex-tier-badge @tier.Value.tierCls">
+                                        <i class="bi @tier.Value.biIcon"></i>@tier.Value.name
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="assdex-desc locked-desc">Eat one to discover</div>
+                            }
+                        </div>
+                    }
+
+                    <!-- Two mystery slots -->
+                    <div class="assdex-card locked mystery-slot">
+                        <div class="assdex-image-wrap">
+                            <div class="mystery-img">?</div>
+                        </div>
+                        <div class="assdex-name">???</div>
+                        <div class="assdex-desc locked-desc">Coming soon…</div>
+                    </div>
+                    <div class="assdex-card locked mystery-slot">
+                        <div class="assdex-image-wrap">
+                            <div class="mystery-img">?</div>
+                        </div>
+                        <div class="assdex-name">???</div>
+                        <div class="assdex-desc locked-desc">Coming soon…</div>
+                    </div>
+                </div>
+
+                @if (unlockedTypes.Count == AllTypes.Length)
+                {
+                    <div class="text-center mt-4">
+                        <div class="complete-badge">
+                            🏆 Assdex Complete! You've eaten every type!
+                        </div>
+                    </div>
+                }
+            }
+
+            <div class="text-end mt-4">
+                <button type="button" class="btn btn-big-rounded btn-secondary" @onclick="() => Modal?.Hide()">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </Body>
+</BSModal>

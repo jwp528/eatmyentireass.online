@@ -1,0 +1,87 @@
+@using BlazorApp.Client.Services
+@using BlazorApp.Shared
+
+@code {
+    public BSModal? Modal;
+
+    [Microsoft.AspNetCore.Components.Inject]
+    public IDailyChallengeService DailyChallengeService { get; set; } = default!;
+
+    private DailyChallengeProgress? progress;
+    private bool isLoading;
+
+    public async Task Show()
+    {
+        await Modal!.Show();
+        await Load();
+    }
+
+    public async Task Refresh()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        isLoading = true;
+        StateHasChanged();
+        progress = await DailyChallengeService.GetOrCreateTodayTasksAsync();
+        isLoading = false;
+        StateHasChanged();
+    }
+}
+
+<BSModal @ref="Modal" Id="dailyModal" IsVerticallyCentered="true" Size="ModalSize.Large">
+    <Body>
+        <div class="daily-container">
+            <div class="text-center mb-4">
+                <div class="daily-icon mb-2">📅</div>
+                <h4 class="fw-bold text-white mb-0">Daily Challenges</h4>
+                <small class="text-muted">@DateTime.UtcNow.ToString("MMMM d, yyyy") — New challenges at midnight UTC</small>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            }
+            else if (progress?.Tasks?.Any() == true)
+            {
+                <div class="tasks-list">
+                    @foreach (var task in progress.Tasks)
+                    {
+                        <div class="task-card @(task.Completed ? "task-done" : "")">
+                            <div class="task-icon">@task.GetIcon()</div>
+                            <div class="task-body">
+                                <div class="task-description">@task.GetDescription()</div>
+                            </div>
+                            <div class="task-status">
+                                @if (task.Completed)
+                                {
+                                    <span class="badge bg-success">✓ Done</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pending</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="progress-summary mt-4 text-center">
+                    <span class="text-white fw-bold">@progress.CompletedCount / 3</span>
+                    <span class="text-muted ms-1">challenges completed today</span>
+                </div>
+            }
+
+            <div class="text-end mt-4">
+                <button type="button" class="btn btn-big-rounded btn-secondary" @onclick="() => Modal?.Hide()">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </Body>
+</BSModal>
+

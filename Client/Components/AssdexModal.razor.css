@@ -1,0 +1,184 @@
+.assdex-container {
+    color: #ffffff;
+    padding: 0.5rem;
+}
+
+.assdex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.assdex-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem 0.75rem;
+    text-align: center;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.assdex-clickable {
+    cursor: pointer;
+}
+
+.assdex-clickable:active {
+    transform: scale(0.97);
+}
+
+.assdex-card.unlocked {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.assdex-card.unlocked:hover {
+    transform: translateY(-3px);
+    border-color: rgba(59, 130, 246, 0.7);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2);
+}
+
+.assdex-focused {
+    border-color: #7986cb !important;
+    box-shadow: 0 0 0 2px rgba(121,134,203,0.45), 0 6px 24px rgba(121,134,203,0.25) !important;
+    animation: assdex-pulse 1.6s ease-out;
+}
+
+@keyframes assdex-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(121,134,203,0.7), 0 6px 24px rgba(121,134,203,0.25); }
+    60%  { box-shadow: 0 0 0 8px rgba(121,134,203,0),   0 6px 24px rgba(121,134,203,0.25); }
+    100% { box-shadow: 0 0 0 2px rgba(121,134,203,0.45),0 6px 24px rgba(121,134,203,0.25); }
+}
+
+.assdex-card.locked {
+    opacity: 0.55;
+    filter: grayscale(0.4);
+}
+
+.assdex-image-wrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.assdex-img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+}
+
+.assdex-card.locked .assdex-img {
+    filter: brightness(0.2) saturate(0);
+}
+
+.lock-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.unlock-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    background: #22c55e;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+.assdex-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #ffffff;
+}
+
+.assdex-desc {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.4;
+}
+
+.locked-desc {
+    color: rgba(255, 255, 255, 0.35);
+    font-style: italic;
+}
+
+.mystery-img {
+    width: 72px;
+    height: 72px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+}
+
+.mystery-slot {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.complete-badge {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 179, 8, 0.2));
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    border-radius: 25px;
+    padding: 0.6rem 1.5rem;
+    color: #fcd34d;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* ── Progress tier badges on Assdex cards ─── */
+.assdex-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.18rem 0.45rem;
+    border-radius: 20px;
+    margin-top: 0.25rem;
+    border: 1px solid;
+}
+
+.assdex-tier-badge.tier-bronze { color: #cd7f32; background: rgba(205, 127, 50, 0.1); border-color: rgba(205, 127, 50, 0.35); }
+.assdex-tier-badge.tier-silver { color: #94a3b8; background: rgba(148, 163, 184, 0.1); border-color: rgba(148, 163, 184, 0.35); }
+.assdex-tier-badge.tier-gold   { color: #f59e0b; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.35); }
+.assdex-tier-badge.tier-plat   { color: #a78bfa; background: rgba(167, 139, 250, 0.1); border-color: rgba(167, 139, 250, 0.35); }
+
+@@media (max-width: 576px) {
+    .assdex-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .assdex-image-wrap,
+    .assdex-img,
+    .mystery-img {
+        width: 56px;
+        height: 56px;
+    }
+}

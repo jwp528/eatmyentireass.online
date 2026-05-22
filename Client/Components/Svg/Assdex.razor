@@ -1,0 +1,49 @@
+@code {
+    public enum AssdexIconStyle { Outline, Fill }
+
+    [Parameter] public string Size { get; set; } = "1em";
+    [Parameter] public string Color { get; set; } = "#D92D2D";
+    [Parameter] public AssdexIconStyle Style { get; set; } = AssdexIconStyle.Fill;
+}
+
+@if (Style == AssdexIconStyle.Outline)
+{
+    <svg width="@Size" height="@Size" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M120 48H392C405.255 48 416 58.745 416 72V440C416 453.255 405.255 464 392 464H120C106.745 464 96 453.255 96 440V72C96 58.745 106.745 48 120 48Z"
+              stroke="@Color" stroke-width="20" />
+        <path d="M96 184H416" stroke="@Color" stroke-width="12" />
+        <circle cx="164" cy="120" r="36" stroke="@Color" stroke-width="10" />
+        <rect x="136" y="216" width="240" height="132" rx="18" stroke="@Color" stroke-width="10" />
+        <rect x="144" y="384" width="84" height="28" rx="8" fill="@Color" />
+        <rect x="172" y="356" width="28" height="84" rx="8" fill="@Color" />
+        <circle cx="316" cy="384" r="20" stroke="@Color" stroke-width="10" />
+        <circle cx="364" cy="416" r="20" stroke="@Color" stroke-width="10" />
+    </svg>
+}
+else
+{
+    <svg width="@Size" height="@Size" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="512" height="512" fill="transparent" />
+        <path d="M96 72C96 58.745 106.745 48 120 48H392C405.255 48 416 58.745 416 72V440C416 453.255 405.255 464 392 464H120C106.745 464 96 453.255 96 440V72Z" fill="@Color" />
+        <path d="M96 184H416V440C416 453.255 405.255 464 392 464H120C106.745 464 96 453.255 96 440V184Z" fill="rgba(0,0,0,0.18)" />
+        <path d="M128 80H384V160H128V80Z" fill="rgba(255,255,255,0.14)" />
+        <path d="M128 160H384" stroke="rgba(0,0,0,0.28)" stroke-width="12" stroke-linecap="round" />
+        <circle cx="164" cy="120" r="36" fill="#E6F7FF" stroke="#1F2937" stroke-width="10" />
+        <circle cx="164" cy="120" r="22" fill="#38BDF8" />
+        <circle cx="152" cy="108" r="8" fill="white" opacity="0.9" />
+        <circle cx="244" cy="104" r="10" fill="#22C55E" stroke="#1F2937" stroke-width="5" />
+        <circle cx="284" cy="104" r="10" fill="#FACC15" stroke="#1F2937" stroke-width="5" />
+        <circle cx="324" cy="104" r="10" fill="#60A5FA" stroke="#1F2937" stroke-width="5" />
+        <rect x="136" y="216" width="240" height="132" rx="18" fill="#111827" stroke="#1F2937" stroke-width="10" />
+        <rect x="156" y="236" width="200" height="92" rx="10" fill="#7DD3FC" />
+        <circle cx="244" cy="282" r="28" fill="#E0F2FE" stroke="#0F172A" stroke-width="8" />
+        <path d="M272 310L304 342" stroke="#0F172A" stroke-width="12" stroke-linecap="round" />
+        <path d="M220 282H268" stroke="#0F172A" stroke-width="8" stroke-linecap="round" />
+        <path d="M244 258V306" stroke="#0F172A" stroke-width="8" stroke-linecap="round" />
+        <rect x="144" y="384" width="84" height="28" rx="8" fill="#1F2937" />
+        <rect x="172" y="356" width="28" height="84" rx="8" fill="#1F2937" />
+        <circle cx="316" cy="384" r="20" fill="#111827" />
+        <circle cx="364" cy="416" r="20" fill="#111827" />
+        <path d="M120 48H392C405.255 48 416 58.745 416 72V440C416 453.255 405.255 464 392 464H120C106.745 464 96 453.255 96 440V72C96 58.745 106.745 48 120 48Z" stroke="#1F2937" stroke-width="12" />
+    </svg>
+}

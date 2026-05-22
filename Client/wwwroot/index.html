@@ -27,54 +27,135 @@
     <link rel="preload" href="/images/Asses/GYAT/entire_ass.png" as="image">
     <link rel="preload" href="/images/Asses/Hairy/entire_ass.png" as="image">
 
-    <!-- SEO TAGS -->
-    <meta name="title" content="Eat My Entire Ass"
-    <meta name="description" content="A web app specifically designed for you to eat entire asses. You're welcome internet...">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.webmanifest" />
 
-    <meta name="abstract" content=""> <!-- Keep uder 100 characters -->
-    <meta name="rating" content="Mature"> <!-- General, 14 Years, Mature or Restricted -->
-    <!-- Search engine robots Meta Tags. -->
-    <meta name="robots" content="index, follow">
-    <!-- Open Graph Meta Tags (ogp.me) -->
-    <meta property="og:image" content="https://www.eatmyentireass.online/images/Cartoon/entire_ass.png">
-    <meta property="og:site_name" content="Eat my entire ass">
-    <meta property="og:title" content="EMEA - Go ahead, eat the whole thing :)">
-    <meta property="og:description" content="A web app specifically designed for you to eat entire asses. You're welcome internet...">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.eatmyentireass.online/">
-    <meta property="og:locale" content="en_CA">
-    <meta property="og:country-name" content="CA">                            <!-- Country -->
-    <meta property="og:email" content="chaosencoded@gmail.com">             <!-- Contact email -->
-    <meta property="og:phone_number" content="+15553287458">              <!-- Contact phone number -->
-    <!-- Twitter Meta Tags. -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:url" content="https://www.eatmyentireass.online">
-    <meta name="twitter:title" content="@title">
-    <meta name="twitter:description" content="A web app specifically designed for you to eat entire asses. You're welcome internet...">
-    <meta name="twitter:image" content="https://www.eatmyentireass.online/images/Cartoon/entire_ass.png">
+    <!-- SEO -->
+    <meta name="title" content="Eat My Entire Ass" />
+    <meta name="description" content="How many asses can you eat in 60 seconds? Unlock rare types, trigger Frenzy mode, and climb the global leaderboard." />
+    <meta name="rating" content="Mature" />
+    <meta name="robots" content="index, follow" />
 
-    <!-- Favicon Meta Tags.  -->
-    <link rel="icon" href="https://www.eatmyentireass.online/favicon.png" sizes="48x48" type="image/png">
-    <!-- Web App Settings. -->
-    <meta name="application-name" content="EatMyEntireAss.Online">
-    <meta name="mobile-web-app-capable" content="yes">
-    <!-- END SEO TAGS -->
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.eatmyentireass.online/" />
+    <meta property="og:site_name" content="Eat My Entire Ass" />
+    <meta property="og:title" content="Eat My Entire Ass — How many can you devour?" />
+    <meta property="og:description" content="How many asses can you eat in 60 seconds? Unlock rare types, trigger Frenzy mode, and climb the global leaderboard." />
+    <meta property="og:image" content="https://www.eatmyentireass.online/images/Asses/Cartoon/entire_ass.png" />
+    <meta property="og:locale" content="en_CA" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://www.eatmyentireass.online" />
+    <meta name="twitter:title" content="Eat My Entire Ass — How many can you devour?" />
+    <meta name="twitter:description" content="How many asses can you eat in 60 seconds? Unlock rare types, trigger Frenzy mode, and climb the global leaderboard." />
+    <meta name="twitter:image" content="https://www.eatmyentireass.online/images/Asses/Cartoon/entire_ass.png" />
+
+    <!-- Favicon & App Icons -->
+    <link rel="icon" href="favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+
+    <!-- PWA / Web App -->
+    <meta name="application-name" content="Eat My Entire Ass" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="EMEA" />
+
+    <!-- Complete Browser Link CORS error suppression -->
+    <script>
+        // Comprehensive Browser Link error suppression for development
+        if (window.location.hostname === 'localhost') {
+            // Override console methods to filter Browser Link errors
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            const originalLog = console.log;
+            
+            const isBrowserLinkError = (message) => {
+                if (typeof message === 'string') {
+                    return message.includes('browserLinkSignalR') ||
+                           message.includes('negotiate?clientProtocol') ||
+                           message.includes('Cross-Origin Request Blocked') ||
+                           message.includes('CORS request did not succeed') ||
+                           (message.includes('localhost') && /:\d{5}\/[a-f0-9-]+\/browserLink/.test(message));
+                }
+                return false;
+            };
+
+            console.error = function(message, ...args) {
+                if (!isBrowserLinkError(message)) {
+                    originalError.apply(console, [message, ...args]);
+                }
+            };
+
+            console.warn = function(message, ...args) {
+                if (!isBrowserLinkError(message)) {
+                    originalWarn.apply(console, [message, ...args]);
+                }
+            };
+
+            // Suppress fetch errors for Browser Link
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                if (typeof url === 'string' && url.includes('browserLinkSignalR')) {
+                    // Return a rejected promise silently
+                    return Promise.reject(new Error('Browser Link request suppressed'));
+                }
+                return originalFetch.apply(window, [url, options]);
+            };
+
+            // Block Browser Link WebSocket connections
+            const OriginalWebSocket = window.WebSocket;
+            window.WebSocket = function(url, protocols) {
+                if (typeof url === 'string' && url.includes('browserLink')) {
+                    console.log('Browser Link WebSocket connection blocked');
+                    throw new Error('Browser Link WebSocket blocked');
+                }
+                return new OriginalWebSocket(url, protocols);
+            };
+
+            console.log('[Browser Link Suppression] Browser Link CORS errors are being filtered out');
+        }
+    </script>
 </head>
 
 <body data-bs-theme="dark">
     <div id="app">
-        <svg class="loading-progress">
+        <!-- kept for Blazor percentage tracking -->
+        <svg class="loading-progress" style="visibility:hidden;position:absolute;pointer-events:none">
             <circle r="40%" cx="50%" cy="50%" />
             <circle r="40%" cx="50%" cy="50%" />
         </svg>
-        <div class="loading-progress-text"></div>
+        <div class="loading-progress-text" style="display:none"></div>
     </div>
+
+    <!-- Splash lives outside #app so Blazor rendering doesn't destroy it -->
+    <div id="emea-splash">
+        <div class="splash-body">
+            <img src="/images/Asses/Cartoon/entire_ass.png" class="splash-ass" alt="" />
+            <h1 class="splash-title">
+                <span class="splash-eat">EAT MY ENTIRE</span>
+                <span class="splash-big-ass">ASS</span>
+            </h1>
+            <p class="splash-url">eatmyentireass.online</p>
+            <div class="splash-progress-wrap">
+                <div class="splash-progress-bar"></div>
+            </div>
+            <p class="splash-status">Loading the goods…</p>
+        </div>
+    </div>
+
+    <!-- WebGL fart cloud transition overlay -->
+    <canvas id="fart-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;display:none;pointer-events:none"></canvas>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <!-- Add chart.js reference if chart components are used in your application. -->
@@ -84,6 +165,32 @@
     <!-- Add sortable.js reference if SortableList component is used in your application. -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
+        window.hardReload = () => {
+            window.location.reload(true);
+        };
+
+        window.fireConfetti = () => {
+            const canvas = document.createElement('canvas');
+            canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;pointer-events:none';
+            document.body.appendChild(canvas);
+
+            const myConfetti = confetti.create(canvas, { resize: true, useWorker: false });
+            const duration = 3000;
+            const end = Date.now() + duration;
+            const colors = ['#ffd700', '#ff8c00', '#ff69b4', '#9b59b6', '#3498db'];
+
+            (function frame() {
+                myConfetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors });
+                myConfetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors });
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                } else {
+                    // Stop spawning; let existing particles fall off naturally, then clean up
+                    setTimeout(() => { myConfetti.reset(); if (canvas.parentNode) canvas.remove(); }, 3000);
+                }
+            }());
+        };
+
         window.playSound = (src, volume) => {
             console.log(`playing sound ${src}`);
             var audio = new Audio(src);
@@ -93,7 +200,7 @@
         window.showModal = (modalId) => {
             const modalElement = document.getElementById(modalId);
             if (modalElement) {
-                const modal = new bootstrap.Modal(modalElement);
+                const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
                 modal.show();
             }
         }
@@ -145,6 +252,194 @@
         window.addEventListener('load', () => {
             window.preloadGameImages();
         });
+
+        window.scrollAssdexTo = (assTypeName) => {
+            // Give the modal a moment to render, then scroll to the focused card
+            setTimeout(() => {
+                const el = document.getElementById('assdex-' + assTypeName);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 350);
+        };
+
+        // ── Frenzy screen shake ───────────────────────────────────────────────
+        window.toggleBodyShake = function (enable) {
+            document.body.classList.toggle('frenzy-shaking', enable);
+        };
+
+        // ── Fart cloud transition (splash → app) ──────────────────────────────
+        (function () {
+            var _f = {
+                canvas: null, gl: null, prog: null, buf: null,
+                uT: null, uR: null, raf: null, running: false,
+                t0: 0, onPeak: null, peakFired: false
+            };
+
+            var VS_FC = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+
+            // Fart cloud shader:
+            //  - Dense fog base (0.88-1.00) guarantees full-screen opacity at peak
+            //  - 7 turbulent blobs rising from below for the gassy look
+            //  - Olive-green palette
+            var FS_FC = [
+                'precision mediump float;',
+                'uniform float u_t;uniform vec2 u_r;',
+                // IQ-style fract hash — mediump-safe
+                'float h(vec2 p){p=fract(p*vec2(.3183,.3678));p*=17.;return fract(p.x*p.y*(p.x+p.y));}',
+                // Value noise
+                'float n(vec2 p){vec2 i=floor(p),f=p-i;f=f*f*(3.-2.*f);',
+                '  return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}',
+                // 3-octave fBm
+                'float fbm(vec2 p){return .5*n(p)+.25*n(p*2.1+vec2(1.7,9.2))+.125*n(p*4.3+vec2(5.2,3.1));}',
+                // Blob: uv [0,1], aspect-corrected distance, rises over time
+                'float blob(vec2 uv,float ar,float cx,float cy,float dt,float r){',
+                '  if(dt<=0.)return 0.;',
+                '  float g=min(dt*2.5,1.);',
+                '  vec2 d=vec2((uv.x-cx)*ar,uv.y-(cy+dt*.09));',
+                '  float turb=n(uv*4.5+vec2(dt*.7,-dt*.9));',
+                '  float rad=r*g*(0.76+0.46*turb);',
+                '  return 1.-smoothstep(0.,rad,length(d));}',
+                'void main(){',
+                '  vec2 uv=gl_FragCoord.xy/u_r;',
+                '  float ar=u_r.x/u_r.y;',
+                // Time envelope: build 0→0.45s, hold, fade 1.1→2.8s
+                '  float bld=clamp(u_t/.45,0.,1.);',
+                '  float fde=u_t>1.1?clamp(1.-(u_t-1.1)/1.7,0.,1.):1.;',
+                '  float ga=bld*fde;',
+                // Dense fog base — guarantees full opacity everywhere at peak
+                '  float fog=0.88+0.12*n(uv*2.+vec2(u_t*.09,-u_t*.06));',
+                // 7 fart pockets rising from various positions
+                '  float c=fog;',
+                '  c+=blob(uv,ar,0.50,0.08,u_t,     0.55)*0.2;',
+                '  c+=blob(uv,ar,0.25,0.18,u_t-.07, 0.42)*0.2;',
+                '  c+=blob(uv,ar,0.75,0.18,u_t-.05, 0.42)*0.2;',
+                '  c+=blob(uv,ar,0.50,0.46,u_t-.18, 0.46)*0.2;',
+                '  c+=blob(uv,ar,0.10,0.40,u_t-.12, 0.36)*0.2;',
+                '  c+=blob(uv,ar,0.90,0.40,u_t-.10, 0.36)*0.2;',
+                '  c+=blob(uv,ar,0.50,0.72,u_t-.28, 0.40)*0.2;',
+                '  c=clamp(c,0.,1.);',
+                // Fart palette: dark swampy green → golden olive
+                '  float cv=fbm(uv*2.5+vec2(u_t*.1,u_t*.07));',
+                '  vec3 col=mix(vec3(.16,.26,.04),mix(vec3(.40,.52,.10),vec3(.60,.56,.14),max(cv*2.-1.,0.)),cv);',
+                '  gl_FragColor=vec4(col,c*ga);}',
+            ].join('\n');
+
+            function initFartGL(c) {
+                var gl = c.getContext('webgl', { alpha: true, premultipliedAlpha: false })
+                    || c.getContext('experimental-webgl', { alpha: true, premultipliedAlpha: false });
+                if (!gl) return false;
+                _f.gl = gl;
+                function sh(type, src) {
+                    var s = gl.createShader(type);
+                    gl.shaderSource(s, src); gl.compileShader(s);
+                    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+                        console.warn('[Fart shader]', gl.getShaderInfoLog(s));
+                    return s;
+                }
+                _f.prog = gl.createProgram();
+                gl.attachShader(_f.prog, sh(gl.VERTEX_SHADER, VS_FC));
+                gl.attachShader(_f.prog, sh(gl.FRAGMENT_SHADER, FS_FC));
+                gl.linkProgram(_f.prog);
+                gl.useProgram(_f.prog);
+                _f.buf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, _f.buf);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+                var ap = gl.getAttribLocation(_f.prog, 'p');
+                gl.enableVertexAttribArray(ap);
+                gl.vertexAttribPointer(ap, 2, gl.FLOAT, false, 0, 0);
+                _f.uT = gl.getUniformLocation(_f.prog, 'u_t');
+                _f.uR = gl.getUniformLocation(_f.prog, 'u_r');
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                gl.clearColor(0, 0, 0, 0);
+                return true;
+            }
+
+            function fartFrame() {
+                if (!_f.running || !_f.gl) return;
+                var t = (performance.now() - _f.t0) / 1000;
+                var gl = _f.gl, c = _f.canvas;
+                // Half-res canvas for performance; CSS stretches it to full screen
+                var w = Math.round(window.innerWidth * 0.55) || 480;
+                var h = Math.round(window.innerHeight * 0.55) || 300;
+                if (c.width !== w || c.height !== h) {
+                    c.width = w; c.height = h;
+                    gl.viewport(0, 0, w, h);
+                }
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.uniform1f(_f.uT, t);
+                gl.uniform2f(_f.uR, w, h);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                // Fire the peak callback when clouds are at full density
+                if (!_f.peakFired && t >= 0.55 && _f.onPeak) {
+                    _f.peakFired = true;
+                    _f.onPeak();
+                }
+                if (t >= 3.0) {
+                    _f.running = false;
+                    c.style.display = 'none';
+                    return;
+                }
+                _f.raf = requestAnimationFrame(fartFrame);
+            }
+
+            function spawnFartEmoji() {
+                var cast = ['💨', '💨', '💨', '🍑', '💨', '💨', '🟢', '💨'];
+                cast.forEach(function (em, i) {
+                    setTimeout(function () {
+                        var el = document.createElement('span');
+                        el.textContent = em;
+                        var sz = 18 + Math.random() * 22;
+                        var lx = 8 + Math.random() * 84;
+                        var rot = ((Math.random() - 0.5) * 50).toFixed(1);
+                        el.setAttribute('style',
+                            'position:fixed;font-size:' + sz + 'px;left:' + lx + 'vw;bottom:8vh;' +
+                            'z-index:10001;pointer-events:none;opacity:0.88;' +
+                            '--fart-rot:' + rot + 'deg;' +
+                            'animation:fart-emoji-rise 2.3s ease-out forwards');
+                        document.body.appendChild(el);
+                        setTimeout(function () { if (el.parentNode) el.remove(); }, 2600);
+                    }, i * 110 + Math.random() * 60);
+                });
+            }
+
+            window.playFartTransition = function (onPeak) {
+                var c = document.getElementById('fart-canvas');
+                if (!c) { if (onPeak) onPeak(); return; }
+                _f.canvas = c;
+                _f.onPeak = onPeak;
+                _f.peakFired = false;
+                c.style.display = 'block';
+                if (!_f.gl && !initFartGL(c)) {
+                    c.style.display = 'none';
+                    if (onPeak) onPeak();
+                    return;
+                }
+                _f.running = true;
+                _f.t0 = performance.now();
+                spawnFartEmoji();
+                _f.raf = requestAnimationFrame(fartFrame);
+            };
+        })();
+
+        // Called by Blazor's MainLayout on first render — guaranteed timing
+        window.triggerSplashTransition = function () {
+            window.playFartTransition(function () {
+                var splash = document.getElementById('emea-splash');
+                if (splash) {
+                    splash.style.transition = 'opacity 0.25s ease';
+                    splash.style.opacity = '0';
+                    setTimeout(function () { if (splash.parentNode) splash.remove(); }, 300);
+                }
+            });
+        };
+
+        // Safety net: if Blazor never calls triggerSplashTransition, hide splash after 12s
+        setTimeout(function () {
+            var splash = document.getElementById('emea-splash');
+            if (splash) { splash.style.display = 'none'; }
+        }, 12000);
     </script>
 </body>
 

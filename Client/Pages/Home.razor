@@ -1,161 +1,240 @@
 ﻿@page "/"
 @using BlazorApp.Client.Components
 @using BlazorApp.Client.Services
+@using static BlazorApp.Shared.Assets
 @inject IJSRuntime js
 @inject ILeaderboardService LeaderboardService
 @inject ISettingsService SettingsService
+@inject IPlayerService PlayerService
+@inject IVersionCheckService VersionCheckService
+@inject IStatsService StatsService
+@inject ICollectionService CollectionService
+@inject IDailyChallengeService DailyChallengeService
+@inject IProgressService ProgressService
 
 <PageTitle>Eat my entire ass</PageTitle>
 
-<div class="game-container">
-    <Navbar OnShowAboutDialog="ShowAboutDialog" />
+<div class="app-shell">
 
-    <div class="container-fluid px-0">
-        <div class="row p-3 min-vh-100 align-items-start justify-content-center">
-            <div class="col-12 col-md-10 col-lg-8 text-center py-4">
-                
-                <!-- Actions Bar -->
-                <div class="actions-bar mb-4 d-flex justify-content-center align-items-center gap-3">
-                    <button class="btn-fab" @onclick="ShowHelpDialog" title="How to Play">
-                        <i class="fas fa-book-open"></i>
-                    </button>
-                    <button class="btn-fab" @onclick="ShowLeaderboardDialog" title="Leaderboard">
-                        <i class="fas fa-trophy"></i>
-                    </button>
-                    <button class="btn-fab @(playSounds ? "btn-fab-active" : "")" @onclick="ToggleSound" title="@(playSounds ? "Sound On" : "Sound Off")">
-                        <i class="@(playSounds ? "fas fa-volume-up" : "fas fa-volume-mute")"></i>
-                    </button>
-                </div>
+    <header class="app-bar">
+        <div class="app-bar-brand">
+            <img src="/icon-192.png" alt="EMEA" width="28" class="app-bar-icon" />
+            <span class="app-bar-title">EMEA</span>
+        </div>
 
-                <div class="game-header mb-4">
-                    <h1 class="game-title display-3 fw-bold mb-3">Eat my entire ass!</h1>
-                    
-                    <!-- Timer and Stats Side by Side -->
-                    <div class="game-info-bar d-flex justify-content-center align-items-center gap-4 flex-wrap">
-                        <!-- Timer Display -->
-                        <div class="timer-container">
-                            <div class="timer @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "timer-warning" : "")">
-                                <i class="fas fa-clock me-2"></i>@TimerDisplay
-                            </div>
-                        </div>
-                        
-                        <!-- CPS Display (only show when game is playing) -->
-                        @if (gamePlaying)
-                        {
-                            <div class="stats-container">
-                                @{
-                                    var elapsed = DateTime.Now - gameStartTime;
-                                    var showStats = elapsed.TotalSeconds >= 1.0; // Wait 1 second before showing stats
-                                }
-                                
-                                @if (showStats)
-                                {
-                                    <div class="cps-display d-flex align-items-center">
-                                        <i class="fas fa-mouse text-primary me-2"></i>
-                                        <span class="stat-value text-primary fw-bold fs-5">@CurrentClicksPerSecond</span>
-                                        <span class="stat-label text-muted ms-1">clicks/sec</span>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="text-muted">
-                                        <small><i class="fas fa-hourglass-start me-1"></i>Warming up...</small>
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
-                </div>
-                
-                <div class="game-display p-3 p-md-4 mx-0 mx-md-2" @onclick="EatPiece" role="button" tabindex="0">
-                    <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
-                </div>
-                
-                @if (!gamePlaying)
+        <nav class="app-bar-actions">
+            <button class="icon-btn" @onclick="ShowHelpDialog" title="How to Play">
+                <i class="fas fa-book-open"></i>
+            </button>
+            <button class="icon-btn" @onclick="ShowLeaderboardStatsDialog" title="Leaderboard &amp; Stats">
+                <i class="fas fa-trophy"></i>
+            </button>
+            <button class="icon-btn" @onclick="ShowAssdexDialog" title="Assdex">
+                <Assdex Size="1.2em" Style="Assdex.AssdexIconStyle.Outline" Color="currentColor" />
+            </button>
+            <button class="icon-btn" @onclick="ShowDailyDialog" title="Daily Challenge">
+                <i class="fas fa-calendar-day"></i>
+            </button>
+        </nav>
+
+        <div class="app-bar-end">
+            <button class="icon-btn @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "" : "icon-btn--named")"
+                    @onclick="ShowPlayerNameDialog"
+                    title="@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Player Name" : _currentPlayerName)">
+                @if (string.IsNullOrWhiteSpace(_currentPlayerName))
                 {
-                    @if (assesEaten > 0)
-                    {
-                        <div class="game-results mt-4">
-                            <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 gap-md-3">
-                                <p class="fs-4 mb-2 mb-md-0">Final Score: @Math.Truncate(assesEaten)</p>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-primary btn-sm btn-md" @onclick="() => ResultsDialog?.Modal?.Show()">
-                                        <i class="fas fa-trophy me-2"></i>View Details
-                                    </button>
-                                    <button class="btn btn-primary btn-sm btn-md" @onclick="StartNewGame">
-                                        <i class="fas fa-rotate me-2"></i>Play Again
-                                    </button>
-                                </div>
-                            </div>
-                            @if (gameJustEnded)
-                            {
-                                <div class="mt-3">
-                                    <small class="text-warning">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Game ended! Use "Play Again" button to start a new game.
-                                    </small>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="start-prompt mt-4">
-                            <p class="fs-4">Click the ass to start!</p>
-                        </div>
-                    }
-                }else{
-                    <div class="start-prompt mt-4">
-                        <p class="fs-4">CONSUME!</p>
-                    </div>
+                    <i class="fas fa-user"></i>
                 }
+                else
+                {
+                    <span class="player-btn-label">@_currentPlayerName[..Math.Min(_currentPlayerName.Length, 2)].ToUpper()</span>
+                }
+            </button>
+            <button class="icon-btn @(playSounds ? "icon-btn-active" : "")" @onclick="ToggleSound"
+                    title="@(playSounds ? "Sound On" : "Sound Off")">
+                <i class="@(playSounds ? "bi bi-volume-up-fill" : "bi bi-volume-mute-fill")"></i>
+            </button>
+            <a href="https://github.com/jwp528/eatmyentireass.online" target="_blank"
+               rel="noopener noreferrer" class="icon-btn hide-xs" title="View Source Code">
+                <i class="fab fa-github"></i>
+            </a>
+            <button class="icon-btn" @onclick="ShowAboutDialog" title="About Developer">
+                <img src="https://www.joshparsons.ca/img/Logo.svg" alt="Josh Parsons"
+                     width="18" height="18" class="icon-btn-img" />
+            </button>
+        </div>
+    </header>
 
-                <!-- Built By line -->
-                <div class="built-by mt-3 text-center">
-                    <small class="text-muted d-flex align-items-center justify-content-center gap-2">
-                        Built By: 
-                        <a href="https://joshparsons.ca" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-flex align-items-center gap-1">
-                            <img src="https://www.joshparsons.ca/img/Logo.svg" alt="Josh Parsons Logo" width="20" height="20" />
-                            <span class="text-white">Josh Parsons</span>
-                        </a>
-                    </small>
+    <main class="game-main @(gamePlaying && frenzyActive ? "frenzy-active" : "")"
+          @onclick="EatPiece"
+          @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
+          role="button" tabindex="0">
+
+        @* Stack: frenzy label (when active) + ass image *@
+        <div class="game-content-stack">
+            @if (gamePlaying && frenzyActive)
+            {
+                <div class="frenzy-above-image">
+                    <span class="frenzy-title">🔥 FRENZY!</span>
+                    <span class="frenzy-timer">@frenzySecondsLeft</span>
+                    <span class="frenzy-hold-hint">HOLD</span>
+                </div>
+            }
+            <button class="game-player-chip @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-chip--named" : "")"
+                    @onclick:stopPropagation="true"
+                    @onclick="ShowPlayerNameDialog">
+                @if (string.IsNullOrWhiteSpace(_currentPlayerName))
+                {
+                    <i class="fas fa-user-plus"></i>
+                    <span>Set name</span>
+                }
+                else
+                {
+                    <i class="fas fa-user"></i>
+                    <span>@_currentPlayerName</span>
+                }
+            </button>
+            <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
+        </div>
+
+        @* Timer — top-center, always visible while game is active *@
+        @if (gamePlaying)
+        {
+            <div class="canvas-timer @(gameStartTransition ? "canvas-timer-enter" : "") @(GameTimeInSeconds <= 10 && GameTimeInSeconds > 0 ? "canvas-timer-warning" : "")">
+                @TimerDisplay
+            </div>
+        }
+
+        @* CPS — bottom-right corner during game *@
+        @if (gamePlaying)
+        {
+            var elapsed = DateTime.Now - gameStartTime;
+            if (elapsed.TotalSeconds >= 1.0)
+            {
+                <div class="canvas-cps">
+                    <i class="fas fa-mouse"></i> @CurrentClicksPerSecond <small>cps</small>
+                </div>
+            }
+        }
+
+        @* Pre-game prompt (stays mounted during transition so it can animate out) *@
+        @if ((!gamePlaying && assesEaten == 0) || gameStartTransition)
+        {
+            <div class="canvas-hint @(gameStartTransition ? "canvas-hint-exit" : "")">Click to start!</div>
+        }
+
+        @* Post-game overlay *@
+        @if (!gamePlaying && assesEaten > 0)
+        {
+            <div class="canvas-results">
+                <div class="canvas-score">@Math.Truncate(assesEaten) pts</div>
+                <div class="canvas-actions">
+                    <button class="canvas-btn" @onclick:stopPropagation="true"
+                            @onclick="() => ResultsDialog?.Modal?.Show()">
+                        <i class="fas fa-chart-bar"></i> Details
+                    </button>
+                    <button class="canvas-btn canvas-btn-primary" @onclick:stopPropagation="true"
+                            @onclick="StartNewGame">
+                        <i class="fas fa-rotate"></i> Play Again
+                    </button>
                 </div>
             </div>
-        </div>
-    </div>
+        }
+
+    </main>
+
 </div>
 
-<HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" />
+@* Fire border GIFs — fixed overlay, outside app-shell to avoid overflow clipping *@
+@if (gamePlaying && frenzyActive)
+{
+    <div class="fire-border-overlay" aria-hidden="true">
+        <img src="/images/fire-border.gif" class="fire-border-top" alt="" />
+        <img src="/images/fire-border.gif" class="fire-border-bottom" alt="" />
+        <img src="/images/fire-border.gif" class="fire-border-left" alt="" />
+        <img src="/images/fire-border.gif" class="fire-border-right" alt="" />
+    </div>
+}
+
+<HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" OnOpenAssDex="OpenAssDexFromHelp" />
 <AboutModal @ref="AboutDialog" />
-<ResultsModal @ref="ResultsDialog" 
-              assesEaten="@assesEaten" 
-              totalClicks="@totalClicks" 
-              scoreText="@scoreText" 
-              AssTypes="@Breakdown.Keys.ToList()" 
-              Breakdown="@Breakdown" 
+<AnniversaryModal @ref="AnniversaryDialog" />
+<UpdateModal @ref="UpdateDialog" />
+<AssdexModal @ref="AssdexDialog" OnShowDetail="OpenAssDetail" />
+<AssDetailModal @ref="AssDetailDialog" />
+<DailyModal @ref="DailyDialog" />
+<ResultsModal @ref="ResultsDialog"
+              assesEaten="@assesEaten"
+              totalClicks="@totalClicks"
+              scoreText="@scoreText"
+              AssTypes="@Breakdown.Keys.ToList()"
+              Breakdown="@Breakdown"
               hasScoreSaved="@hasScoreSaved"
+              IsPersonalBest="@_isPersonalBest"
+              PersonalBestScore="@_personalBestScore"
               clicksPerSecondPolls="@clicksPerSecondPolls"
-              OnTryAgain="TryAgain" 
+              peakComboCount="@frenzyCount"
+              OnTryAgain="TryAgain"
               OnSaveScore="ShowSaveScoreDialog"
-              OnShowLeaderboard="ShowLeaderboardDialog" />
-<LeaderboardModal @ref="LeaderboardDialog" />
+              OnShowLeaderboard="ShowLeaderboardDialog"
+              OnShowAssdex="OpenAssdexForType" />
+<LeaderboardStatsModal @ref="LeaderboardStatsDialog" />
 <SaveScoreModal @ref="SaveScoreDialog" OnScoreSaved="OnScoreSaved" />
+<PlayerNameModal @ref="PlayerNameDialog" OnNameSaved="OnPlayerNameChanged" />
 
 @code {
-    LeaderboardModal? LeaderboardDialog;
+    LeaderboardStatsModal? LeaderboardStatsDialog;
     SaveScoreModal? SaveScoreDialog;
-    
+    PlayerNameModal? PlayerNameDialog;
+    AssdexModal? AssdexDialog;
+    AssDetailModal? AssDetailDialog;
+    DailyModal? DailyDialog;
+
+    string _currentPlayerName = string.Empty;
+    bool _isPersonalBest = false;
+    double? _personalBestScore = null;
+
     // Make totalClicks accessible in the template
     public int totalClicks = 0;
 
+    async Task ShowPlayerNameDialog()
+    {
+        if (PlayerNameDialog != null) await PlayerNameDialog.Show();
+    }
+
     async Task ShowLeaderboardDialog()
     {
-        await LeaderboardDialog?.Show();
+        if (LeaderboardStatsDialog != null) await LeaderboardStatsDialog.ShowLeaderboard();
+    }
+
+    async Task ShowLeaderboardStatsDialog()
+    {
+        if (LeaderboardStatsDialog != null) await LeaderboardStatsDialog.ShowLeaderboard();
+    }
+
+    async Task ShowAssdexDialog()
+    {
+        await AssdexDialog?.Show();
+    }
+
+    async Task OpenAssDetail(AssTypeEnum assType)
+    {
+        await AssDetailDialog?.ShowAsync(assType);
+    }
+
+    async Task OpenAssdexForType(AssTypeEnum assType)
+    {
+        await ResultsDialog?.Modal?.Hide();
+        await AssdexDialog?.ShowForType(assType);
+    }
+
+    async Task ShowDailyDialog()
+    {
+        await DailyDialog?.Show();
     }
 
     async Task ShowSaveScoreDialog()
     {
-        // Only show save dialog if score hasn't been saved yet
         if (!hasScoreSaved)
         {
             await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);
@@ -164,10 +243,15 @@
 
     async Task OnScoreSaved()
     {
-        // Mark that score has been saved for this game
         hasScoreSaved = true;
-        
-        // Keep the results dialog open but update its state
+        _currentPlayerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
         StateHasChanged();
+    }
+
+    async Task OnPlayerNameChanged(string name)
+    {
+        _currentPlayerName = name;
+        StateHasChanged();
+        await Task.CompletedTask;
     }
 }

@@ -1,7 +1,8 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "AzureStorageConnection": "<your-azure-storage-connection-string>",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
   },
   "Host": {

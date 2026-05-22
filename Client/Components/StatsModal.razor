@@ -1,0 +1,100 @@
+@using BlazorApp.Shared
+
+<BSModal @ref="Modal" Id="statsModal" IsVerticallyCentered="true" Size="ModalSize.Large">
+    <Body>
+        <div class="stats-container">
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-white mb-0">
+                    <i class="fas fa-chart-bar text-primary me-2"></i>
+                    Global Stats
+                </h4>
+                <small class="text-muted">
+                    <i class="fas fa-globe me-1"></i>
+                    Aggregated across all players worldwide
+                </small>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading global stats...</p>
+                </div>
+            }
+            else if (stats == null)
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <p class="text-muted">Could not load stats. API may be unavailable.</p>
+                </div>
+            }
+            else
+            {
+                <div class="stats-grid mb-4">
+                    <div class="stat-card">
+                        <i class="fas fa-mouse-pointer text-primary stat-icon"></i>
+                        <div class="stat-value">@stats.TotalClicks.ToString("N0")</div>
+                        <div class="stat-label">Total Clicks</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-gamepad text-success stat-icon"></i>
+                        <div class="stat-value">@stats.RoundsPlayed.ToString("N0")</div>
+                        <div class="stat-label">Rounds Played</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock text-warning stat-icon"></i>
+                        <div class="stat-value">@FormatTime(stats.TotalTimePlayedSeconds)</div>
+                        <div class="stat-label">Total Time Played</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-fire text-danger stat-icon"></i>
+                        <div class="stat-value">@TotalAssesEaten().ToString("N0")</div>
+                        <div class="stat-label">Total Asses Eaten</div>
+                    </div>
+                </div>
+
+                <div class="ass-breakdown-section">
+                    <h6 class="text-muted text-uppercase mb-3 small fw-bold">
+                        <i class="fas fa-chart-pie me-2"></i>By Ass Type
+                    </h6>
+                    <div class="ass-breakdown-grid">
+                        @foreach (var assType in new[] { "Cartoon", "Flat", "Hairy", "GYAT", "Golden", "Boney" })
+                        {
+                            var count = GetAssTypeCount(assType);
+                            var total = TotalAssesEaten();
+                            var pct = total > 0 ? (double)count / total * 100 : 0;
+                            <div class="ass-type-row">
+                                <img src="/images/Asses/@assType/entire_ass.png" class="ass-type-icon" alt="@assType" />
+                                <div class="ass-type-info flex-grow-1">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="ass-type-name">@assType</span>
+                                        <span class="ass-type-count">@count.ToString("N0")</span>
+                                    </div>
+                                    <div class="progress ass-progress">
+                                        <div class="progress-bar" style="width: @pct.ToString("F1")%"></div>
+                                    </div>
+                                </div>
+                                <span class="ass-pct text-muted small">@pct.ToString("F1")%</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="text-end mt-2">
+                    <small class="text-muted">Last updated: @stats.LastUpdated.ToString("MMM dd, yyyy HH:mm") UTC</small>
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <button type="button" class="btn btn-big-rounded btn-primary" @onclick="LoadStats" disabled="@isLoading">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+                <button type="button" class="btn btn-big-rounded btn-secondary" @onclick="() => Modal?.Hide()">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </Body>
+</BSModal>

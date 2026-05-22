@@ -1,0 +1,140 @@
+<BSModal @ref="Modal" Id="playerNameModal" IsVerticallyCentered="true">
+    <Body>
+        <div class="pn-shell">
+
+            <div class="pn-header">
+                <div class="pn-title">Player Identity</div>
+                <div class="pn-subtitle">Your name appears on the global leaderboard</div>
+            </div>
+
+            <div class="pn-divider"></div>
+
+            <!-- Name field -->
+            <div class="pn-field">
+                <label for="pnName">Player Name</label>
+                <div class="pn-input-row">
+                    <input type="text"
+                           class="pn-input"
+                           id="pnName"
+                           value="@_name"
+                           @oninput="OnNameChanged"
+                           placeholder="Enter your name"
+                           maxlength="50"
+                           disabled="@_isBusy" />
+                    @if (_nameState == NameState.Checking)
+                    {
+                        <span class="pn-indicator pn-checking">
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                        </span>
+                    }
+                    else if (_nameState == NameState.ClaimedOwned)
+                    {
+                        <span class="pn-indicator pn-owned" title="You own this name">
+                            <i class="bi bi-shield-check"></i>
+                        </span>
+                    }
+                    else if (_nameState == NameState.ClaimedNotOwned)
+                    {
+                        <span class="pn-indicator pn-locked" title="Name is claimed">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                    }
+                </div>
+
+                @if (_nameState == NameState.ClaimedOwned)
+                {
+                    <button type="button" class="pn-link-btn pn-logout-btn" @onclick="Logout">
+                        <i class="bi bi-box-arrow-right me-1"></i>Forget this device's access
+                    </button>
+                    @if (_stats != null)
+                    {
+                        <div class="pn-stats-grid">
+                            <div class="pn-stat">
+                                <span class="pn-stat-val">@_stats.GamesPlayed</span>
+                                <span class="pn-stat-lbl">Games</span>
+                            </div>
+                            <div class="pn-stat">
+                                <span class="pn-stat-val">@Math.Truncate(_stats.BestScore)</span>
+                                <span class="pn-stat-lbl">Best Score</span>
+                            </div>
+                            <div class="pn-stat">
+                                <span class="pn-stat-val">@_stats.TotalClicks.ToString("N0")</span>
+                                <span class="pn-stat-lbl">Total Clicks</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else if (_nameState == NameState.Free && !_showClaimForm)
+                {
+                    <button type="button" class="pn-link-btn" @onclick="() => { _showClaimForm = true; StateHasChanged(); }">
+                        Claim this name
+                    </button>
+                }
+            </div>
+
+            @if (_nameState == NameState.ClaimedNotOwned && _showPasswordField && !_showClaimForm)
+            {
+                <div class="pn-field">
+                    <label for="pnPassword">Password</label>
+                    <input type="password"
+                           class="pn-input"
+                           id="pnPassword"
+                           @bind="_password"
+                           placeholder="Password for this name"
+                           disabled="@_isBusy" />
+                    <span class="pn-caption">This name is claimed. Enter its password to use it.</span>
+                </div>
+            }
+
+            @if (_showClaimForm)
+            {
+                <div class="pn-field">
+                    <label for="pnClaimPw">Set Password</label>
+                    <input type="password"
+                           class="pn-input"
+                           id="pnClaimPw"
+                           @bind="_password"
+                           placeholder="Min 4 characters"
+                           disabled="@_isBusy" />
+                </div>
+                <div class="pn-field">
+                    <label for="pnConfirmPw">Confirm Password</label>
+                    <input type="password"
+                           class="pn-input"
+                           id="pnConfirmPw"
+                           @bind="_confirmPassword"
+                           placeholder="Repeat password"
+                           disabled="@_isBusy" />
+                    <span class="pn-caption">Claiming locks this name — only you can use it with your password.</span>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <div class="pn-error">@_errorMessage</div>
+            }
+
+            @if (_isBusy)
+            {
+                <div class="pn-saving">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                    <span>Working…</span>
+                </div>
+            }
+
+            <!-- Actions -->
+            <div class="pn-actions">
+                <button type="button" class="pn-btn-ghost" @onclick="Cancel">
+                    Cancel
+                </button>
+                <button type="button"
+                        class="pn-btn-primary"
+                        @onclick="Save"
+                        disabled="@(_isBusy || string.IsNullOrWhiteSpace(_name))">
+                    @(_isBusy ? "Saving…" : _showClaimForm ? "Claim & Save" : "Save")
+                </button>
+            </div>
+
+        </div>
+    </Body>
+</BSModal>

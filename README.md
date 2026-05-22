@@ -44,7 +44,7 @@ Want to contribute to this masterpiece of modern web development? Here's how to 
    cd eatmyentireass.online
    ```
 
-2. Open `EMEAOnline.sln` in Visual Studio 2022
+2. Open `EMEAOnline.slnx` in Visual Studio 2022
 
 3. Set up multiple startup projects:
    - Right-click the solution → **Configure Startup Projects**
@@ -118,3 +118,4 @@ This is a satirical web application intended for mature audiences. The content i
 ---
 
 *Built with ❤️ and questionable humor using .NET 9, Blazor WebAssembly, and Azure Static Web Apps.*
+

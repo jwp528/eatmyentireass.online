@@ -1,0 +1,58 @@
+@inject IJSRuntime JS
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+@code {
+    public BSModal? Modal;
+    private string _serverVersion = string.Empty;
+
+    public async Task ShowIfNeededAsync(string serverVersion)
+    {
+        _serverVersion = serverVersion;
+        var dismissedVersion = await LocalStorage.GetItemAsync<string>("updateDismissedVersion");
+        if (dismissedVersion == serverVersion) return;
+
+        await Modal!.Show();
+    }
+
+    private async Task RefreshNow()
+    {
+        await JS.InvokeVoidAsync("hardReload");
+    }
+
+    private async Task Dismiss()
+    {
+        await LocalStorage.SetItemAsync("updateDismissedVersion", _serverVersion);
+        await Modal!.Hide();
+    }
+}
+
+<BSModal @ref="Modal" Id="updateModal" IsVerticallyCentered="true" Size="ModalSize.Default">
+    <Body>
+        <div class="update-container text-center">
+            <button type="button" class="btn-close-update" @onclick="Dismiss">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="update-icon mb-3">
+                <i class="fas fa-rocket"></i>
+            </div>
+
+            <h4 class="update-title mb-2">New Version Available!</h4>
+            <p class="update-version text-warning mb-3">v@_serverVersion</p>
+
+            <p class="update-message text-muted mb-4">
+                A fresh update is ready with new features and improvements.
+                Reload the page to get the latest version of EMEA!
+            </p>
+
+            <div class="d-flex gap-2 justify-content-center">
+                <button type="button" class="btn btn-update-primary" @onclick="RefreshNow">
+                    <i class="fas fa-sync-alt me-2"></i>Reload Now
+                </button>
+                <button type="button" class="btn btn-update-secondary" @onclick="Dismiss">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    </Body>
+</BSModal>

@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using Azure;
+using Azure.Data.Tables;
 using BlazorApp.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,8 +12,36 @@ namespace Api
     public class LeaderboardFunction
     {
         private readonly ILogger _logger;
-        private const string LEADERBOARD_FILE = "leaderboard.json";
-        private static readonly SemaphoreSlim FileSemaphore = new(1, 1);
+        private const string TableName = "leaderboard";
+
+        private static readonly Lazy<TableClient> _leaderboardTableClient = new(() =>
+        {
+            var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
+                ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage")
+                ?? "UseDevelopmentStorage=true";
+            return new TableClient(conn, TableName);
+        });
+
+        private static readonly Lazy<TableClient> _playersTableClient = new(() =>
+        {
+            var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")
+                ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage")
+                ?? "UseDevelopmentStorage=true";
+            return new TableClient(conn, "players");
+        });
+
+        private static volatile bool _tableEnsured = false;
+
+        private static async Task<TableClient> GetTableAsync()
+        {
+            var client = _leaderboardTableClient.Value;
+            if (!_tableEnsured)
+            {
+                await client.CreateIfNotExistsAsync();
+                _tableEnsured = true;
+            }
+            return client;
+        }
 
         public LeaderboardFunction(ILoggerFactory loggerFactory)
         {
@@ -19,127 +49,301 @@ namespace Api
         }
 
         [Function("GetLeaderboard")]
-        public async Task<HttpResponseData> GetLeaderboard([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "leaderboard")] HttpRequestData req)
+        public async Task<HttpResponseData> GetLeaderboard(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "options", Route = "leaderboard")] HttpRequestData req)
         {
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            var period = GetQueryParam(req.Url, "period", "alltime");
+            var partitionKey = BuildPartitionKey(period);
+            _logger.LogInformation("GetLeaderboard: period={Period} pk={PK}", period, partitionKey);
+
             try
             {
-                var leaderboard = await GetLeaderboardFromFile();
-                var response = req.CreateResponse(HttpStatusCode.OK);
+                var table = await GetTableAsync();
+                var entries = new List<LeaderboardEntry>();
+                await foreach (var entity in table.QueryAsync<TableEntity>(
+                    filter: $"PartitionKey eq '{partitionKey}'", maxPerPage: 200))
+                {
+                    entries.Add(EntityToEntry(entity));
+                }
 
-                // Return top 10 scores
-                var topScores = leaderboard.Entries
-                    .OrderByDescending(x => x.Score)
-                    .ThenByDescending(x => x.GameDate)
-                    .Take(10)
+                // Deduplicate by player name (handles legacy multi-row entries), take top 100
+                var top100 = entries
+                    .GroupBy(e => PlayerNameHelper.Normalize(e.PlayerName))
+                    .Select(g => g.OrderByDescending(e => e.Score).First())
+                    .OrderByDescending(e => e.Score)
+                    .ThenByDescending(e => e.GameDate)
+                    .Take(100)
                     .ToList();
 
-                await response.WriteAsJsonAsync(topScores);
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+                await response.WriteAsJsonAsync(top100);
                 return response;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving leaderboard");
-                var response = req.CreateResponse(HttpStatusCode.InternalServerError);
-                await response.WriteStringAsync("Error retrieving leaderboard");
-                return response;
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error retrieving leaderboard");
+                return error;
             }
         }
 
         [Function("SaveScore")]
-        public async Task<HttpResponseData> SaveScore([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "leaderboard")] HttpRequestData req)
+        public async Task<HttpResponseData> SaveScore(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options", Route = "leaderboard/save")] HttpRequestData req)
         {
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            _logger.LogInformation("SaveScore triggered");
             try
             {
-                // Read the score entry from request body
-                var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                var entry = JsonSerializer.Deserialize<LeaderboardEntry>(requestBody);
+                var body = await new StreamReader(req.Body).ReadToEndAsync();
+                var request = JsonSerializer.Deserialize<SaveScoreRequest>(body, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
 
+                var entry = request?.Entry;
                 if (entry == null || string.IsNullOrWhiteSpace(entry.PlayerName))
                 {
-                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-                    await badResponse.WriteStringAsync("Invalid score entry");
-                    return badResponse;
+                    var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                    AddCorsHeaders(bad);
+                    await bad.WriteStringAsync("Invalid score entry");
+                    return bad;
                 }
 
-                // Save to leaderboard (this will handle top 10 logic)
-                await SaveScoreToFile(entry);
+                if (entry.GameDate == default)
+                    entry.GameDate = DateTime.UtcNow;
+
+                // Auth check — fail closed if player table is unreachable
+                var normalizedName = PlayerNameHelper.Normalize(entry.PlayerName);
+                var playersTable = _playersTableClient.Value;
+                await playersTable.CreateIfNotExistsAsync();
+
+                var authResult = await PlayerFunction.VerifyTokenAsync(playersTable, normalizedName, request?.AuthToken);
+                switch (authResult)
+                {
+                    case TokenVerifyResult.TokenRequired:
+                    case TokenVerifyResult.Invalid:
+                        {
+                            var denied = req.CreateResponse(HttpStatusCode.Unauthorized);
+                            AddCorsHeaders(denied);
+                            await denied.WriteStringAsync("Name is claimed. Verify identity first.");
+                            return denied;
+                        }
+                    case TokenVerifyResult.Error:
+                        {
+                            _logger.LogWarning("Player auth lookup failed for {Name} — rejecting save", normalizedName);
+                            var svcErr = req.CreateResponse(HttpStatusCode.ServiceUnavailable);
+                            AddCorsHeaders(svcErr);
+                            await svcErr.WriteStringAsync("Unable to verify identity. Try again later.");
+                            return svcErr;
+                        }
+                }
+
+                var table = await GetTableAsync();
+                var now = DateTime.UtcNow;
+                var periods = new[]
+                {
+                    "alltime",
+                    $"daily:{now:yyyy-MM-dd}",
+                    $"monthly:{now:yyyy-MM}",
+                    $"yearly:{now:yyyy}"
+                };
+
+                foreach (var p in periods)
+                {
+                    // Only save if this is the player's best score for the period
+                    try
+                    {
+                        var existingResponse = await table.GetEntityAsync<TableEntity>(p, normalizedName);
+                        var existingScore = existingResponse.Value.GetDouble("Score") ?? 0;
+                        if (entry.Score <= existingScore)
+                        {
+                            _logger.LogInformation("Score {Score} for {Player} in {Period} not higher than {Existing}, skipping",
+                                entry.Score, normalizedName, p, existingScore);
+                            continue;
+                        }
+                    }
+                    catch (RequestFailedException ex) when (ex.Status == 404)
+                    {
+                        // No existing entry — proceed
+                    }
+
+                    await table.UpsertEntityAsync(EntryToEntity(entry, p, normalizedName));
+                }
+
+                _logger.LogInformation("Score saved: {Score} for {Player}", entry.Score, entry.PlayerName);
+
+                // Update per-player stats for claimed names (fire-and-forget, non-critical)
+                if (authResult == TokenVerifyResult.Valid)
+                    _ = PlayerFunction.UpdatePlayerStatsAsync(playersTable, normalizedName, entry);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                await response.WriteStringAsync("Score saved successfully");
+                AddCorsHeaders(response);
+                await response.WriteStringAsync("Score saved");
                 return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving score to leaderboard");
-                var response = req.CreateResponse(HttpStatusCode.InternalServerError);
-                await response.WriteStringAsync("Error saving score");
-                return response;
+                _logger.LogError(ex, "Error saving score");
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error saving score");
+                return error;
             }
         }
 
-        private async Task<Leaderboard> GetLeaderboardFromFile()
+        [Function("GetPlayerBest")]
+        public async Task<HttpResponseData> GetPlayerBest(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "options", Route = "leaderboard/player")] HttpRequestData req)
         {
-            await FileSemaphore.WaitAsync();
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            var name = GetQueryParam(req.Url, "name", string.Empty);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("name is required");
+                return bad;
+            }
+
             try
             {
-                var filePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP") ?? "/tmp", LEADERBOARD_FILE);
+                var table = await GetTableAsync();
+                var normalized = PlayerNameHelper.Normalize(name);
+                LeaderboardEntry? best = null;
 
-                if (!File.Exists(filePath))
+                await foreach (var entity in table.QueryAsync<TableEntity>(
+                    filter: $"PartitionKey eq 'alltime'", maxPerPage: 500))
                 {
-                    return new Leaderboard { Entries = new List<LeaderboardEntry>() };
+                    var entryName = PlayerNameHelper.Normalize(entity.GetString("PlayerName") ?? "");
+                    if (entryName != normalized) continue;
+
+                    var entry = EntityToEntry(entity);
+                    if (best == null || entry.Score > best.Score)
+                        best = entry;
                 }
 
-                var json = await File.ReadAllTextAsync(filePath);
-                var leaderboard = JsonSerializer.Deserialize<Leaderboard>(json);
-                return leaderboard ?? new Leaderboard { Entries = new List<LeaderboardEntry>() };
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+                await response.WriteAsJsonAsync(best);
+                return response;
             }
-            finally
+            catch (Exception ex)
             {
-                FileSemaphore.Release();
+                _logger.LogError(ex, "Error getting player best for {Name}", name);
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error getting player best");
+                return error;
             }
         }
 
-        private async Task SaveScoreToFile(LeaderboardEntry newEntry)
+        [Function("ClearLeaderboard")]
+        public async Task<HttpResponseData> ClearLeaderboard(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", "options", Route = "leaderboard/clear")] HttpRequestData req)
         {
-            await FileSemaphore.WaitAsync();
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            _logger.LogInformation("ClearLeaderboard triggered");
             try
             {
-                var leaderboard = await GetLeaderboardFromFileUnsafe();
-                leaderboard.Entries.Add(newEntry);
+                var table = await GetTableAsync();
+                var deleted = 0;
+                await foreach (var entity in table.QueryAsync<TableEntity>(select: new[] { "PartitionKey", "RowKey" }))
+                {
+                    await table.DeleteEntityAsync(entity.PartitionKey, entity.RowKey);
+                    deleted++;
+                }
 
-                // Keep only top 10 scores
-                var topScores = leaderboard.Entries
-                    .OrderByDescending(x => x.Score)
-                    .ThenByDescending(x => x.GameDate)
-                    .Take(10)
-                    .ToList();
-
-                leaderboard.Entries = topScores;
-
-                var filePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP") ?? "/tmp", LEADERBOARD_FILE);
-                var json = JsonSerializer.Serialize(leaderboard, new JsonSerializerOptions { WriteIndented = true });
-                await File.WriteAllTextAsync(filePath, json);
-
-                _logger.LogInformation($"Saved score {newEntry.Score} for {newEntry.PlayerName}. Leaderboard now has {leaderboard.Entries.Count} entries");
+                _logger.LogInformation("Cleared {Count} leaderboard entities", deleted);
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+                await response.WriteStringAsync($"Cleared {deleted} entries");
+                return response;
             }
-            finally
+            catch (Exception ex)
             {
-                FileSemaphore.Release();
+                _logger.LogError(ex, "Error clearing leaderboard");
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error clearing leaderboard");
+                return error;
             }
         }
 
-        private async Task<Leaderboard> GetLeaderboardFromFileUnsafe()
+        private static string BuildPartitionKey(string period) => period switch
         {
-            var filePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP") ?? "/tmp", LEADERBOARD_FILE);
+            "daily" => $"daily:{DateTime.UtcNow:yyyy-MM-dd}",
+            "monthly" => $"monthly:{DateTime.UtcNow:yyyy-MM}",
+            "yearly" => $"yearly:{DateTime.UtcNow:yyyy}",
+            _ => "alltime"
+        };
 
-            if (!File.Exists(filePath))
+        private static TableEntity EntryToEntity(LeaderboardEntry entry, string partitionKey, string rowKey) =>
+            new(partitionKey, rowKey)
             {
-                return new Leaderboard { Entries = new List<LeaderboardEntry>() };
-            }
+                ["PlayerName"] = entry.PlayerName,
+                ["Score"] = entry.Score,
+                ["TotalClicks"] = entry.TotalClicks,
+                ["GameDate"] = new DateTimeOffset(DateTime.SpecifyKind(
+                    entry.GameDate == default ? DateTime.UtcNow : entry.GameDate, DateTimeKind.Utc)),
+                ["GameDurationSeconds"] = entry.GameDurationSeconds,
+                ["AssTypeBreakdown"] = JsonSerializer.Serialize(entry.AssTypeBreakdown)
+            };
 
-            var json = await File.ReadAllTextAsync(filePath);
-            var leaderboard = JsonSerializer.Deserialize<Leaderboard>(json);
-            return leaderboard ?? new Leaderboard { Entries = new List<LeaderboardEntry>() };
+        private static LeaderboardEntry EntityToEntry(TableEntity entity)
+        {
+            var breakdownJson = entity.GetString("AssTypeBreakdown") ?? "{}";
+            Dictionary<string, int> breakdown;
+            try { breakdown = JsonSerializer.Deserialize<Dictionary<string, int>>(breakdownJson) ?? new(); }
+            catch { breakdown = new(); }
+
+            return new LeaderboardEntry
+            {
+                PlayerName = entity.GetString("PlayerName") ?? "",
+                Score = entity.GetDouble("Score") ?? 0,
+                TotalClicks = entity.GetInt32("TotalClicks") ?? 0,
+                GameDate = entity.GetDateTimeOffset("GameDate")?.UtcDateTime ?? DateTime.UtcNow,
+                GameDurationSeconds = entity.GetInt32("GameDurationSeconds") ?? 60,
+                AssTypeBreakdown = breakdown
+            };
+        }
+
+        private static string GetQueryParam(Uri url, string name, string defaultValue = "")
+        {
+            var query = url.Query.TrimStart('?');
+            foreach (var pair in query.Split('&'))
+            {
+                var parts = pair.Split('=', 2);
+                if (parts.Length == 2 && Uri.UnescapeDataString(parts[0]) == name)
+                    return Uri.UnescapeDataString(parts[1]);
+            }
+            return defaultValue;
+        }
+
+        private static HttpResponseData CorsOptions(HttpRequestData req)
+        {
+            var res = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(res);
+            return res;
+        }
+
+        private static void AddCorsHeaders(HttpResponseData response)
+        {
+            response.Headers.Add("Access-Control-Allow-Origin", "*");
+            response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+            response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
         }
     }
 }

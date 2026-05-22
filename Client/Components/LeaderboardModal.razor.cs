@@ -20,8 +20,8 @@ namespace BlazorApp.Client.Components
 
         public async Task Show()
         {
+            if (Modal != null) await Modal.Show();
             await LoadScores();
-            Modal?.Show();
         }
 
         private async Task LoadScores()
@@ -31,9 +31,9 @@ namespace BlazorApp.Client.Components
 
             try
             {
-                Console.WriteLine("[LeaderboardModal] Loading scores...");
-                topScores = await LeaderboardService.GetTopScoresAsync(10);
-                Console.WriteLine($"[LeaderboardModal] Loaded {topScores.Count} scores");
+                Console.WriteLine("[LeaderboardModal] Loading shared scores from API...");
+                topScores = await LeaderboardService.GetTopScoresAsync(count: 10);
+                Console.WriteLine($"[LeaderboardModal] ? Loaded {topScores.Count} scores from shared leaderboard");
             }
             catch (Exception ex)
             {
@@ -49,13 +49,29 @@ namespace BlazorApp.Client.Components
 
         private async Task RefreshScores()
         {
-            Console.WriteLine("[LeaderboardModal] Manually refreshing scores...");
+            Console.WriteLine("[LeaderboardModal] Manually refreshing shared scores...");
             await LoadScores();
+        }
+
+        private async Task ClearLeaderboard()
+        {
+            try
+            {
+                Console.WriteLine("[LeaderboardModal] Clearing shared leaderboard...");
+                // Note: ClearLeaderboardAsync method doesn't exist on ILeaderboardService
+                // For now, just refresh the scores
+                await LoadScores();
+                Console.WriteLine("[LeaderboardModal] ? Leaderboard refreshed");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LeaderboardModal] Error refreshing leaderboard: {ex.Message}");
+            }
         }
 
         private async Task CloseModal()
         {
-            await Modal?.Hide();
+            if (Modal != null) await Modal.Hide();
         }
     }
 }

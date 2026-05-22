@@ -1,9 +1,36 @@
+/* Global modal background */
+.modal-content {
+    background: #1a1a2e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: #ffffff;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    height:100vh;
-    overflow:hidden !important;
-    background: radial-gradient(circle, #333, #000);
-    background-size:contain;
+    height: 100%;
+    background: #0d0d1a;
+}
+
+/* ── Frenzy screen shake ─────────────────────────────────────────── */
+body.frenzy-shaking {
+    animation: frenzy-shake 0.25s linear infinite;
+}
+
+@keyframes frenzy-shake {
+    0%   { transform: translate(0px,    0px)   rotate(0deg);    }
+    8%   { transform: translate(-14px,  -7px)  rotate(-0.5deg); }
+    16%  { transform: translate(13px,   9px)   rotate(0.5deg);  }
+    24%  { transform: translate(-12px,  10px)  rotate(-0.4deg); }
+    32%  { transform: translate(15px,  -8px)   rotate(0.6deg);  }
+    40%  { transform: translate(-13px,  7px)   rotate(-0.5deg); }
+    48%  { transform: translate(11px,  -12px)  rotate(0.4deg);  }
+    56%  { transform: translate(-15px,  9px)   rotate(-0.6deg); }
+    64%  { transform: translate(14px,  -7px)   rotate(0.5deg);  }
+    72%  { transform: translate(-10px,  13px)  rotate(-0.4deg); }
+    80%  { transform: translate(13px,  -10px)  rotate(0.5deg);  }
+    88%  { transform: translate(-14px,  6px)   rotate(-0.4deg); }
+    100% { transform: translate(9px,   -6px)   rotate(0.3deg);  }
 }
 
 h1:focus {
@@ -69,38 +96,167 @@ a, .btn-link {
         content: "An error has occurred."
     }
 
-.loading-progress {
-    position: relative;
-    display: block;
-    width: 8rem;
-    height: 8rem;
-    margin: 20vh auto 1rem auto;
+/* ── Splash Screen ──────────────────────────────────────── */
+#emea-splash {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 35%, #1a1040 0%, #0d0d1a 65%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    overflow: hidden;
 }
 
-    .loading-progress circle {
-        fill: none;
-        stroke: #e0e0e0;
-        stroke-width: 0.6rem;
-        transform-origin: 50% 50%;
-        transform: rotate(-90deg);
-    }
+#emea-splash::before,
+#emea-splash::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    animation: splash-orb 5s ease-in-out infinite alternate;
+    pointer-events: none;
+}
 
-        .loading-progress circle:last-child {
-            stroke: #1b6ec2;
-            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-            transition: stroke-dasharray 0.05s ease-in-out;
-        }
+#emea-splash::before {
+    width: 560px;
+    height: 560px;
+    background: #6d28d9;
+    opacity: 0.14;
+    top: -160px;
+    left: -140px;
+}
+
+#emea-splash::after {
+    width: 420px;
+    height: 420px;
+    background: #f59e0b;
+    opacity: 0.12;
+    bottom: -100px;
+    right: -100px;
+    animation-delay: -2.5s;
+}
+
+@keyframes splash-orb {
+    from { transform: scale(1);   opacity: 0.10; }
+    to   { transform: scale(1.4); opacity: 0.20; }
+}
+
+.splash-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.splash-ass {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 24px rgba(245, 158, 11, 0.45));
+    animation: splash-bounce 2.2s ease-in-out infinite;
+    margin-bottom: 1.6rem;
+}
+
+@keyframes splash-bounce {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%       { transform: translateY(-14px) rotate(2deg); }
+}
+
+.splash-title {
+    margin: 0 0 0.4rem;
+    line-height: 1;
+}
+
+.splash-eat {
+    display: block;
+    font-size: clamp(0.95rem, 3.5vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    margin-bottom: 0.1rem;
+}
+
+.splash-big-ass {
+    display: block;
+    font-size: clamp(4.5rem, 20vw, 10rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 0.85;
+    background: linear-gradient(135deg, #ff8c00 0%, #fcd34d 45%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: uppercase;
+    animation: splash-glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes splash-glow {
+    from { filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.35)); }
+    to   { filter: drop-shadow(0 0 36px rgba(245, 158, 11, 0.75)); }
+}
+
+.splash-url {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.1em;
+    margin: 0.6rem 0 2rem;
+    text-transform: lowercase;
+}
+
+.splash-progress-wrap {
+    width: min(300px, 78vw);
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.8rem;
+}
+
+.splash-progress-bar {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 50%, #f59e0b 100%);
+    background-size: 200% 100%;
+    animation: splash-bar 3s ease-out forwards, splash-shimmer 1.2s linear infinite;
+}
+
+@keyframes splash-bar {
+    0%  { width: 0%; }
+    50% { width: 72%; }
+    90% { width: 94%; }
+    to  { width: 100%; }
+}
+
+@keyframes splash-shimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+}
+
+.splash-status {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.07em;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+@keyframes fart-emoji-rise {
+    from { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+    to   { transform: translateY(-65vh) rotate(var(--fart-rot, 18deg)); opacity: 0; }
+}
+
+/* Keep Blazor's tracking element out of sight */
+.loading-progress {
+    display: none !important;
+}
 
 .loading-progress-text {
-    position: absolute;
-    text-align: center;
-    font-weight: bold;
-    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+    display: none !important;
 }
-
-    .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
-    }
 
 code {
     color: #c02d76;
@@ -110,46 +266,3 @@ code {
     color: #e89477;
 }
 
-/* FAB (Floating Action Button) Styles */
-.btn-fab {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    font-size: 1.2rem;
-}
-
-.btn-fab:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    color: #ffffff;
-}
-
-.btn-fab:active {
-    transform: translateY(0px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.btn-fab-active {
-    background: rgba(28, 110, 194, 0.8) !important;
-    color: #ffffff !important;
-}
-
-.btn-fab-active:hover {
-    background: rgba(28, 110, 194, 0.9) !important;
-}
-
-.actions-bar {
-    position: relative;
-    z-index: 10;
-}

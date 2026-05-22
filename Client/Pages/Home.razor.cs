@@ -12,10 +12,13 @@ namespace BlazorApp.Client.Pages
     {
         HelpModal HelpDialog;
         AboutModal AboutDialog;
+        AnniversaryModal AnniversaryDialog;
+        UpdateModal UpdateDialog;
         ResultsModal ResultsDialog;
 
         bool gamePlaying;
         bool gameJustEnded; // Add this flag to prevent immediate restart
+        bool gameStartTransition = false; // Drives the hint→timer tween animation
         bool hasScoreSaved; // Track if score has been saved for current game
         bool playSounds = true;
         double volume = 1;
@@ -27,7 +30,20 @@ namespace BlazorApp.Client.Pages
 
         double assesEaten = 0;
         int piecesEaten = 0;
-        
+
+        // Progress / perks cache (loaded in OnInitializedAsync, safe defaults until then)
+        Dictionary<AssTypeEnum, AssTypeProgress> _progressCache =
+            Enum.GetValues<AssTypeEnum>().ToDictionary(t => t, _ => new AssTypeProgress());
+        int _effectiveCompleteThreshold = 0;
+
+        // Frenzy Mode
+        bool frenzyActive = false;
+        int frenzySecondsLeft = 0;
+        int frenzyCount = 0;
+        bool _mouseHeld = false;
+        CancellationTokenSource? _autoEatCts;
+        Timer? FrenzyCountdownTimer;
+
         // Add tracking for dynamic stats and polling
         DateTime gameStartTime;
         List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls = new(); // Store polls for chart
@@ -114,11 +130,34 @@ namespace BlazorApp.Client.Pages
             _ => "How did you even get this? I default the number to 0..."
         };
 
+        protected override void OnInitialized()
+        {
+            base.OnInitialized();
+            GetNewAss(); // Populate frames synchronously before first render to avoid loading spinner
+        }
+
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
+            _progressCache = await ProgressService.LoadAsync();
+            _currentPlayerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
             await LoadSettings();
-            GetNewAss();
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (!firstRender) return;
+            await AnniversaryDialog.ShowIfEligibleAsync();
+            await CheckForUpdateAsync();
+        }
+
+        private async Task CheckForUpdateAsync()
+        {
+            var hasUpdate = await VersionCheckService.IsUpdateAvailableAsync();
+            if (hasUpdate && VersionCheckService.ServerVersion != null)
+            {
+                await UpdateDialog.ShowIfNeededAsync(VersionCheckService.ServerVersion);
+            }
         }
 
         private async Task LoadSettings()
@@ -138,10 +177,10 @@ namespace BlazorApp.Client.Pages
         {
             try
             {
-                CurrentAssType = BlazorApp.Shared.Assets.GetRandomAssType();
+                CurrentAssType = PickNextAssType();
                 AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
-                
-                // Ensure piecesEaten is within bounds
+                _effectiveCompleteThreshold = ProgressService.GetEffectiveCompleteThreshold(CurrentAssType, _progressCache[CurrentAssType]);
+
                 if (piecesEaten >= AssFrames.Count)
                 {
                     piecesEaten = 0;
@@ -149,11 +188,28 @@ namespace BlazorApp.Client.Pages
             }
             catch (Exception)
             {
-                // Fallback to a safe default if something goes wrong
                 CurrentAssType = AssTypeEnum.Flat;
                 AssFrames = BlazorApp.Shared.Assets.GetAssFrames(CurrentAssType);
+                _effectiveCompleteThreshold = ProgressService.GetEffectiveCompleteThreshold(CurrentAssType, _progressCache[CurrentAssType]);
                 piecesEaten = 0;
             }
+        }
+
+        AssTypeEnum PickNextAssType()
+        {
+            // ~2% chance of Golden
+            if (Random.Shared.Next(50) == 0)
+                return AssTypeEnum.Golden;
+
+            // Build weighted pool for non-golden types
+            var pool = new List<AssTypeEnum>();
+            foreach (var type in Enum.GetValues<AssTypeEnum>())
+            {
+                if (type == AssTypeEnum.Golden) continue;
+                var count = _progressCache.TryGetValue(type, out var p) && p.HasPerk25 ? 2 : 1;
+                for (int i = 0; i < count; i++) pool.Add(type);
+            }
+            return pool[Random.Shared.Next(pool.Count)];
         }
 
         async Task LoadDataAsync(string username)
@@ -166,6 +222,11 @@ namespace BlazorApp.Client.Pages
             assesEaten = 0;
             piecesEaten = 0;
             totalClicks = 0;
+            frenzyActive = false;
+            frenzySecondsLeft = 0;
+            frenzyCount = 0;
+            _mouseHeld = false;
+            StopFrenzy();
             GameTimeInSeconds = 60;
             gameJustEnded = false; // Reset the flag when starting a fresh game
             hasScoreSaved = false; // Reset score saved flag for new game
@@ -190,50 +251,56 @@ namespace BlazorApp.Client.Pages
                 GameTimer.Dispose();
                 GameTimer = null;
             }
-            
+
             if (StatsUpdateTimer != null)
             {
                 StatsUpdateTimer.Stop();
                 StatsUpdateTimer.Dispose();
                 StatsUpdateTimer = null;
             }
-            
+
             if (StatsPollTimer != null)
             {
                 StatsPollTimer.Stop();
                 StatsPollTimer.Dispose();
                 StatsPollTimer = null;
             }
-            
+
             ResetGame();
             GetNewAss();
-            
+
             // Capture game start time for dynamic stats
             gameStartTime = DateTime.Now;
-            
+
             // Add initial poll at game start (0 seconds, 0 clicks/sec)
             clicksPerSecondPolls.Add((0, 0.0));
-            
+
             // Main game timer (1 second intervals)
             GameTimer = new Timer(1000);
             GameTimer.Elapsed += OnTimerTick;
             GameTimer.AutoReset = true;
             GameTimer.Enabled = true;
-            
+
             // Stats update timer (faster updates for smoother display)
             StatsUpdateTimer = new Timer(500); // Update every 500ms for smooth stats
             StatsUpdateTimer.Elapsed += OnStatsUpdateTick;
             StatsUpdateTimer.AutoReset = true;
             StatsUpdateTimer.Enabled = true;
-            
+
             // Stats polling timer (every 10 seconds for chart data)
             StatsPollTimer = new Timer(10000); // Poll every 10 seconds
             StatsPollTimer.Elapsed += OnStatsPollTick;
             StatsPollTimer.AutoReset = true;
             StatsPollTimer.Enabled = true;
-            
+
             gamePlaying = true;
-            
+            gameStartTransition = true;
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(420);
+                await InvokeAsync(() => { gameStartTransition = false; StateHasChanged(); });
+            });
+
             // Force UI update
             StateHasChanged();
         }
@@ -248,7 +315,7 @@ namespace BlazorApp.Client.Pages
             // Update UI for dynamic stats display
             InvokeAsync(() => StateHasChanged());
         }
-        
+
         void OnStatsPollTick(object sender, EventArgs e)
         {
             if (!gamePlaying || StatsPollTimer == null)
@@ -260,7 +327,7 @@ namespace BlazorApp.Client.Pages
             var elapsed = DateTime.Now - gameStartTime;
             var timeStamp = (int)Math.Round(elapsed.TotalSeconds);
             var cps = GetClicksPerSecond();
-            
+
             InvokeAsync(() =>
             {
                 clicksPerSecondPolls.Add((timeStamp, cps));
@@ -275,6 +342,10 @@ namespace BlazorApp.Client.Pages
             {
                 return;
             }
+
+            // Pause main countdown while frenzy is active
+            if (frenzyActive)
+                return;
 
             if (GameTimeInSeconds > 0)
             {
@@ -296,6 +367,12 @@ namespace BlazorApp.Client.Pages
                 {
                     await js.InvokeVoidAsync("playSound", gameOverSound, volume);
                 }
+
+                // Write stats to file before showing results so Global Stats tab is current
+                await SubmitGameStatsAsync();
+
+                // Check daily challenge progress
+                _ = CheckDailyChallengesAsync();
 
                 // Show results immediately - no delay for API calls
                 await CheckAndPromptScoreSave();
@@ -331,13 +408,25 @@ namespace BlazorApp.Client.Pages
             }
 
             // Check if we're about to complete the current ass
-            if (piecesEaten >= AssFrames.Count - 1)
+            if (piecesEaten >= _effectiveCompleteThreshold)
             {
-                // Completing the ass - reset to get a new one and add points
+                var completedType = CurrentAssType;
+                var clicksUsed = piecesEaten + 1;
                 piecesEaten = 0;
-                assesEaten += BlazorApp.Shared.Assets.GetPointsForAssType(CurrentAssType);
-                Breakdown[CurrentAssType]++;
+                assesEaten += ProgressService.GetEffectivePoints(completedType, _progressCache[completedType]);
+                Breakdown[completedType]++;
+
+                // Update progress cache synchronously before getting next ass
+                _progressCache[completedType].Eaten++;
+                _progressCache[completedType].ClicksUsed += clicksUsed;
+
+                // Assdex: track new unlocks; get next ass (uses updated cache for threshold)
                 GetNewAss();
+                _ = CollectionService.MarkUnlockedAsync(completedType);
+                _ = ProgressService.SaveAsync(_progressCache);
+
+                if (completedType == AssTypeEnum.Golden)
+                    TriggerFrenzy();
             }
             else
             {
@@ -350,7 +439,7 @@ namespace BlazorApp.Client.Pages
                     await js.InvokeVoidAsync("playSound", sound, volume);
                 }
             }
-            
+
             // Force UI update to show current score
             StateHasChanged();
         }
@@ -360,9 +449,39 @@ namespace BlazorApp.Client.Pages
             await HelpDialog?.Modal?.Show();
         }
 
+        async Task OpenAssDexFromHelp()
+        {
+            await AssdexDialog?.Show();
+        }
+
         async Task ShowAboutDialog()
         {
             await AboutDialog?.Modal?.Show();
+        }
+
+        async Task ShowStatsDialog()
+        {
+            if (LeaderboardStatsDialog != null) await LeaderboardStatsDialog.ShowStats();
+        }
+
+        async Task SubmitGameStatsAsync()
+        {
+            try
+            {
+                var update = new GameStatsUpdate
+                {
+                    Clicks = totalClicks,
+                    DurationSeconds = 60,
+                    AssTypeBreakdown = Breakdown.ToDictionary(
+                        kvp => kvp.Key.ToString(),
+                        kvp => kvp.Value)
+                };
+                await StatsService.UpdateStatsAsync(update);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Home] Stats submission failed (non-critical): {ex.Message}");
+            }
         }
 
         async Task ShowResultsDialog()
@@ -372,11 +491,32 @@ namespace BlazorApp.Client.Pages
 
         async Task CheckAndPromptScoreSave()
         {
-            // Always show results dialog immediately
+            _isPersonalBest = false;
+            _personalBestScore = null;
             await ShowResultsDialog();
-            
-            // Don't check for leaderboard qualification - let user decide if they want to save
-            // This eliminates the delay from API calls
+
+            var savedName = await SettingsService.GetLastPlayerNameAsync();
+            if (string.IsNullOrWhiteSpace(savedName)) return;
+
+            try
+            {
+                var playerBest = await LeaderboardService.GetPlayerBestScoreAsync(savedName);
+                bool isNewBest = playerBest == null || assesEaten > playerBest.Score;
+
+                _personalBestScore = playerBest?.Score;
+                _isPersonalBest = isNewBest;
+                await InvokeAsync(StateHasChanged);
+
+                if (isNewBest)
+                {
+                    await Task.Delay(300);
+                    await SaveScoreDialog?.Show((double)assesEaten, totalClicks, Breakdown);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Home] Auto-show save score check failed (non-critical): {ex.Message}");
+            }
         }
 
         async Task TryAgain()
@@ -401,21 +541,21 @@ namespace BlazorApp.Client.Pages
                 GameTimer.Dispose();
                 GameTimer = null;
             }
-            
+
             if (StatsUpdateTimer != null)
             {
                 StatsUpdateTimer.Stop();
                 StatsUpdateTimer.Dispose();
                 StatsUpdateTimer = null;
             }
-            
+
             if (StatsPollTimer != null)
             {
                 StatsPollTimer.Stop();
                 StatsPollTimer.Dispose();
                 StatsPollTimer = null;
             }
-            
+
             // Capture final poll when game ends
             if (gamePlaying && clicksPerSecondPolls.Count > 0)
             {
@@ -424,10 +564,13 @@ namespace BlazorApp.Client.Pages
                 var cps = GetClicksPerSecond();
                 clicksPerSecondPolls.Add((timeStamp, cps));
             }
-            
+
             gamePlaying = false;
             gameJustEnded = true; // Set flag to prevent immediate restart
-            
+            _isPersonalBest = false;
+            _personalBestScore = null;
+            StopFrenzy();
+
             // Auto-clear the flag after 5 seconds to allow restart if modals are closed
             _ = Task.Run(async () =>
             {
@@ -435,26 +578,132 @@ namespace BlazorApp.Client.Pages
                 gameJustEnded = false;
                 await InvokeAsync(() => StateHasChanged());
             });
-            
+
             StateHasChanged();
+        }
+
+        async Task CheckDailyChallengesAsync()
+        {
+            var totalCount = Breakdown.Values.Sum();
+            var breakdownStrings = Breakdown.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
+            var avgCps = GetClicksPerSecond();
+            var hasAllTypes = Breakdown.Values.All(v => v > 0);
+            await DailyChallengeService.CheckGameResultAsync(totalCount, breakdownStrings, avgCps, frenzyCount, hasAllTypes);
+        }
+
+        async Task PromptAndSaveDailyScoreAsync()
+        {
+            await InvokeAsync(async () => await DailyDialog?.Show());
+        }
+
+        void TriggerFrenzy()
+        {
+            // Reset countdown (always extend to 10s on re-trigger)
+            frenzySecondsLeft = 10;
+
+            if (!frenzyActive)
+            {
+                frenzyActive = true;
+                frenzyCount++;
+                _ = js.InvokeVoidAsync("toggleBodyShake", true);
+
+                FrenzyCountdownTimer = new Timer(1000);
+                FrenzyCountdownTimer.Elapsed += OnFrenzyCountdownTick;
+                FrenzyCountdownTimer.AutoReset = true;
+                FrenzyCountdownTimer.Enabled = true;
+
+                // If the mouse is already held, kick off auto-eat immediately
+                if (_mouseHeld)
+                    _ = StartFrenzyAutoClickLoop();
+            }
+        }
+
+        void OnFrenzyCountdownTick(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            frenzySecondsLeft--;
+            if (frenzySecondsLeft <= 0)
+                InvokeAsync(StopFrenzy);
+            else
+                InvokeAsync(() => StateHasChanged());
+        }
+
+        void StopFrenzy()
+        {
+            frenzyActive = false;
+            frenzySecondsLeft = 0;
+            _ = js.InvokeVoidAsync("toggleBodyShake", false);
+            FrenzyCountdownTimer?.Stop();
+            FrenzyCountdownTimer?.Dispose();
+            FrenzyCountdownTimer = null;
+            StopFrenzyAutoClick();
+            StateHasChanged();
+        }
+
+        void OnFrenzyHoldStart()
+        {
+            _mouseHeld = true;
+            if (frenzyActive && gamePlaying)
+                _ = StartFrenzyAutoClickLoop();
+        }
+
+        void OnFrenzyHoldEnd()
+        {
+            _mouseHeld = false;
+            StopFrenzyAutoClick();
+        }
+
+        async Task StartFrenzyAutoClickLoop()
+        {
+            // Cancel any existing loop before starting a new one
+            _autoEatCts?.Cancel();
+            var cts = new CancellationTokenSource();
+            _autoEatCts = cts;
+
+            try
+            {
+                while (!cts.IsCancellationRequested && _mouseHeld && frenzyActive && gamePlaying)
+                {
+                    await EatPiece();
+                    await Task.Delay(100, cts.Token); // 10 clicks/sec
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FrenzyAutoClick] Error: {ex.Message}");
+            }
+        }
+
+        void StopFrenzyAutoClick()
+        {
+            _autoEatCts?.Cancel();
+            _autoEatCts = null;
         }
 
         public void Dispose()
         {
+            // Cancel async operations immediately (no JS interop or StateHasChanged during disposal)
+            _autoEatCts?.Cancel();
+            _autoEatCts = null;
+
+            FrenzyCountdownTimer?.Stop();
+            FrenzyCountdownTimer?.Dispose();
+            FrenzyCountdownTimer = null;
+
             if (GameTimer != null)
             {
                 GameTimer.Stop();
                 GameTimer.Dispose();
                 GameTimer = null;
             }
-            
+
             if (StatsUpdateTimer != null)
             {
                 StatsUpdateTimer.Stop();
                 StatsUpdateTimer.Dispose();
                 StatsUpdateTimer = null;
             }
-            
+
             if (StatsPollTimer != null)
             {
                 StatsPollTimer.Stop();
