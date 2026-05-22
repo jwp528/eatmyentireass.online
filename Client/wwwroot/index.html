@@ -231,6 +231,8 @@
             }
         }
 
+        window.copyToClipboard = (text) => navigator.clipboard.writeText(text);
+
         // Image preloading function for better performance
         window.preloadGameImages = () => {
             const imageUrls = [

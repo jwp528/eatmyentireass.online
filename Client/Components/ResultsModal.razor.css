@@ -457,3 +457,46 @@
     opacity: 0.7;
     cursor: default;
 }
+
+/* ── Challenge button ── */
+.rm-btn-challenge {
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.35);
+    color: #fbbf24;
+}
+
+.rm-btn-challenge:hover {
+    background: rgba(251, 191, 36, 0.18);
+    border-color: rgba(251, 191, 36, 0.6);
+    color: #fcd34d;
+}
+
+/* ── Challenge result badge ── */
+.rm-challenge-result {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 5px 16px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.rm-challenge-beaten {
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    background: rgba(74, 222, 128, 0.08);
+    color: #4ade80;
+    animation: rm-challenge-pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.rm-challenge-missed {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.45);
+}
+
+@keyframes rm-challenge-pop {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}

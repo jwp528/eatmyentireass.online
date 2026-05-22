@@ -142,6 +142,31 @@ namespace BlazorApp.Client.Pages
             _progressCache = await ProgressService.LoadAsync();
             _currentPlayerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
             await LoadSettings();
+            ParseChallengeFromUrl();
+        }
+
+        private void ParseChallengeFromUrl()
+        {
+            var uri = new Uri(NavigationManager.Uri);
+            var query = uri.Query.TrimStart('?');
+            if (string.IsNullOrEmpty(query)) return;
+
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var kv = part.Split('=', 2);
+                if (kv.Length == 2)
+                    dict[Uri.UnescapeDataString(kv[0])] = Uri.UnescapeDataString(kv[1]);
+            }
+
+            if (dict.TryGetValue("challenge", out var scoreStr) &&
+                double.TryParse(scoreStr, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out var score))
+            {
+                _challengeScore = score;
+                _challengerName = dict.TryGetValue("challenger", out var n) && !string.IsNullOrWhiteSpace(n) ? n : "Someone";
+                _showChallengeBanner = true;
+            }
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)

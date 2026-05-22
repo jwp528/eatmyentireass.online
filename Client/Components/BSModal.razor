@@ -1,66 +1,63 @@
-@inject IJSRuntime Js
-
-<div class="modal fade" id="@Id" tabindex="-1" aria-labelledby="@Id" aria-hidden="true">
-    <div class="modal-dialog @(IsVerticallyCentered ? "modal-dialog-centered" : "") @GetSizeClass()">
-        <div class="modal-content">
-            @if(Header is not null){
-                <div class="modal-header">
-                    @Header
+@if (_isVisible)
+{
+    <div class="modal-backdrop fade show bs-modal-backdrop"></div>
+    <div class="modal show bs-modal-blazor" id="@Id" tabindex="-1" aria-modal="true" role="dialog"
+         style="display:block;" @onclick="OnBackdropClick">
+        <div class="modal-dialog @(IsVerticallyCentered ? "modal-dialog-centered" : "") @GetSizeClass()"
+             @onclick:stopPropagation="true">
+            <div class="modal-content">
+                @if (Header is not null)
+                {
+                    <div class="modal-header">@Header</div>
+                }
+                <div class="modal-body">
+                    @Body
                 </div>
-            }
-            <div class="modal-body">
-                @Body
+                @if (Footer is not null)
+                {
+                    <div class="modal-footer">@Footer</div>
+                }
             </div>
-            @if(Footer is not null){
-                <div class="modal-footer">
-                    @Footer
-                </div>
-            }
         </div>
     </div>
-</div>
+}
 
 @code {
-    [Parameter]
-    public string Id { get; set; } = "exampleModal";
+    [Parameter] public string Id { get; set; } = "exampleModal";
+    [Parameter] public string Title { get; set; } = "Modal title";
+    [Parameter] public RenderFragment Header { get; set; }
+    [Parameter] public RenderFragment Body { get; set; }
+    [Parameter] public RenderFragment Footer { get; set; }
+    [Parameter] public bool IsVerticallyCentered { get; set; }
+    [Parameter] public ModalSize Size { get; set; } = ModalSize.Default;
+    [Parameter] public bool DismissOnBackdrop { get; set; } = false;
 
-    [Parameter]
-    public string Title { get; set; } = "Modal title";
+    private bool _isVisible = false;
 
-    [Parameter]
-    public RenderFragment Header { get; set; }
-
-    [Parameter]
-    public RenderFragment Body { get; set; }
-
-    [Parameter]
-    public RenderFragment Footer {get ;set;}
-
-    [Parameter]
-    public bool IsVerticallyCentered { get; set; }
-
-    [Parameter]
-    public ModalSize Size { get; set; } = ModalSize.Default;
-
-    private string GetSizeClass()
+    private string GetSizeClass() => Size switch
     {
-        return Size switch
-        {
-            ModalSize.Small => "modal-sm",
-            ModalSize.Large => "modal-lg",
-            ModalSize.ExtraLarge => "modal-xl",
-            ModalSize.Default => "",
-            _ => ""
-        };
+        ModalSize.Small => "modal-sm",
+        ModalSize.Large => "modal-lg",
+        ModalSize.ExtraLarge => "modal-xl",
+        _ => ""
+    };
+
+    public Task Show()
+    {
+        _isVisible = true;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
-    public async Task Show(){
-        await Js.InvokeVoidAsync("showModal", Id);
+    public Task Hide()
+    {
+        _isVisible = false;
         StateHasChanged();
+        return Task.CompletedTask;
     }
 
-    public async Task Hide(){
-        await Js.InvokeVoidAsync("hideModal", Id);
-        StateHasChanged();
-    }   
+    private void OnBackdropClick()
+    {
+        if (DismissOnBackdrop) Hide();
+    }
 }

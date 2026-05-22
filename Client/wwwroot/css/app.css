@@ -6,6 +6,25 @@
     color: #ffffff;
 }
 
+/* Blazor-rendered modal fade-in */
+.bs-modal-blazor {
+    animation: modal-fade-in 0.18s ease-out both;
+}
+
+.bs-modal-backdrop {
+    animation: backdrop-fade-in 0.18s ease-out both;
+}
+
+@keyframes modal-fade-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes backdrop-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     height: 100%;
