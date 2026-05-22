@@ -24,6 +24,117 @@ Always follow these instructions FIRST and only fallback to additional search an
 - Action buttons should be integrated into the modal body design
 - Close functionality should be handled through custom buttons within the body
 
+## Frontend Design System
+
+The frontend uses **Bootstrap for structural primitives** (grid, modal shell, utilities) and **Material Design for visual language**. Do not fight Bootstrap's box model — layer Material patterns on top.
+
+### Design Philosophy
+- **Flat, minimalistic, enterprise-grade**: No heavy drop shadows, no gradients on surfaces, no decorative borders. Use whitespace and typography weight for hierarchy.
+- Reserve the accent color (`#5c6bc0` / `#7986cb`) for interactive and active states only.
+- Surfaces layer through opacity overlays, not shadows.
+
+### Dark Theme Color Tokens
+| Role | Value |
+|------|-------|
+| Page background | `#0d0d1a` |
+| Surface / modal | `#1a1a2e` |
+| Inner card (frosted) | `rgba(255,255,255,0.05)` |
+| Text primary | `#e8eaf6` |
+| Text secondary | `rgba(255,255,255,0.5)` |
+| Text muted | `rgba(255,255,255,0.35)` |
+| Primary accent | `#5c6bc0` (Material indigo-600) |
+| Primary accent light | `#7986cb` (Material indigo-400) |
+| Warning / gold | `#f59e0b` / `#fcd34d` |
+| Danger / red | `#ef5350` |
+| Border subtle | `rgba(255,255,255,0.08)` |
+| Border visible | `rgba(255,255,255,0.12)` |
+
+### Elevation (Dark Theme)
+Use background opacity overlays — not box shadows — to distinguish surface layers:
+- `rgba(255,255,255,0.03)` — app bar, nav (barely lifted)
+- `rgba(255,255,255,0.05)` — cards, inner panels
+- `rgba(255,255,255,0.08)` — hover states, active chips
+
+### Icon Button Pattern
+Always use `.icon-btn` for toolbar/action icon buttons:
+```css
+.icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    transition: background 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.icon-btn:active { background: rgba(255,255,255,0.16); }
+```
+
+### Typography Scale
+| Usage | Size | Weight | Style |
+|-------|------|--------|-------|
+| Display / game title | clamp / large | 900 | — |
+| Heading | 1.4–1.5rem | 300–700 | — |
+| Body | 0.82–0.92rem | 400–500 | — |
+| Label / overline | 0.68–0.75rem | 700 | uppercase, letter-spacing 0.1–0.14em |
+
+### Component Patterns
+- **Chip**: `border-radius: 20px`, `rgba` background + `1px rgba` border, small text. Use for tags, player names, badges.
+- **Tab indicator**: Bottom `2px solid` on active tab (Material tab bar). See `.hp-tab--on`.
+- **Action buttons**: `border-radius: 4px`, uppercase label, weight 700, `0.6rem 1.75rem` padding. Avoid Bootstrap's default pill `.btn-rounded`.
+
+### Motion
+- Hover / focus transitions: `0.15s ease`
+- Entrance animations: `0.25–0.42s ease-out`
+- Spring / pop-in: `cubic-bezier(0.175, 0.885, 0.32, 1.275)`
+- Fade pulse (breathing): `ease-in-out infinite alternate`
+
+### CSS Naming Convention
+- Component-scoped styles live in `.razor.css` files using a **2–3 letter kebab prefix** matching the component (e.g. `hp-` for HelpModal, `lb-` for LeaderboardModal, `sm-` for SaveScoreModal).
+- Global utilities, resets, and cross-component overrides live in `Client/wwwroot/css/app.css` only.
+- Never add `background` or gradient rules to individual modal `.razor.css` files — let the global `.modal-content` rule in `app.css` apply.
+
+## Blazor DOM Stability Rules
+
+**NEVER use `@if` to conditionally add or remove DOM elements inside async event handlers or components that receive parent-cascade re-renders.**
+
+### Why It Crashes
+Blazor's `IHandleEvent.HandleEventAsync` fires `StateHasChanged()` on the event component:
+1. Once at the **first `await`** (before the awaited task completes)
+2. Once on **async completion**
+
+Plus any `EventCallback.InvokeAsync` triggers a **third cascade from the parent**. This means 2–3 concurrent render cycles fire almost simultaneously. If an `@if` block changes between renders, the second render calls `removeChild` on nodes the first already removed → `TypeError: can't access property "removeChild", r.parentNode is null`.
+
+### The Fix: CSS Display Toggle
+Always render elements; toggle visibility with `style="display:none"`:
+
+```razor
+@* ❌ BAD — crashes under concurrent renders *@
+@if (isNamed)
+{
+    <span>@name</span>
+}
+else
+{
+    <i class="fas fa-user"></i>
+}
+
+@* ✅ GOOD — always rendered, Blazor only updates attribute *@
+<span style="@(!isNamed ? "display:none" : "")">@name</span>
+<i class="fas fa-user" style="@(isNamed ? "display:none" : "")"></i>
+```
+
+### ShouldRender() Guard for Modals
+In modal components, block phantom re-renders after close:
+
+```csharp
+protected override bool ShouldRender() => _modalVisible;
+```
+
+Set `_modalVisible = false` **before** any `await` that triggers parent cascades (e.g., before `OnNameSaved.InvokeAsync`). Once `false`, all subsequent render requests from any source are no-ops.
+
+### BSModal Reference
+`BSModal.razor` already uses the CSS display toggle pattern — the modal DOM is always rendered, `_isVisible` only toggles `display:` style and `.show` class. **Do not regress this back to `@if (_isVisible)`.**
+
 ## Bootstrap and Build Process
 
 NEVER CANCEL builds or long-running commands. Set timeout to 120+ minutes for all operations.
