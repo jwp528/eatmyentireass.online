@@ -276,6 +276,63 @@
     background: rgba(92, 107, 192, 0.65);
     color: #fff;
 }/* ── Frenzy: game area marker (no animation) ─────────────────────── */
+
+/* ── Challenge banner ─────────────────────────────────────────────── */
+.challenge-banner {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 6px 12px;
+    border-radius: 20px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    color: #fcd34d;
+    font-size: 0.78rem;
+    font-weight: 500;
+    z-index: 5;
+    animation: challenge-banner-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    pointer-events: all;
+    max-width: calc(100% - 28px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.challenge-banner-icon {
+    flex-shrink: 0;
+    font-size: 0.9rem;
+}
+
+.challenge-banner-dismiss {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: rgba(252, 211, 77, 0.6);
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.15s, background 0.15s;
+}
+
+.challenge-banner-dismiss:hover {
+    color: #fcd34d;
+    background: rgba(251, 191, 36, 0.15);
+}
+
+@keyframes challenge-banner-in {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+}/* ── Frenzy: game area marker (no animation) ─────────────────────── */
 .game-main.frenzy-active {
 }
 
@@ -354,6 +411,27 @@
     text-transform: uppercase;
     align-self: flex-end;
     padding-bottom: 0.5rem;
+}
+
+.frenzy-chain-badge {
+    font-size: 2.1rem;
+    font-weight: 900;
+    color: #ff4500;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 24px rgba(255, 69, 0, 1), 0 0 10px rgba(255, 200, 0, 0.85);
+    animation: chain-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes chain-pop {
+    0% {
+        transform: scale(2);
+        opacity: 0.4;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* ── Fire border GIF overlay ─────────────────────────────────────── */

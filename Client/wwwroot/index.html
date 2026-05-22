@@ -197,39 +197,7 @@
             audio.play();
         }
 
-        window.showModal = (modalId) => {
-            const modalElement = document.getElementById(modalId);
-            if (modalElement) {
-                const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-                modal.show();
-            }
-        }
-
-        window.hideModal = (modalId) => {
-            const modalElement = document.getElementById(modalId);
-            if (modalElement) {
-                const modal = bootstrap.Modal.getInstance(modalElement);
-                if (modal) {
-                    modal.hide();
-                } else {
-                    // Fallback: manually remove modal classes and backdrop
-                    modalElement.classList.remove('show');
-                    modalElement.style.display = 'none';
-                    modalElement.setAttribute('aria-hidden', 'true');
-                    modalElement.removeAttribute('aria-modal');
-                    modalElement.removeAttribute('role');
-                    
-                    // Remove any remaining backdrops
-                    const backdrops = document.querySelectorAll('.modal-backdrop');
-                    backdrops.forEach(backdrop => backdrop.remove());
-                    
-                    // Restore body scroll
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                }
-            }
-        }
+        window.copyToClipboard = (text) => navigator.clipboard.writeText(text);
 
         // Image preloading function for better performance
         window.preloadGameImages = () => {

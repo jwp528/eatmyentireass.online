@@ -11,6 +11,7 @@
 @inject ICollectionService CollectionService
 @inject IDailyChallengeService DailyChallengeService
 @inject IProgressService ProgressService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Eat my entire ass</PageTitle>
 
@@ -70,12 +71,28 @@
           @onmousedown="OnFrenzyHoldStart" @onmouseup="OnFrenzyHoldEnd" @onmouseleave="OnFrenzyHoldEnd"
           role="button" tabindex="0">
 
+        @* Challenge banner — top-left, dismissible *@
+        @if (_challengeScore > 0 && _showChallengeBanner)
+        {
+            <div class="challenge-banner" @onclick:stopPropagation="true">
+                <i class="bi bi-trophy-fill challenge-banner-icon"></i>
+                <span>Beat <strong>@_challengerName</strong>'s score of <strong>@((int)_challengeScore)</strong>!</span>
+                <button class="challenge-banner-dismiss" @onclick="() => _showChallengeBanner = false" title="Dismiss">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+        }
+
         @* Stack: frenzy label (when active) + ass image *@
         <div class="game-content-stack">
             @if (gamePlaying && frenzyActive)
             {
-                <div class="frenzy-above-image">
+                <div class="frenzy-above-image @(frenzyChainLevel >= 2 ? "frenzy-chaining" : "")">
                     <span class="frenzy-title">🔥 FRENZY!</span>
+                    @if (frenzyChainLevel >= 2)
+                    {
+                        <span class="frenzy-chain-badge" key="@frenzyChainLevel">X@frenzyChainLevel</span>
+                    }
                     <span class="frenzy-timer">@frenzySecondsLeft</span>
                     <span class="frenzy-hold-hint">HOLD</span>
                 </div>
@@ -174,6 +191,10 @@
               PersonalBestScore="@_personalBestScore"
               clicksPerSecondPolls="@clicksPerSecondPolls"
               peakComboCount="@frenzyCount"
+              PeakChainLevel="@_peakChainLevel"
+              CurrentPlayerName="@_currentPlayerName"
+              ChallengeScore="@_challengeScore"
+              ChallengerName="@_challengerName"
               OnTryAgain="TryAgain"
               OnSaveScore="ShowSaveScoreDialog"
               OnShowLeaderboard="ShowLeaderboardDialog"
@@ -193,6 +214,11 @@
     string _currentPlayerName = string.Empty;
     bool _isPersonalBest = false;
     double? _personalBestScore = null;
+
+    // Challenge state (populated from URL query params)
+    double _challengeScore = 0;
+    string _challengerName = string.Empty;
+    bool _showChallengeBanner = false;
 
     // Make totalClicks accessible in the template
     public int totalClicks = 0;

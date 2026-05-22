@@ -2,6 +2,8 @@
 @using static BlazorApp.Shared.Assets
 @using BlazorApp.Client.Services
 @inject IStatsService StatsService
+@inject IJSRuntime Js
+@inject NavigationManager Nav
 
 @code {
     [Parameter] public double assesEaten { get; set; }
@@ -13,11 +15,30 @@
     [Parameter] public bool IsPersonalBest { get; set; }
     [Parameter] public double? PersonalBestScore { get; set; }
     [Parameter] public int peakComboCount { get; set; }
+    [Parameter] public int PeakChainLevel { get; set; }
     [Parameter] public List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
     [Parameter] public EventCallback OnSaveScore { get; set; }
     [Parameter] public EventCallback OnShowLeaderboard { get; set; }
     [Parameter] public EventCallback<AssTypeEnum> OnShowAssdex { get; set; }
+    [Parameter] public string CurrentPlayerName { get; set; } = string.Empty;
+    [Parameter] public double ChallengeScore { get; set; } = 0;
+    [Parameter] public string ChallengerName { get; set; } = string.Empty;
+
+    private bool _challengeCopied = false;
+
+    private async Task CopyChallengeLinkAsync()
+    {
+        var score = (int)Math.Truncate(assesEaten);
+        var name = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Someone" : CurrentPlayerName.Trim();
+        var url = $"{Nav.BaseUri}?challenge={score}&challenger={Uri.EscapeDataString(name)}";
+        await Js.InvokeVoidAsync("copyToClipboard", url);
+        _challengeCopied = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        _challengeCopied = false;
+        StateHasChanged();
+    }
 
     public BSModal? Modal;
     private int activeTab = 0;
@@ -106,6 +127,23 @@
                 {
                     <div class="rm-score-msg">@scoreText</div>
                 }
+                @if (ChallengeScore > 0)
+                {
+                    @if (assesEaten > ChallengeScore)
+                    {
+                        <div class="rm-challenge-result rm-challenge-beaten">
+                            <i class="bi bi-trophy-fill"></i>
+                            Challenge beaten! You beat @ChallengerName's score of @((int)ChallengeScore)!
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="rm-challenge-result rm-challenge-missed">
+                            <i class="bi bi-trophy"></i>
+                            @ChallengerName challenged you to beat @((int)ChallengeScore)
+                        </div>
+                    }
+                }
             </div>
 
             <!-- Key stats strip -->
@@ -141,6 +179,15 @@
                         <span class="rm-stat-val rm-stat-fire">@peakComboCount</span>
                         <span class="rm-stat-lbl">Frenzies</span>
                     </div>
+                    @if (PeakChainLevel >= 2)
+                    {
+                        <div class="rm-stat-divider"></div>
+                        <div class="rm-stat">
+                            <i class="bi bi-lightning-charge-fill rm-stat-icon rm-stat-chain"></i>
+                            <span class="rm-stat-val rm-stat-chain">X@PeakChainLevel</span>
+                            <span class="rm-stat-lbl">Peak Chain</span>
+                        </div>
+                    }
                 }
             </div>
 
@@ -328,6 +375,16 @@
                 }
                 <button class="rm-btn" @onclick="() => OnShowLeaderboard.InvokeAsync()">
                     <i class="bi bi-trophy"></i> Leaderboard
+                </button>
+                <button class="rm-btn rm-btn-challenge" @onclick="CopyChallengeLinkAsync" title="Copy challenge link to clipboard">
+                    @if (_challengeCopied)
+                    {
+                        <i class="bi bi-check-lg"></i> <span>Copied!</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-share"></i> <span>Challenge</span>
+                    }
                 </button>
                 <button class="rm-btn rm-btn-ghost" @onclick="() => Modal?.Hide()">
                     <i class="bi bi-x-lg"></i> Close
