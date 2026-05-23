@@ -16,6 +16,7 @@
     [Parameter] public double? PersonalBestScore { get; set; }
     [Parameter] public int peakComboCount { get; set; }
     [Parameter] public int PeakChainLevel { get; set; }
+    [Parameter] public double GameDurationSeconds { get; set; } = 60;
     [Parameter] public List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls { get; set; } = new();
     [Parameter] public EventCallback OnTryAgain { get; set; }
     [Parameter] public EventCallback OnSaveScore { get; set; }
@@ -72,8 +73,8 @@
 
     private double GetClicksPerMinute()
     {
-        if (!clicksPerSecondPolls.Any()) return 0;
-        return Math.Round(clicksPerSecondPolls.Average(p => p.clicksPerSecond) * 60, 1);
+        if (GameDurationSeconds <= 0 || totalClicks == 0) return 0;
+        return Math.Round(totalClicks / (GameDurationSeconds / 60.0), 1);
     }
 
     private double GetTotalPointsForType(AssTypeEnum assType)
@@ -156,7 +157,7 @@
                 <div class="rm-stat-divider"></div>
                 <div class="rm-stat">
                     <i class="bi bi-speedometer2 rm-stat-icon"></i>
-                    <span class="rm-stat-val">@(clicksPerSecondPolls.Any() ? Math.Round(clicksPerSecondPolls.Average(p => p.clicksPerSecond), 1) : 0)</span>
+                    <span class="rm-stat-val">@(GameDurationSeconds > 0 ? Math.Round(totalClicks / GameDurationSeconds, 1) : 0)</span>
                     <span class="rm-stat-lbl">CPS</span>
                 </div>
                 <div class="rm-stat-divider"></div>

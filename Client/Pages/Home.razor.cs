@@ -50,6 +50,7 @@ namespace BlazorApp.Client.Pages
 
         // Add tracking for dynamic stats and polling
         DateTime gameStartTime;
+        double _gameDurationSeconds = 60.0; // Actual measured game duration (for correct CPS/CPM)
         List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls = new(); // Store polls for chart
         double CurrentClicksPerSecond => GetClicksPerSecond();
 
@@ -578,10 +579,11 @@ namespace BlazorApp.Client.Pages
                 StatsPollTimer = null;
             }
 
-            // Capture final poll when game ends
+            // Capture final poll and actual game duration when game ends
             if (gamePlaying && clicksPerSecondPolls.Count > 0)
             {
                 var elapsed = DateTime.Now - gameStartTime;
+                _gameDurationSeconds = Math.Max(elapsed.TotalSeconds, 0.1);
                 var timeStamp = (int)Math.Round(elapsed.TotalSeconds);
                 var cps = GetClicksPerSecond();
                 clicksPerSecondPolls.Add((timeStamp, cps));

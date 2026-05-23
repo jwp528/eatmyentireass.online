@@ -174,12 +174,12 @@
                 </div>
                 <div class="go-stat-div"></div>
                 <div class="go-stat">
-                    <span class="go-stat-val">@(clicksPerSecondPolls.Any() ? Math.Round(clicksPerSecondPolls.Average(p => p.clicksPerSecond), 1) : 0)</span>
+                    <span class="go-stat-val">@(_gameDurationSeconds > 0 ? Math.Round(totalClicks / _gameDurationSeconds, 1) : 0)</span>
                     <span class="go-stat-lbl">CPS</span>
                 </div>
                 <div class="go-stat-div"></div>
                 <div class="go-stat">
-                    <span class="go-stat-val">@(clicksPerSecondPolls.Any() ? Math.Round(clicksPerSecondPolls.Average(p => p.clicksPerSecond) * 60, 1) : 0)</span>
+                    <span class="go-stat-val">@(_gameDurationSeconds > 0 ? Math.Round(totalClicks / (_gameDurationSeconds / 60.0), 1) : 0)</span>
                     <span class="go-stat-lbl">CPM</span>
                 </div>
             </div>
@@ -242,6 +242,7 @@
               IsPersonalBest="@_isPersonalBest"
               PersonalBestScore="@_personalBestScore"
               clicksPerSecondPolls="@clicksPerSecondPolls"
+              GameDurationSeconds="@_gameDurationSeconds"
               peakComboCount="@frenzyCount"
               PeakChainLevel="@_peakChainLevel"
               CurrentPlayerName="@_currentPlayerName"
