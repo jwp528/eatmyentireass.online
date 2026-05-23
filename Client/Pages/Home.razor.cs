@@ -21,6 +21,8 @@ namespace BlazorApp.Client.Pages
         bool hasScoreSaved; // Track if score has been saved for current game
         bool playSounds = true;
         bool _dailyPanelExpanded = false;
+        DailyChallengeProgress? _dailyProgress;
+        bool _dailyLoading = false;
         double volume = 1;
         Timer? GameTimer;
         Timer? StatsUpdateTimer; // Add timer for updating dynamic stats
@@ -455,6 +457,19 @@ namespace BlazorApp.Client.Pages
         async Task ShowHelpDialog()
         {
             await HelpDialog?.Modal?.Show();
+        }
+
+        async Task ToggleDailyPanel()
+        {
+            _dailyPanelExpanded = !_dailyPanelExpanded;
+            if (_dailyPanelExpanded && _dailyProgress == null)
+            {
+                _dailyLoading = true;
+                StateHasChanged();
+                _dailyProgress = await DailyChallengeService.GetOrCreateTodayTasksAsync();
+                _dailyLoading = false;
+                StateHasChanged();
+            }
         }
 
         async Task OpenAssDexFromHelp()

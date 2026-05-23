@@ -82,13 +82,15 @@
             @if (gamePlaying && frenzyActive)
             {
                 <div class="frenzy-above-image @(frenzyChainLevel >= 2 ? "frenzy-chaining" : "")">
-                    <span class="frenzy-title">🔥 FRENZY!</span>
-                    @if (frenzyChainLevel >= 2)
-                    {
-                        <span class="frenzy-chain-badge" key="@frenzyChainLevel">X@frenzyChainLevel</span>
-                    }
+                    <div class="frenzy-top-row">
+                        <span class="frenzy-title">🔥 FRENZY!</span>
+                        @if (frenzyChainLevel >= 2)
+                        {
+                            <span class="frenzy-chain-badge" key="@frenzyChainLevel">X@frenzyChainLevel</span>
+                        }
+                        <span class="frenzy-hold-hint">HOLD</span>
+                    </div>
                     <span class="frenzy-timer">@frenzySecondsLeft</span>
-                    <span class="frenzy-hold-hint">HOLD</span>
                 </div>
             }
             <button class="game-player-chip @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-chip--named" : "")"
