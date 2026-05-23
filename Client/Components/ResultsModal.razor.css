@@ -430,6 +430,38 @@
         padding: 9px 14px;
         justify-content: center;
     }
+
+    /* Tighten stats strip so all 4 fit on one row */
+    .rm-stats-strip {
+        padding: 12px 8px;
+        gap: 0;
+        flex-wrap: wrap; /* keep wrap so frenzy row-break still works */
+    }
+
+    .rm-stat {
+        flex: 1;
+        padding: 0 4px;
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+    .rm-stat-icon {
+        display: none;
+    }
+
+    .rm-stat-val {
+        font-size: 0.95rem;
+    }
+
+    .rm-stat-lbl {
+        font-size: 0.62rem;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    .rm-stat-divider {
+        height: 24px;
+    }
 }
 
 .rm-btn {
