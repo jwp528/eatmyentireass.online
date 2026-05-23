@@ -204,7 +204,7 @@
     </div>
 }
 
-<HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" OnOpenAssDex="OpenAssDexFromHelp" />
+<HelpModal @ref="HelpDialog" OnOpenAssDex="OpenAssDexFromHelp" OnSetNameRequested="ShowPlayerNameDialog" CurrentName="@_currentPlayerName" />
 <AboutModal @ref="AboutDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />
@@ -310,9 +310,8 @@
     void OnPlayerNameChanged(string name)
     {
         _currentPlayerName = name;
+        HelpDialog?.NotifyNameSaved(name);
         StateHasChanged();
-        _ = AfterPlayerNameSet();
-        _ = AfterPlayerNameSet();
     }
 
     async Task CopyGameOverChallengeLink()
