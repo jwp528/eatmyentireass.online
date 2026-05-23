@@ -5,6 +5,7 @@
     flex-direction: column;
     gap: 0;
     min-height: 420px;
+    flex: 1;
 }
 
 /* Dot indicators */
@@ -38,6 +39,12 @@
     flex-direction: column;
     overflow-y: auto;
     max-height: 52vh;
+}
+
+@media (max-width: 480px) {
+    .hp-step {
+        max-height: none;
+    }
 }
 
 .hp-step-title {
@@ -333,8 +340,8 @@
 }
 
 .hp-frenzy-img {
-    width: 64px;
-    height: 64px;
+    width: 130px;
+    height: 130px;
     object-fit: contain;
     filter: drop-shadow(0 2px 14px rgba(255,215,0,0.55));
     animation: hp-pulse 2s ease-in-out infinite;

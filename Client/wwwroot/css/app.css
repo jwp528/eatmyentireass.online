@@ -299,7 +299,17 @@ code {
     .modal-content {
         border-radius: 0 !important;
         flex: 1;
-        overflow-y: auto;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    /* Let the body fill remaining height and scroll internally */
+    .modal-content > .modal-body {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 }
 
