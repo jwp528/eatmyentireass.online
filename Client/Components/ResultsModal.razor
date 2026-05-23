@@ -173,7 +173,7 @@
                 </div>
                 @if (peakComboCount >= 1)
                 {
-                    <div class="rm-stat-divider"></div>
+                    <div class="rm-stat-row-break"></div>
                     <div class="rm-stat">
                         <i class="bi bi-fire rm-stat-icon rm-stat-fire"></i>
                         <span class="rm-stat-val rm-stat-fire">@peakComboCount</span>
@@ -189,6 +189,29 @@
                         </div>
                     }
                 }
+            </div>
+
+            <!-- Actions — above tabs -->
+            <div class="rm-actions">
+                <button class="rm-btn rm-btn-saved" disabled style="@(hasScoreSaved ? "" : "display:none")">
+                    <i class="bi bi-check-lg"></i> <span class="rm-btn-label">Saved</span>
+                </button>
+                <button class="rm-btn rm-btn-primary" @onclick="() => OnSaveScore.InvokeAsync()"
+                        disabled="@(!PersonalBestScore.HasValue || assesEaten > PersonalBestScore.Value ? false : true)"
+                        style="@(!hasScoreSaved ? "" : "display:none")">
+                    <i class="bi bi-floppy"></i> <span class="rm-btn-label">Save Score</span>
+                </button>
+                <button class="rm-btn" @onclick="() => OnShowLeaderboard.InvokeAsync()">
+                    <i class="bi bi-trophy"></i> <span class="rm-btn-label">Leaderboard</span>
+                </button>
+                <button class="rm-btn rm-btn-challenge" @onclick="CopyChallengeLinkAsync" title="Copy challenge link to clipboard">
+                    <i class="bi bi-check-lg" style="@(_challengeCopied ? "" : "display:none")"></i>
+                    <i class="bi bi-share" style="@(!_challengeCopied ? "" : "display:none")"></i>
+                    <span class="rm-btn-label">@(_challengeCopied ? "Copied!" : "Challenge")</span>
+                </button>
+                <button class="rm-btn rm-btn-ghost" @onclick="() => Modal?.Hide()">
+                    <i class="bi bi-x-lg"></i> <span class="rm-btn-label">Close</span>
+                </button>
             </div>
 
             <!-- Material underline tabs -->
@@ -354,41 +377,6 @@
                         </div>
                     }
                 }
-            </div>
-
-            <!-- Actions -->
-            <div class="rm-actions">
-                @if (hasScoreSaved)
-                {
-                    <button class="rm-btn rm-btn-saved" disabled>
-                        <i class="bi bi-check-lg"></i> Saved
-                    </button>
-                }
-                else
-                {
-                    var isBeatableScore = !PersonalBestScore.HasValue || assesEaten > PersonalBestScore.Value;
-                    <button class="rm-btn rm-btn-primary" @onclick="() => OnSaveScore.InvokeAsync()"
-                            disabled="@(!isBeatableScore)"
-                            title="@(!isBeatableScore ? "Score doesn't beat your personal best" : "")">
-                        <i class="bi bi-floppy"></i> Save Score
-                    </button>
-                }
-                <button class="rm-btn" @onclick="() => OnShowLeaderboard.InvokeAsync()">
-                    <i class="bi bi-trophy"></i> Leaderboard
-                </button>
-                <button class="rm-btn rm-btn-challenge" @onclick="CopyChallengeLinkAsync" title="Copy challenge link to clipboard">
-                    @if (_challengeCopied)
-                    {
-                        <i class="bi bi-check-lg"></i> <span>Copied!</span>
-                    }
-                    else
-                    {
-                        <i class="bi bi-share"></i> <span>Challenge</span>
-                    }
-                </button>
-                <button class="rm-btn rm-btn-ghost" @onclick="() => Modal?.Hide()">
-                    <i class="bi bi-x-lg"></i> Close
-                </button>
             </div>
 
         </div>

@@ -158,6 +158,7 @@
                 <div class="go-prev-best" style="@(!_isPersonalBest && _personalBestScore.HasValue ? "" : "display:none")">
                     Your best: @((int)(_personalBestScore ?? 0))
                 </div>
+                <div class="go-score-msg" style="@(string.IsNullOrEmpty(scoreText) ? "display:none" : "")">@scoreText</div>
                 <div class="go-challenge-win" style="@(_challengeScore > 0 && assesEaten > _challengeScore ? "" : "display:none")">
                     <i class="bi bi-trophy-fill"></i> Beat @_challengerName's @((int)_challengeScore)!
                 </div>
