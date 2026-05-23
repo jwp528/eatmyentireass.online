@@ -1,159 +1,435 @@
-@using BlazorApp.Client.Components.BootstrapCarousel
 @using BlazorApp.Client.Components.Svg
+@inject BlazorApp.Client.Services.ISettingsService SettingsService
+@inject BlazorApp.Client.Services.IPlayerService PlayerService
 
 <BSModal @ref="Modal" Id="helpModal" IsVerticallyCentered="true" Size="ModalSize.Large">
     <Body>
         <div class="hp-shell">
-            <div class="hp-header">
-                <i class="fas fa-gamepad hp-title-icon"></i>
-                <span class="hp-title">How to Play</span>
+
+            @* Step dots *@
+            <div class="hp-dots">
+                @for (int i = 0; i < TotalSteps; i++)
+                {
+                    int idx = i;
+                    <button class="hp-dot @(_step == idx ? "hp-dot--on" : "")"
+                            @onclick="() => _step = idx"
+                            title="Step @(idx + 1)" />
+                }
             </div>
 
-            <div class="hp-tabbar">
-                <button class="hp-tab @(_tab == 0 ? "hp-tab--on" : "")" @onclick="@(() => _tab = 0)">
-                    <i class="fas fa-gamepad"></i> Basics
-                </button>
-                <button class="hp-tab @(_tab == 1 ? "hp-tab--on" : "")" @onclick="@(() => _tab = 1)">
-                    <Assdex Size="1em" Color="@(_tab == 1 ? "#7986cb" : "rgba(255,255,255,0.4)")" Style="Assdex.AssdexIconStyle.Outline" />
-                    AssDex
-                </button>
-                <button class="hp-tab @(_tab == 2 ? "hp-tab--on" : "")" @onclick="@(() => _tab = 2)">
-                    <i class="fas fa-lightbulb"></i> Tips
+            @* ── Step 1: Welcome ─────────────────────────────────────────── *@
+            <div class="hp-step" style="@(_step == 0 ? "" : "display:none")">
+                <div class="hp-welcome">
+                    <img src="images/Asses/Cartoon/entire_ass.png" class="hp-welcome-img" alt="Cartoon Ass" />
+                    <h2 class="hp-welcome-title">Eat My Entire Ass</h2>
+                    <p class="hp-tagline">Tap fast. Eat ass. Beat everyone.</p>
+                    <p class="hp-welcome-sub">A 60-second feeding frenzy of questionable choices. Can you out-eat your friends?</p>
+                </div>
+            </div>
+
+            @* ── Step 2: How to Play ──────────────────────────────────────── *@
+            <div class="hp-step" style="@(_step == 1 ? "" : "display:none")">
+                <p class="hp-step-title">How to Play</p>
+
+                <ol class="hp-steps">
+                    <li>Click the ass to start the 60-second timer</li>
+                    <li>Keep clicking to eat each ass completely</li>
+                    <li>Finish eating to score points and get a new ass</li>
+                    <li>The more you eat, the higher your score!</li>
+                </ol>
+
+                <div class="hp-divider"></div>
+
+                <p class="hp-label">Scoring</p>
+                <div class="hp-list">
+                    <div class="hp-row">
+                        <span class="hp-row-name">Finish to Score</span>
+                        <span class="hp-row-desc">You must fully eat an ass to earn its points. Partial asses don't count.</span>
+                    </div>
+                    <div class="hp-row">
+                        <span class="hp-row-name">Ass Rarity</span>
+                        <span class="hp-row-desc">Different ass types are worth different points. Rarer asses = more points.</span>
+                    </div>
+                </div>
+            </div>
+
+            @* ── Step 3: Frenzy Mode ──────────────────────────────────────── *@
+            <div class="hp-step" style="@(_step == 2 ? "" : "display:none")">
+                <p class="hp-step-title">🔥 Frenzy Mode</p>
+
+                <div class="hp-frenzy-hero">
+                    <img src="images/Asses/Golden/entire_ass.png" class="hp-frenzy-img" alt="Golden Ass" />
+                    <p class="hp-frenzy-label">Golden Ass</p>
+                </div>
+
+                <div class="hp-list">
+                    <div class="hp-row">
+                        <span class="hp-row-name">Find the Golden Ass</span>
+                        <span class="hp-row-desc">Eat a rare Golden Ass to trigger Frenzy Mode — a 10-second turbo boost where you hold to auto-eat at hyperspeed.</span>
+                    </div>
+                    <div class="hp-row">
+                        <span class="hp-row-name">Frenzy Chain</span>
+                        <span class="hp-row-desc">Eat a Golden Ass <em>while already in Frenzy</em> to start a Frenzy Chain. Every chained frenzy multiplies your score (×2, ×3, ×4…).</span>
+                    </div>
+                    <div class="hp-row">
+                        <span class="hp-row-name">Chain More, Score More</span>
+                        <span class="hp-row-desc">Keep finding Golden Asses during Frenzy to push the multiplier higher. The bigger the chain, the bigger the score.</span>
+                    </div>
+                </div>
+            </div>
+
+            @* ── Step 4: Your Name (inline form) ─────────────────────────── *@
+            <div class="hp-step" style="@(_step == 3 ? "" : "display:none")">
+                <p class="hp-step-title">Who Are You?</p>
+                <p class="hp-step-sub">Your name shows on the global leaderboard. Optional, but way more fun.</p>
+
+                <div class="hp-name-form">
+
+                    @* Name input row *@
+                    <div class="hp-nf-field">
+                        <div class="hp-nf-input-row">
+                            <input type="text"
+                                   class="hp-nf-input"
+                                   value="@_nfName"
+                                   @oninput="OnNameInputChanged"
+                                   placeholder="Enter your name"
+                                   maxlength="50"
+                                   disabled="@_nfBusy" />
+                            @if (_nfState == NfState.Checking)
+                            {
+                                <span class="pn-indicator pn-checking">
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                </span>
+                            }
+                            else if (_nfState == NfState.ClaimedOwned)
+                            {
+                                <span class="pn-indicator pn-owned" title="You own this name">
+                                    <i class="bi bi-shield-check"></i>
+                                </span>
+                            }
+                            else if (_nfState == NfState.ClaimedNotOwned)
+                            {
+                                <span class="pn-indicator pn-locked" title="Name is claimed">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                            }
+                        </div>
+
+                        @if (_nfState == NfState.Free && !_nfShowClaimForm)
+                        {
+                            <button type="button" class="pn-link-btn" @onclick="() => { _nfShowClaimForm = true; StateHasChanged(); }">
+                                Claim this name
+                            </button>
+                        }
+                    </div>
+
+                    @* Password field — shown when name is claimed by someone else *@
+                    @if (_nfState == NfState.ClaimedNotOwned && _nfShowPasswordField)
+                    {
+                        <div class="hp-nf-field">
+                            <label class="hp-nf-label">Password</label>
+                            <input type="password"
+                                   class="hp-nf-input"
+                                   @bind="_nfPassword"
+                                   placeholder="Password for this name"
+                                   disabled="@_nfBusy" />
+                            <span class="hp-nf-caption">This name is claimed. Enter its password to use it.</span>
+                        </div>
+                    }
+
+                    @* Claim form — set password for a free name *@
+                    @if (_nfShowClaimForm)
+                    {
+                        <div class="hp-nf-field">
+                            <label class="hp-nf-label">Set Password</label>
+                            <input type="password"
+                                   class="hp-nf-input"
+                                   @bind="_nfPassword"
+                                   placeholder="Min 4 characters"
+                                   disabled="@_nfBusy" />
+                        </div>
+                        <div class="hp-nf-field">
+                            <label class="hp-nf-label">Confirm Password</label>
+                            <input type="password"
+                                   class="hp-nf-input"
+                                   @bind="_nfConfirmPassword"
+                                   placeholder="Repeat password"
+                                   disabled="@_nfBusy" />
+                            <span class="hp-nf-caption">Claiming locks this name — only you can use it with your password.</span>
+                        </div>
+                    }
+
+                    @* Error message *@
+                    @if (!string.IsNullOrWhiteSpace(_nfError))
+                    {
+                        <div class="pn-error">@_nfError</div>
+                    }
+
+                    @* Busy indicator *@
+                    @if (_nfBusy)
+                    {
+                        <div class="pn-saving">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span>Working…</span>
+                        </div>
+                    }
+
+                    @* Save button *@
+                    <button type="button"
+                            class="hp-btn hp-nf-save-btn"
+                            @onclick="SaveNameAsync"
+                            disabled="@(_nfBusy || string.IsNullOrWhiteSpace(_nfName))">
+                        @(_nfBusy ? "Saving…" : _nfShowClaimForm ? "Claim & Save" : "Save Name")
+                    </button>
+
+                </div>
+
+                <button type="button" class="hp-skip-link" @onclick="() => _step = 4">
+                    Skip for now
                 </button>
             </div>
 
-            @if (_tab == 0)
-            {
-                <div class="hp-panel">
-                    <p class="hp-label">Steps</p>
-                    <ol class="hp-steps">
-                        <li>Click the ass to start the 60-second timer</li>
-                        <li>Keep clicking to devour each ass completely</li>
-                        <li>Finish eating to score points and get a new ass</li>
-                    </ol>
-
-                    <div class="hp-divider"></div>
-
-                    <p class="hp-label">Scoring</p>
-                    <div class="hp-list">
-                        <div class="hp-row">
-                            <span class="hp-row-name">Complete to Score</span>
-                            <span class="hp-row-desc">You must finish eating an ass completely to earn points. Partial asses don't count.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Click Efficiency</span>
-                            <span class="hp-row-desc">Every click counts toward your efficiency rating, even on incomplete asses.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Final Score</span>
-                            <span class="hp-row-desc">Scores round down to whole numbers. No participation awards.</span>
-                        </div>
-                    </div>
-
-                    <div class="hp-divider"></div>
-
-                    <p class="hp-label">🔥 Frenzy Mode</p>
-                    <div class="hp-list">
-                        <div class="hp-row">
-                            <span class="hp-row-name">What is it?</span>
-                            <span class="hp-row-desc">A 10-second turbo mode that pauses the main timer so every frenzy second is bonus time.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">How it works</span>
-                            <span class="hp-row-desc">Hold the ass to auto-eat at 10 bites per second. Fire borders erupt and the screen shakes — you'll know.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Why you want it</span>
-                            <span class="hp-row-desc">The clock stops and you eat for free. Chain multiple frenzies for a monster score.</span>
-                        </div>
-                    </div>
+            @* ── Step 5: Let's Play! ──────────────────────────────────────── *@
+            <div class="hp-step hp-step--final" style="@(_step == 4 ? "" : "display:none")">
+                <div class="hp-ready">
+                    <div class="hp-ready-icon">🍑</div>
+                    <h2 class="hp-ready-title">You're Ready.</h2>
+                    @if (!string.IsNullOrWhiteSpace(_displayName))
+                    {
+                        <p class="hp-ready-sub">Good luck, <strong>@_displayName</strong>. Try not to choke.</p>
+                    }
+                    else
+                    {
+                        <p class="hp-ready-sub">Go eat some ass. You've earned it.</p>
+                    }
+                    <button type="button" class="hp-btn hp-btn-play" @onclick="Close">
+                        Let's Play!
+                    </button>
                 </div>
-            }
-
-            @if (_tab == 1)
-            {
-                <div class="hp-panel hp-dex-panel">
-                    <div class="hp-dex-hero">
-                        <Assdex Size="44px" Color="#7986cb" Style="Assdex.AssdexIconStyle.Fill" />
-                        <div>
-                            <p class="hp-dex-name">AssDex</p>
-                            <p class="hp-dex-tagline">Your personal catalog of every ass you've encountered.</p>
-                        </div>
-                    </div>
-
-                    <div class="hp-divider"></div>
-
-                    <p class="hp-label">How it works</p>
-                    <div class="hp-list">
-                        <div class="hp-row">
-                            <span class="hp-row-name">Discover</span>
-                            <span class="hp-row-desc">Each ass type you eat for the first time is permanently unlocked in your AssDex.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Progress</span>
-                            <span class="hp-row-desc">Track how many of each ass you've fully eaten and your personal records.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Details</span>
-                            <span class="hp-row-desc">Tap any entry to see its full stats, point value, rarity, and completion history.</span>
-                        </div>
-                    </div>
-
-                    <div class="hp-dex-action">
-                        <button type="button" class="hp-btn hp-btn-icon" @onclick="HandleOpenAssDex">
-                            <Assdex Size="1em" Color="#fff" Style="Assdex.AssdexIconStyle.Outline" />
-                            Open
-                        </button>
-                    </div>
-                </div>
-            }
-
-            @if (_tab == 2)
-            {
-                <div class="hp-panel">
-                    <p class="hp-label">Pro Tips</p>
-                    <div class="hp-list">
-                        <div class="hp-row">
-                            <span class="hp-row-name">Speed is Key</span>
-                            <span class="hp-row-desc">Click rapidly to maximize your score.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Golden Opportunity</span>
-                            <span class="hp-row-desc">Golden asses are rare (~2% chance), worth the most points, and instantly trigger Frenzy mode.</span>
-                        </div>
-                        <div class="hp-row">
-                            <span class="hp-row-name">Efficiency Matters</span>
-                            <span class="hp-row-desc">Your click efficiency is tracked — make every click count.</span>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <div class="hp-footer">
-                <button type="button" class="hp-btn" @onclick="async () => await Modal?.Hide()">Let's Play</button>
             </div>
+
+            @* ── Navigation ──────────────────────────────────────────────── *@
+            <div class="hp-nav">
+                <button class="hp-nav-back" style="@(_step > 0 ? "" : "visibility:hidden")"
+                        @onclick="() => _step--">
+                    <i class="bi bi-arrow-left"></i> Back
+                </button>
+                <button class="hp-nav-next" style="@(_step < TotalSteps - 1 ? "" : "display:none")"
+                        @onclick="() => _step++">
+                    Next <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+
         </div>
     </Body>
 </BSModal>
 
 @code {
-    [Parameter] public List<CarouselItem> CarouselItems { get; set; } = new();
     [Parameter] public EventCallback OnOpenAssDex { get; set; }
-    public BSModal? Modal;
-    private int _tab = 0;
+    [Parameter] public EventCallback OnSetNameRequested { get; set; }
+    [Parameter] public string CurrentName { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> OnNameSaved { get; set; }
 
-    private async Task HandleOpenAssDex()
+    public BSModal? Modal;
+
+    private const int TotalSteps = 5;
+    private int _step = 0;
+    private string _displayName = string.Empty;
+
+    // ── Inline name form state ────────────────────────────────────────────
+    private enum NfState { Unknown, Checking, Free, ClaimedOwned, ClaimedNotOwned }
+    private NfState _nfState = NfState.Unknown;
+    private string _nfName = string.Empty;
+    private string _nfPassword = string.Empty;
+    private string _nfConfirmPassword = string.Empty;
+    private bool _nfShowClaimForm = false;
+    private bool _nfShowPasswordField = false;
+    private bool _nfBusy = false;
+    private string _nfError = string.Empty;
+    private CancellationTokenSource? _nfCts;
+
+    protected override void OnParametersSet()
     {
-        await Modal!.Hide();
-        await OnOpenAssDex.InvokeAsync();
+        if (string.IsNullOrWhiteSpace(_displayName))
+            _displayName = CurrentName ?? string.Empty;
     }
 
-    private double GetPointValue(string description)
+    public async void ShowIntro()
     {
-        if (description.StartsWith("10 point")) return 10;
-        if (description.StartsWith("2 point")) return 2;
-        if (description.StartsWith("1 point")) return 1;
-        if (description.StartsWith("0.5 point")) return 0.5;
-        return 1;
+        _step = 0;
+        _displayName = CurrentName ?? string.Empty;
+
+        // Pre-populate name form from settings
+        _nfName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
+        _nfPassword = string.Empty;
+        _nfConfirmPassword = string.Empty;
+        _nfShowClaimForm = false;
+        _nfShowPasswordField = false;
+        _nfBusy = false;
+        _nfError = string.Empty;
+        _nfState = NfState.Unknown;
+
+        Modal?.Show();
+
+        // Kick off name check if there's already a saved name
+        if (!string.IsNullOrWhiteSpace(_nfName))
+            await NfCheckNameAsync(_nfName);
+    }
+
+    // Called by Home after PlayerNameModal (standalone) fires OnNameSaved
+    public void NotifyNameSaved(string name)
+    {
+        _displayName = name;
+        if (_step == 3) _step = 4;
+        InvokeAsync(StateHasChanged);
+    }
+
+    // ── Name form handlers ────────────────────────────────────────────────
+
+    private async Task OnNameInputChanged(ChangeEventArgs e)
+    {
+        _nfName = e.Value?.ToString() ?? string.Empty;
+        _nfError = string.Empty;
+        _nfPassword = string.Empty;
+        _nfShowClaimForm = false;
+        _nfShowPasswordField = false;
+        _nfState = NfState.Unknown;
+
+        _nfCts?.Cancel();
+        _nfCts = new CancellationTokenSource();
+        var token = _nfCts.Token;
+
+        await Task.Delay(500);
+        if (token.IsCancellationRequested) return;
+
+        await NfCheckNameAsync(_nfName);
+    }
+
+    private async Task NfCheckNameAsync(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _nfState = NfState.Unknown;
+            StateHasChanged();
+            return;
+        }
+
+        _nfState = NfState.Checking;
+        StateHasChanged();
+
+        var isClaimed = await PlayerService.IsNameClaimedAsync(name);
+
+        if (!isClaimed)
+        {
+            _nfState = NfState.Free;
+        }
+        else
+        {
+            var storedToken = await PlayerService.GetStoredTokenAsync(name);
+            _nfState = string.IsNullOrWhiteSpace(storedToken)
+                ? NfState.ClaimedNotOwned
+                : NfState.ClaimedOwned;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task SaveNameAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_nfName)) return;
+
+        _nfCts?.Cancel();
+
+        // Name is claimed by someone else — need password
+        if (_nfState == NfState.ClaimedNotOwned)
+        {
+            if (!_nfShowPasswordField)
+            {
+                _nfShowPasswordField = true;
+                StateHasChanged();
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_nfPassword))
+            {
+                _nfError = "Enter the password for this name.";
+                return;
+            }
+            await NfRunVerifyAsync();
+            if (_nfState != NfState.ClaimedOwned) return;
+        }
+
+        // User chose to claim a free name
+        if (_nfShowClaimForm)
+        {
+            await NfRunClaimAsync();
+            if (_nfState != NfState.ClaimedOwned) return;
+        }
+
+        // Commit name
+        await SettingsService.SetLastPlayerNameAsync(_nfName.Trim());
+        _displayName = _nfName.Trim();
+        _step = 4;
+
+        if (OnNameSaved.HasDelegate)
+            await OnNameSaved.InvokeAsync(_nfName.Trim());
+
+        StateHasChanged();
+    }
+
+    private async Task NfRunVerifyAsync()
+    {
+        _nfBusy = true;
+        _nfError = string.Empty;
+        StateHasChanged();
+        try
+        {
+            var token = await PlayerService.VerifyNameAsync(_nfName, _nfPassword);
+            await PlayerService.StoreTokenAsync(_nfName, token);
+            _nfState = NfState.ClaimedOwned;
+            _nfPassword = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _nfError = ex.Message.Contains("429") ? "Too many attempts. Try again later." : "Incorrect password.";
+        }
+        finally
+        {
+            _nfBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task NfRunClaimAsync()
+    {
+        if (_nfPassword != _nfConfirmPassword) { _nfError = "Passwords do not match."; return; }
+        if (_nfPassword.Length < 4) { _nfError = "Password must be at least 4 characters."; return; }
+
+        _nfBusy = true;
+        _nfError = string.Empty;
+        StateHasChanged();
+        try
+        {
+            var token = await PlayerService.ClaimNameAsync(_nfName, _nfPassword);
+            await PlayerService.StoreTokenAsync(_nfName, token);
+            _nfState = NfState.ClaimedOwned;
+            _nfShowClaimForm = false;
+            _nfPassword = string.Empty;
+            _nfConfirmPassword = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _nfError = ex.Message.Contains("already claimed") ? "Name was just claimed by someone else." : ex.Message;
+        }
+        finally
+        {
+            _nfBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Close()
+    {
+        await Modal?.Hide();
     }
 }
+

@@ -1,5 +1,4 @@
 using BlazorApp.Client.Components;
-using BlazorApp.Client.Components.BootstrapCarousel;
 using BlazorApp.Client.Services;
 using BlazorApp.Shared;
 using Microsoft.JSInterop;
@@ -21,6 +20,9 @@ namespace BlazorApp.Client.Pages
         bool gameStartTransition = false; // Drives the hint→timer tween animation
         bool hasScoreSaved; // Track if score has been saved for current game
         bool playSounds = true;
+        bool _dailyPanelExpanded = false;
+        DailyChallengeProgress? _dailyProgress;
+        bool _dailyLoading = false;
         double volume = 1;
         Timer? GameTimer;
         Timer? StatsUpdateTimer; // Add timer for updating dynamic stats
@@ -48,6 +50,7 @@ namespace BlazorApp.Client.Pages
 
         // Add tracking for dynamic stats and polling
         DateTime gameStartTime;
+        double _gameDurationSeconds = 60.0; // Actual measured game duration (for correct CPS/CPM)
         List<(int timeStamp, double clicksPerSecond)> clicksPerSecondPolls = new(); // Store polls for chart
         double CurrentClicksPerSecond => GetClicksPerSecond();
 
@@ -59,51 +62,6 @@ namespace BlazorApp.Client.Pages
             return Math.Round(totalClicks / elapsed.TotalSeconds, 1);
         }
 
-        List<CarouselItem> CarouselItems = new()
-        {
-            new()
-            {
-                ImageUrl = "/images/Asses/Boney/entire_ass.png",
-                AltText = "Boney Ass",
-                Title = "Boney",
-                Description = "0.5 point. 0 nutritional value, weirdly crunchy."
-            },
-            new()
-            {
-                ImageUrl = "/images/Asses/Cartoon/entire_ass.png",
-                AltText = "Cartoon Ass",
-                Title = "Cartoon",
-                Description = "1 point. Hand drawn, full of life, Tastes like MS Paint because it is."
-            },
-            new()
-            {
-                ImageUrl = "/images/Asses/Flat/entire_ass.png",
-                AltText = "Flat Ass",
-                Title = "Flat",
-                Description = "1 point. Deflated rump. Flatter and straighter than most boards at home depot."
-            },
-            new()
-            {
-                ImageUrl = "/images/Asses/Hairy/entire_ass.png",
-                AltText = "Hairy Ass",
-                Title = "Hairy",
-                Description = "1 point. Never shaven, letting it all hang out. The way god intended"
-            },
-            new()
-            {
-                ImageUrl = "/images/Asses/GYAT/entire_ass.png",
-                AltText = "GYAT Ass",
-                Title = "GYAT",
-                Description = "2 point. GYAT damn that's one thicc juicy thang."
-            },
-            new()
-            {
-                ImageUrl = "/images/Asses/Golden/entire_ass.png",
-                AltText = "Golden Ass",
-                Title = "Golden",
-                Description = "10 point. The holy grail of asses. Forces you to savour each sweet metallic bite."
-            },
-        };
 
         Dictionary<AssTypeEnum, int> Breakdown = new()
         {
@@ -176,7 +134,26 @@ namespace BlazorApp.Client.Pages
             if (!firstRender) return;
             await AnniversaryDialog.ShowIfEligibleAsync();
             await CheckForUpdateAsync();
+            await CheckAutoPopupsAsync();
         }
+
+        private async Task CheckAutoPopupsAsync()
+        {
+            await Task.Delay(400);
+
+            var playedBefore = await js.InvokeAsync<string?>("localStorageGet", "played-before");
+            if (string.IsNullOrEmpty(playedBefore))
+            {
+                // New user — show intro stepper (which includes the name step)
+                HelpDialog?.ShowIntro();
+            }
+            else if (string.IsNullOrWhiteSpace(_currentPlayerName))
+            {
+                // Returning user with no name set
+                await ShowPlayerNameDialog();
+            }
+        }
+
 
         private async Task CheckForUpdateAsync()
         {
@@ -391,6 +368,9 @@ namespace BlazorApp.Client.Pages
                 // Show results first, then check for leaderboard qualification
                 StateHasChanged(); // Update UI to show final score
 
+                // Mark that the user has played at least one round (used for onboarding flow)
+                await js.InvokeVoidAsync("localStorageSet", "played-before", "1");
+
                 string gameOverSound = BlazorApp.Shared.Assets.GetRandomGameOverSound();
                 if (playSounds)
                 {
@@ -480,6 +460,19 @@ namespace BlazorApp.Client.Pages
             await HelpDialog?.Modal?.Show();
         }
 
+        async Task ToggleDailyPanel()
+        {
+            _dailyPanelExpanded = !_dailyPanelExpanded;
+            if (_dailyPanelExpanded && _dailyProgress == null)
+            {
+                _dailyLoading = true;
+                StateHasChanged();
+                _dailyProgress = await DailyChallengeService.GetOrCreateTodayTasksAsync();
+                _dailyLoading = false;
+                StateHasChanged();
+            }
+        }
+
         async Task OpenAssDexFromHelp()
         {
             await AssdexDialog?.Show();
@@ -524,7 +517,6 @@ namespace BlazorApp.Client.Pages
         {
             _isPersonalBest = false;
             _personalBestScore = null;
-            await ShowResultsDialog();
 
             var savedName = await SettingsService.GetLastPlayerNameAsync();
             if (string.IsNullOrWhiteSpace(savedName)) return;
@@ -587,10 +579,11 @@ namespace BlazorApp.Client.Pages
                 StatsPollTimer = null;
             }
 
-            // Capture final poll when game ends
+            // Capture final poll and actual game duration when game ends
             if (gamePlaying && clicksPerSecondPolls.Count > 0)
             {
                 var elapsed = DateTime.Now - gameStartTime;
+                _gameDurationSeconds = Math.Max(elapsed.TotalSeconds, 0.1);
                 var timeStamp = (int)Math.Round(elapsed.TotalSeconds);
                 var cps = GetClicksPerSecond();
                 clicksPerSecondPolls.Add((timeStamp, cps));

@@ -33,29 +33,15 @@
             <button class="icon-btn" @onclick="ShowAssdexDialog" title="Assdex">
                 <Assdex Size="1.2em" Style="Assdex.AssdexIconStyle.Outline" Color="currentColor" />
             </button>
-            <button class="icon-btn" @onclick="ShowDailyDialog" title="Daily Challenge">
-                <i class="fas fa-calendar-day"></i>
-            </button>
         </nav>
 
         <div class="app-bar-end">
-            <button class="icon-btn @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "" : "icon-btn--named")"
-                    @onclick="ShowPlayerNameDialog"
-                    title="@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Player Name" : _currentPlayerName)">
-                <i class="fas fa-user" style="@(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "display:none" : "")"></i>
-                <span class="player-btn-label" style="@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "display:none" : "")">@(_currentPlayerName?.Length > 0 ? _currentPlayerName[..Math.Min(_currentPlayerName.Length, 2)].ToUpper() : "")</span>
-            </button>
             <button class="icon-btn @(playSounds ? "icon-btn-active" : "")" @onclick="ToggleSound"
                     title="@(playSounds ? "Sound On" : "Sound Off")">
                 <i class="@(playSounds ? "bi bi-volume-up-fill" : "bi bi-volume-mute-fill")"></i>
             </button>
-            <a href="https://github.com/jwp528/eatmyentireass.online" target="_blank"
-               rel="noopener noreferrer" class="icon-btn hide-xs" title="View Source Code">
-                <i class="fab fa-github"></i>
-            </a>
-            <button class="icon-btn" @onclick="ShowAboutDialog" title="About Developer">
-                <img src="https://www.joshparsons.ca/img/Logo.svg" alt="Josh Parsons"
-                     width="18" height="18" class="icon-btn-img" />
+            <button class="icon-btn" @onclick="ShowAboutDialog" title="About">
+                <i class="fas fa-info-circle"></i>
             </button>
         </div>
     </header>
@@ -77,25 +63,57 @@
             </div>
         }
 
+        @* Daily Challenge collapsible panel — top-right corner *@
+        <div class="daily-panel" @onclick:stopPropagation="true">
+            <button class="daily-panel-toggle" @onclick="ToggleDailyPanel" title="Daily Challenges">
+                <i class="fas fa-calendar-day"></i>
+                <span class="daily-panel-label">Daily Challenges</span>
+                <i class="fas fa-chevron-down daily-panel-chevron" style="@(_dailyPanelExpanded ? "transform:rotate(180deg)" : "")"></i>
+            </button>
+            <div class="daily-panel-body" style="@(_dailyPanelExpanded ? "" : "display:none")">
+                <div class="daily-panel-loading" style="@(_dailyLoading ? "" : "display:none")">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                </div>
+                <div style="@(!_dailyLoading ? "" : "display:none")">
+                    @foreach (var task in _dailyProgress?.Tasks ?? new())
+                    {
+                        <div class="daily-task-item @(task.Completed ? "daily-task-done" : "")">
+                            <span class="daily-task-icon">@task.GetIcon()</span>
+                            <span class="daily-task-desc">@task.GetDescription()</span>
+                            <i class="bi bi-check-circle-fill daily-task-check" style="@(task.Completed ? "" : "display:none")"></i>
+                            <i class="bi bi-circle daily-task-check daily-task-check--empty" style="@(!task.Completed ? "" : "display:none")"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
         @* Stack: frenzy label (when active) + ass image *@
         <div class="game-content-stack">
             @if (gamePlaying && frenzyActive)
             {
                 <div class="frenzy-above-image @(frenzyChainLevel >= 2 ? "frenzy-chaining" : "")">
-                    <span class="frenzy-title">🔥 FRENZY!</span>
-                    @if (frenzyChainLevel >= 2)
-                    {
-                        <span class="frenzy-chain-badge" key="@frenzyChainLevel">X@frenzyChainLevel</span>
-                    }
+                    <div class="frenzy-top-row">
+                        <span class="frenzy-title">🔥 FRENZY!</span>
+                        @if (frenzyChainLevel >= 2)
+                        {
+                            <span class="frenzy-chain-badge" @key="frenzyChainLevel">X@(frenzyChainLevel)</span>
+                        }
+                        <span class="frenzy-hold-hint">HOLD</span>
+                    </div>
                     <span class="frenzy-timer">@frenzySecondsLeft</span>
-                    <span class="frenzy-hold-hint">HOLD</span>
                 </div>
             }
-            <button class="game-player-chip @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-chip--named" : "")"
+            <button class="game-player-card @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-card--named" : "")"
                     @onclick:stopPropagation="true"
                     @onclick="ShowPlayerNameDialog">
-                <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
-                <span>@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Name" : _currentPlayerName)</span>
+                <span class="game-player-card-name">
+                    <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
+                    @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Your Name" : _currentPlayerName)
+                </span>
+                <span class="game-player-card-pb" style="@(_personalBestScore.HasValue ? "" : "display:none")">
+                    Personal Best: @((int)(_personalBestScore ?? 0))
+                </span>
             </button>
             
             <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
@@ -127,23 +145,70 @@
             <div class="canvas-hint @(gameStartTransition ? "canvas-hint-exit" : "")">Click to start!</div>
         }
 
-        @* Post-game overlay *@
-        @if (!gamePlaying && assesEaten > 0)
-        {
-            <div class="canvas-results">
-                <div class="canvas-score">@Math.Truncate(assesEaten) pts</div>
-                <div class="canvas-actions">
-                    <button class="canvas-btn" @onclick:stopPropagation="true"
-                            @onclick="() => ResultsDialog?.Modal?.Show()">
-                        <i class="fas fa-chart-bar"></i> Details
-                    </button>
-                    <button class="canvas-btn canvas-btn-primary" @onclick:stopPropagation="true"
-                            @onclick="StartNewGame">
-                        <i class="fas fa-rotate"></i> Play Again
-                    </button>
+        @* Post-game full overlay — always mounted, toggled via display:none for DOM stability *@
+        <div class="canvas-results" style="@(!gamePlaying && assesEaten > 0 ? "" : "display:none")"
+             @onclick:stopPropagation="true">
+
+            <div class="go-score-block">
+                <div class="go-score-num">@((int)Math.Truncate(assesEaten))</div>
+                <div class="go-score-lbl">Asses Devoured</div>
+                <div class="go-pb-badge" style="@(_isPersonalBest ? "" : "display:none")">
+                    <i class="bi bi-stars"></i> Personal Best!
+                </div>
+                <div class="go-prev-best" style="@(!_isPersonalBest && _personalBestScore.HasValue ? "" : "display:none")">
+                    Your best: @((int)(_personalBestScore ?? 0))
+                </div>
+                <div class="go-score-msg" style="@(string.IsNullOrEmpty(scoreText) ? "display:none" : "")">@scoreText</div>
+                <div class="go-challenge-win" style="@(_challengeScore > 0 && assesEaten > _challengeScore ? "" : "display:none")">
+                    <i class="bi bi-trophy-fill"></i> Beat @_challengerName's @((int)_challengeScore)!
+                </div>
+                <div class="go-challenge-miss" style="@(_challengeScore > 0 && assesEaten <= _challengeScore ? "" : "display:none")">
+                    <i class="bi bi-trophy"></i> @_challengerName challenged: beat @((int)_challengeScore)
                 </div>
             </div>
-        }
+
+            <div class="go-stats-row">
+                <div class="go-stat">
+                    <span class="go-stat-val">@totalClicks</span>
+                    <span class="go-stat-lbl">Clicks</span>
+                </div>
+                <div class="go-stat-div"></div>
+                <div class="go-stat">
+                    <span class="go-stat-val">@(_gameDurationSeconds > 0 ? Math.Round(totalClicks / _gameDurationSeconds, 1) : 0)</span>
+                    <span class="go-stat-lbl">CPS</span>
+                </div>
+                <div class="go-stat-div"></div>
+                <div class="go-stat">
+                    <span class="go-stat-val">@(_gameDurationSeconds > 0 ? Math.Round(totalClicks / (_gameDurationSeconds / 60.0), 1) : 0)</span>
+                    <span class="go-stat-lbl">CPM</span>
+                </div>
+            </div>
+
+            <div class="go-actions">
+                <div class="go-save-slot">
+                    <button class="go-btn go-btn-saved" disabled style="@(hasScoreSaved ? "" : "display:none")">
+                        <i class="bi bi-check-lg"></i> Saved
+                    </button>
+                    <button class="go-btn go-btn-primary" @onclick="ShowSaveScoreDialog"
+                            disabled="@(_personalBestScore.HasValue && assesEaten <= _personalBestScore.Value)"
+                            style="@(!hasScoreSaved ? "" : "display:none")">
+                        <i class="bi bi-floppy"></i> Save Score
+                    </button>
+                </div>
+                <button class="go-btn go-btn-challenge" @onclick="CopyGameOverChallengeLink">
+                    <i class="bi bi-check-lg" style="@(_gameOverChallengeCopied ? "" : "display:none")"></i>
+                    <i class="bi bi-share" style="@(!_gameOverChallengeCopied ? "" : "display:none")"></i>
+                    <span>@(_gameOverChallengeCopied ? "Copied!" : "Challenge")</span>
+                </button>
+                <button class="go-btn go-btn-ghost" @onclick:stopPropagation="true" @onclick="StartNewGame">
+                    <i class="fas fa-rotate"></i> Play Again
+                </button>
+                <button class="go-btn go-btn-ghost" @onclick="() => ResultsDialog?.Modal?.Show()">
+                    <i class="fas fa-chart-bar"></i> Details
+                </button>
+            </div>
+
+        </div>
 
     </main>
 
@@ -160,7 +225,7 @@
     </div>
 }
 
-<HelpModal @ref="HelpDialog" CarouselItems="@CarouselItems" OnOpenAssDex="OpenAssDexFromHelp" />
+<HelpModal @ref="HelpDialog" OnOpenAssDex="OpenAssDexFromHelp" OnNameSaved="OnPlayerNameChanged" CurrentName="@_currentPlayerName" />
 <AboutModal @ref="AboutDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />
@@ -177,6 +242,7 @@
               IsPersonalBest="@_isPersonalBest"
               PersonalBestScore="@_personalBestScore"
               clicksPerSecondPolls="@clicksPerSecondPolls"
+              GameDurationSeconds="@_gameDurationSeconds"
               peakComboCount="@frenzyCount"
               PeakChainLevel="@_peakChainLevel"
               CurrentPlayerName="@_currentPlayerName"
@@ -261,9 +327,25 @@
         StateHasChanged();
     }
 
+    bool _gameOverChallengeCopied = false;
+
     void OnPlayerNameChanged(string name)
     {
         _currentPlayerName = name;
+        HelpDialog?.NotifyNameSaved(name);
+        StateHasChanged();
+    }
+
+    async Task CopyGameOverChallengeLink()
+    {
+        var score = (int)Math.Truncate(assesEaten);
+        var name = string.IsNullOrWhiteSpace(_currentPlayerName) ? "Someone" : _currentPlayerName.Trim();
+        var url = $"{NavigationManager.BaseUri}?challenge={score}&challenger={Uri.EscapeDataString(name)}";
+        await js.InvokeVoidAsync("copyToClipboard", url);
+        _gameOverChallengeCopied = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        _gameOverChallengeCopied = false;
         StateHasChanged();
     }
 }

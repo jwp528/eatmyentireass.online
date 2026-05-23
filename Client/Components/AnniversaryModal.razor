@@ -14,14 +14,19 @@
         var windowEnd = new DateTime(2026, 5, 28);
         if (today < windowStart || today > windowEnd) return;
 
+        if (Modal is null) return;
+
+        // Mark seen immediately — before any delay — so rapid reloads or
+        // closing via Escape/backdrop don't re-fire confetti on the next load.
+        await LocalStorage.SetItemAsync("anniversaryModalSeen_2026", true);
+
         await Task.Delay(600);
-        await Modal!.Show();
+        await Modal.Show();
         await JS.InvokeVoidAsync("fireConfetti");
     }
 
     private async Task Dismiss()
     {
-        await LocalStorage.SetItemAsync("anniversaryModalSeen_2026", true);
         await Modal!.Hide();
     }
 }

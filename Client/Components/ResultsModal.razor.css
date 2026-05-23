@@ -141,6 +141,14 @@
     flex-shrink: 0;
 }
 
+/* Full-width break pushes frenzy stats to a new row with padding */
+.rm-stat-row-break {
+    width: 100%;
+    height: 0;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+}
+
 /* ── Material underline tabs ── */
 .rm-tab-bar {
     display: flex;
@@ -398,13 +406,62 @@
     margin-bottom: 10px;
 }
 
-/* ── Actions ── */
+/* ── Actions — sits between stats and tabs ── */
 .rm-actions {
     display: flex;
     gap: 8px;
-    padding: 16px 20px 20px;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    flex-wrap: wrap;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+@media (max-width: 480px) {
+    .rm-actions {
+        gap: 6px;
+        padding: 10px 12px;
+    }
+
+    .rm-btn-label {
+        display: none;
+    }
+
+    .rm-btn {
+        padding: 9px 14px;
+        justify-content: center;
+    }
+
+    /* Tighten stats strip so all 4 fit on one row */
+    .rm-stats-strip {
+        padding: 12px 8px;
+        gap: 0;
+        flex-wrap: wrap; /* keep wrap so frenzy row-break still works */
+    }
+
+    .rm-stat {
+        flex: 1;
+        padding: 0 4px;
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+    .rm-stat-icon {
+        display: none;
+    }
+
+    .rm-stat-val {
+        font-size: 0.95rem;
+    }
+
+    .rm-stat-lbl {
+        font-size: 0.62rem;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    .rm-stat-divider {
+        height: 24px;
+    }
 }
 
 .rm-btn {

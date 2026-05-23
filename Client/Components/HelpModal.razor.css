@@ -1,82 +1,263 @@
-/* Help Modal */
+/* ── Help Modal / Intro Stepper ─────────────────────────────────────── */
 .hp-shell {
-    padding: 1.75rem 1.75rem 1.5rem;
+    padding: 1.5rem 1.75rem 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0;
+    min-height: 420px;
+    flex: 1;
 }
 
-.hp-header {
+/* Dot indicators */
+.hp-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.hp-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.hp-dot--on {
+    background: #7986cb;
+    transform: scale(1.35);
+}
+
+/* Step container */
+.hp-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: 52vh;
+}
+
+@media (max-width: 480px) {
+    .hp-step {
+        max-height: none;
+    }
+}
+
+.hp-step-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 1rem;
+}
+
+.hp-step-sub {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.5);
+    margin: -0.5rem 0 1.25rem;
+    line-height: 1.5;
+}
+
+/* Step 1 — Welcome */
+.hp-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.hp-welcome-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 0.25rem;
+    filter: drop-shadow(0 2px 12px rgba(255,215,0,0.45));
+}
+
+.hp-welcome-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.hp-tagline {
+    font-size: 1.0rem;
+    font-weight: 700;
+    color: #e8eaf6;
+    letter-spacing: 0.04em;
+    margin: 0;
+}
+
+.hp-welcome-sub {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.45);
+    margin: 0.25rem 0 0;
+    max-width: 320px;
+    line-height: 1.5;
+}
+
+/* Step 4 — Your Name */
+.hp-name-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.75rem 0 0.5rem;
+}
+
+.hp-name-set {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 1.25rem;
+    gap: 0.5rem;
+    background: rgba(121,134,203,0.15);
+    border: 1px solid rgba(121,134,203,0.35);
+    border-radius: 8px;
+    padding: 8px 16px;
 }
 
-.hp-title-icon {
-    font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.5);
+.hp-name-check {
+    color: #a5d6a7;
+    font-size: 1rem;
 }
 
-.hp-title {
-    font-size: 1.4rem;
-    font-weight: 300;
-    color: #fff;
-    letter-spacing: 0.02em;
-}
-
-/* Tab bar */
-.hp-tabbar {
-    display: flex;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 1.5rem;
-    gap: 0;
-}
-
-.hp-tab {
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 0.75rem;
+.hp-name-value {
+    font-size: 1rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.6rem 1.25rem;
-    cursor: pointer;
-    margin-bottom: -1px;
-    transition: color 0.15s;
-    display: flex;
+    color: #fff;
+}
+
+.hp-name-change-btn {
+    font-size: 0.78rem;
+    padding: 0.4rem 1rem;
+}
+
+.hp-name-set-btn {
+    display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    font-size: 0.88rem;
+    padding: 0.65rem 1.5rem;
 }
 
-.hp-tab:hover {
-    color: rgba(255, 255, 255, 0.7);
+.hp-skip-link {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.78rem;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0;
+    text-decoration: underline;
+    transition: color 0.15s;
+    align-self: center;
 }
 
-.hp-tab--on {
+.hp-skip-link:hover {
+    color: rgba(255,255,255,0.6);
+}
+
+/* Step 5 — Ready */
+.hp-step--final {
+    justify-content: center;
+    align-items: center;
+}
+
+.hp-ready {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.6rem;
+    padding: 1rem 0;
+}
+
+.hp-ready-icon {
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.hp-ready-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+}
+
+.hp-ready-sub {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.5);
+    margin: 0;
+    max-width: 280px;
+    line-height: 1.5;
+}
+
+.hp-btn-play {
+    font-size: 1rem;
+    padding: 0.75rem 2.5rem;
+    margin-top: 0.75rem;
+    letter-spacing: 0.06em;
+}
+
+/* Navigation row */
+.hp-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.hp-nav-back,
+.hp-nav-next {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.35rem 0;
+    transition: color 0.15s;
+}
+
+.hp-nav-back:hover,
+.hp-nav-next:hover {
+    color: #fff;
+}
+
+.hp-nav-next {
     color: #7986cb;
-    border-bottom-color: #7986cb;
+    font-size: 0.82rem;
 }
 
-/* Panel */
-.hp-panel {
-    min-height: 200px;
-    max-height: 55vh;
-    overflow-y: auto;
+.hp-nav-next:hover {
+    color: #9fa8da;
 }
 
+/* ── Shared content styles (steps 2 & 3) ───────────────────────────── */
 .hp-label {
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255,255,255,0.35);
     margin: 0 0 0.75rem;
 }
 
-/* Steps */
 .hp-steps {
     list-style: none;
     padding: 0;
@@ -90,9 +271,9 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.55rem 0;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255,255,255,0.85);
     font-size: 0.92rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .hp-steps li:last-child {
@@ -117,11 +298,10 @@
 
 .hp-divider {
     height: 1px;
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(255,255,255,0.07);
     margin: 1.1rem 0;
 }
 
-/* Generic list */
 .hp-list {
     display: flex;
     flex-direction: column;
@@ -131,7 +311,7 @@
     display: flex;
     flex-direction: column;
     padding: 0.65rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .hp-row:last-child {
@@ -147,46 +327,109 @@
 
 .hp-row-desc {
     font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255,255,255,0.5);
     line-height: 1.5;
 }
 
-/* AssDex panel */
-.hp-dex-panel {
-    align-items: flex-start;
+/* Frenzy step hero image */
+.hp-frenzy-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
-.hp-dex-hero {
+.hp-frenzy-img {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 14px rgba(255,215,0,0.55));
+    animation: hp-pulse 2s ease-in-out infinite;
+}
+
+.hp-frenzy-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,215,0,0.7);
+    margin: 0.35rem 0 0;
+}
+
+@keyframes hp-pulse {
+    0%, 100% { filter: drop-shadow(0 2px 10px rgba(255,215,0,0.45)); transform: scale(1); }
+    50% { filter: drop-shadow(0 2px 20px rgba(255,215,0,0.85)); transform: scale(1.06); }
+}
+
+/* ── Inline name form (step 4) ──────────────────────────────────────── */
+.hp-name-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.hp-nf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.hp-nf-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+}
+
+.hp-nf-input-row {
     display: flex;
     align-items: center;
-    gap: 0.9rem;
-    margin-bottom: 0.25rem;
+    gap: 0;
+    position: relative;
 }
 
-.hp-dex-name {
-    font-size: 1.1rem;
-    font-weight: 500;
+.hp-nf-input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
     color: #fff;
-    margin: 0 0 0.15rem;
+    font-size: 0.95rem;
+    padding: 0.6rem 0.85rem;
+    outline: none;
+    transition: border-color 0.15s;
 }
 
-.hp-dex-tagline {
-    font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.45);
-    margin: 0;
+.hp-nf-input:focus {
+    border-color: rgba(121,134,203,0.6);
+    background: rgba(255,255,255,0.09);
 }
 
-.hp-dex-action {
-    margin-top: 1.5rem;
+.hp-nf-input:disabled {
+    opacity: 0.5;
 }
 
-/* Footer */
-.hp-footer {
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
+.hp-nf-input-row .pn-indicator {
+    position: absolute;
+    right: 0.65rem;
 }
 
+.hp-nf-caption {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.4;
+}
+
+.hp-nf-save-btn {
+    width: 100%;
+    padding: 0.7rem;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+}
+
+/* Primary button */
 .hp-btn {
     background: #5c6bc0;
     border: none;
@@ -201,15 +444,23 @@
     transition: background 0.15s;
 }
 
-.hp-btn-icon {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.6rem 1.25rem;
-}
-
 .hp-btn:hover {
     background: #7986cb;
 }
 
-/* Modal Header integrated into body */
+.hp-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.hp-btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+}
+
+.hp-btn-ghost:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+}
+

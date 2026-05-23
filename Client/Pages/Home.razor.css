@@ -14,7 +14,7 @@
     display: flex;
     align-items: center;
     height: 56px;
-    padding: 0 8px;
+    padding: 0 8px 0 16px;
     background: rgba(255, 255, 255, 0.03);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
@@ -28,6 +28,10 @@
     gap: 8px;
     min-width: 80px;
     user-select: none;
+}
+
+.app-bar-icon {
+    padding: 3px;
 }
 
 .app-bar-title {
@@ -216,7 +220,7 @@
     animation: timer-enter 0.42s ease-out forwards !important;
 }
 
-/* Post-game results overlay */
+/* Post-game results overlay — full-coverage game-over screen */
 .canvas-results {
     position: absolute;
     inset: 0;
@@ -225,35 +229,140 @@
     align-items: center;
     justify-content: center;
     gap: 16px;
-    pointer-events: none;
+    background: rgba(10, 10, 20, 0.88);
+    backdrop-filter: blur(8px);
     z-index: 6;
+    padding: 1.5rem;
+    overflow-y: auto;
 }
 
-.canvas-score {
-    font-size: 3rem;
+.go-score-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.go-score-num {
+    font-size: 4.5rem;
     font-weight: 900;
     color: #fff;
-    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
-    letter-spacing: 0.02em;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.go-score-lbl {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 6px;
+}
+
+.go-pb-badge {
+    background: linear-gradient(135deg, #ffd740, #ff9800);
+    color: #1a1a00;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 99px;
+}
+
+.go-prev-best {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.35);
+}
+
+.go-score-msg {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.6);
+    font-style: italic;
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.45;
+    margin-top: 2px;
+}
+
+.go-challenge-win {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ffd740;
+}
+
+.go-challenge-miss {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+}
+
+.go-stats-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px 20px;
+}
+
+.go-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 60px;
+}
+
+.go-stat-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
     font-variant-numeric: tabular-nums;
 }
 
-.canvas-actions {
-    display: flex;
-    gap: 10px;
-    pointer-events: auto;
+.go-stat-lbl {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
 }
 
-.canvas-btn {
-    display: inline-flex;
+.go-stat-div {
+    width: 1px;
+    height: 28px;
+    background: rgba(255,255,255,0.12);
+    margin: 0 12px;
+}
+
+.go-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    pointer-events: auto;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* display:contents makes the two toggle buttons act as direct grid items */
+.go-save-slot {
+    display: contents;
+}
+
+.go-btn {
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    padding: 8px 20px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    background: rgba(0, 0, 0, 0.55);
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.9rem;
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.45);
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     backdrop-filter: blur(6px);
@@ -261,21 +370,162 @@
     white-space: nowrap;
 }
 
-.canvas-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
+.go-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.12);
     color: #fff;
 }
 
-.canvas-btn-primary {
-    background: rgba(92, 107, 192, 0.45);
-    border-color: rgba(92, 107, 192, 0.6);
+.go-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.go-btn-primary {
+    background: rgba(92,107,192,0.45);
+    border-color: rgba(92,107,192,0.6);
     color: #c5cae9;
 }
 
-.canvas-btn-primary:hover {
-    background: rgba(92, 107, 192, 0.65);
+.go-btn-primary:hover:not(:disabled) {
+    background: rgba(92,107,192,0.65);
     color: #fff;
-}/* ── Frenzy: game area marker (no animation) ─────────────────────── */
+}
+
+.go-btn-challenge {
+    background: rgba(255,152,0,0.25);
+    border-color: rgba(255,152,0,0.45);
+    color: #ffcc80;
+}
+
+.go-btn-challenge:hover {
+    background: rgba(255,152,0,0.45);
+    color: #fff;
+}
+
+.go-btn-saved {
+    background: rgba(76,175,80,0.25);
+    border-color: rgba(76,175,80,0.45);
+    color: #a5d6a7;
+    cursor: default;
+}
+
+.go-btn-ghost {
+    background: transparent;
+    border-color: rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.55);
+}
+
+.go-btn-ghost:hover {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.85);
+}
+
+@media (max-width: 480px) {
+    .go-score-num { font-size: 3.5rem; }
+    .go-btn { justify-content: center; }
+}
+
+/* Daily challenge collapsible panel — top-right corner of game-main */
+.daily-panel {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.daily-panel-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 20px;
+    color: rgba(255,255,255,0.75);
+    font-size: 0.8rem;
+    padding: 5px 12px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.15s;
+}
+
+.daily-panel-toggle:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+
+.daily-panel-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.daily-panel-chevron {
+    font-size: 0.65rem;
+    transition: transform 0.2s;
+}
+
+.daily-panel-body {
+    margin-top: 6px;
+    background: rgba(15,15,30,0.9);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 10px 12px;
+    backdrop-filter: blur(8px);
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.daily-panel-loading {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.daily-task-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.daily-task-item:last-child {
+    border-bottom: none;
+}
+
+.daily-task-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    width: 22px;
+    text-align: center;
+}
+
+.daily-task-desc {
+    flex: 1;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.35;
+}
+
+.daily-task-done .daily-task-desc {
+    color: rgba(255,255,255,0.4);
+    text-decoration: line-through;
+}
+
+.daily-task-check {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    color: #a5d6a7;
+}
+
+.daily-task-check--empty {
+    color: rgba(255,255,255,0.2);
+}/* ── Frenzy: game area marker (no animation) ─────────────────────── */
 
 /* ── Challenge banner ─────────────────────────────────────────────── */
 .challenge-banner {
@@ -344,46 +594,70 @@
     gap: 0.6rem;
 }
 
-/* ── Player name chip above the ass ─────────────────────────────── */
-.game-player-chip {
-    display: inline-flex;
+/* ── Player name + personal best card ──────────────────────────── */
+.game-player-card {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 4px 14px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.06);
+    gap: 2px;
+    padding: 8px 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 0.78rem;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     pointer-events: all;
-    line-height: 1.4;
 }
 
-.game-player-chip:hover {
-    background: rgba(255, 255, 255, 0.11);
-    color: rgba(255, 255, 255, 0.9);
+.game-player-card:hover {
+    background: rgba(255, 255, 255, 0.09);
 }
 
-.game-player-chip--named {
-    color: #7986cb;
+.game-player-card--named {
     border-color: rgba(92, 107, 192, 0.35);
     background: rgba(92, 107, 192, 0.1);
 }
 
-.game-player-chip--named:hover {
+.game-player-card--named:hover {
     background: rgba(92, 107, 192, 0.18);
-    color: #9fa8da;
+}
+
+.game-player-card-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #c5cae9;
+    letter-spacing: 0.01em;
+}
+
+.game-player-card:not(.game-player-card--named) .game-player-card-name {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 600;
+}
+
+.game-player-card-pb {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.38);
+    letter-spacing: 0.04em;
 }
 
 /* ── Frenzy label above the ass image ───────────────────────────── */
 .frenzy-above-image {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.1rem;
     pointer-events: none;
     animation: fade-pulse 0.6s ease-in-out infinite alternate;
+}
+
+.frenzy-top-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .frenzy-title {
@@ -409,8 +683,7 @@
     color: rgba(255, 255, 255, 0.75);
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    align-self: flex-end;
-    padding-bottom: 0.5rem;
+    align-self: center;
 }
 
 .frenzy-chain-badge {
