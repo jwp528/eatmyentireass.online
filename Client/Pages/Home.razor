@@ -97,7 +97,7 @@
                         <span class="frenzy-title">🔥 FRENZY!</span>
                         @if (frenzyChainLevel >= 2)
                         {
-                            <span class="frenzy-chain-badge" key="@frenzyChainLevel">X@frenzyChainLevel</span>
+                            <span class="frenzy-chain-badge" @key="frenzyChainLevel">X@(frenzyChainLevel)</span>
                         }
                         <span class="frenzy-hold-hint">HOLD</span>
                     </div>
