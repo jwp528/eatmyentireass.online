@@ -416,6 +416,23 @@
     right: 0.65rem;
 }
 
+/* "Claim this name" inline link-button */
+.pn-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #7986cb;
+    font-size: 0.82rem;
+    cursor: pointer;
+    text-align: left;
+    width: fit-content;
+}
+
+.pn-link-btn:hover {
+    color: #9fa8da;
+    text-decoration: underline;
+}
+
 .hp-nf-caption {
     font-size: 0.75rem;
     color: rgba(255,255,255,0.35);

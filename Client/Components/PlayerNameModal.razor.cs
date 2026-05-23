@@ -56,7 +56,8 @@ namespace BlazorApp.Client.Components
 
         private async Task OnNameChanged(ChangeEventArgs e)
         {
-            _name = e.Value?.ToString() ?? string.Empty;
+            var raw = e.Value?.ToString() ?? string.Empty;
+            _name = raw.Length > 20 ? raw[..20] : raw;
             _errorMessage = string.Empty;
             _password = string.Empty;
             _showClaimForm = false;

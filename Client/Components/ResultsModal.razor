@@ -1,7 +1,5 @@
 @using BlazorApp.Shared
 @using static BlazorApp.Shared.Assets
-@using BlazorApp.Client.Services
-@inject IStatsService StatsService
 @inject IJSRuntime Js
 @inject NavigationManager Nav
 
@@ -12,6 +10,7 @@
     [Parameter] public List<AssTypeEnum> AssTypes { get; set; } = new();
     [Parameter] public Dictionary<AssTypeEnum, int> Breakdown { get; set; } = new();
     [Parameter] public bool hasScoreSaved { get; set; }
+    [Parameter] public bool IsAutoSaving { get; set; }
     [Parameter] public bool IsPersonalBest { get; set; }
     [Parameter] public double? PersonalBestScore { get; set; }
     [Parameter] public int peakComboCount { get; set; }
@@ -43,10 +42,6 @@
 
     public BSModal? Modal;
     private int activeTab = 0;
-
-    // Global stats (Stats tab)
-    private GameStats? _globalStats;
-    private bool _statsLoading;
 
     private double ChartMaxCps => clicksPerSecondPolls.Any()
         ? Math.Max(1, clicksPerSecondPolls.Max(p => p.clicksPerSecond) * 1.2)
@@ -83,23 +78,9 @@
         return count * BlazorApp.Shared.Assets.GetPointsForAssType(assType);
     }
 
-    private long GlobalTotalAssesEaten() =>
-        _globalStats?.AssTypeStats.Values.Sum() ?? 0;
-
-    private long GlobalAvgClicksPerRound() =>
-        _globalStats is { RoundsPlayed: > 0 }
-            ? _globalStats.TotalClicks / _globalStats.RoundsPlayed
-            : 0;
-
     private async Task SwitchTab(int tab)
     {
         activeTab = tab;
-        if (tab == 2 && !_statsLoading)
-        {
-            _statsLoading = true;
-            _globalStats = await StatsService.GetStatsAsync();
-            _statsLoading = false;
-        }
     }
 }
 
@@ -194,14 +175,13 @@
 
             <!-- Actions — above tabs -->
             <div class="rm-actions">
-                <button class="rm-btn rm-btn-saved" disabled style="@(hasScoreSaved ? "" : "display:none")">
-                    <i class="bi bi-check-lg"></i> <span class="rm-btn-label">Saved</span>
-                </button>
-                <button class="rm-btn rm-btn-primary" @onclick="() => OnSaveScore.InvokeAsync()"
-                        disabled="@(!PersonalBestScore.HasValue || assesEaten > PersonalBestScore.Value ? false : true)"
-                        style="@(!hasScoreSaved ? "" : "display:none")">
-                    <i class="bi bi-floppy"></i> <span class="rm-btn-label">Save Score</span>
-                </button>
+                @if (string.IsNullOrEmpty(CurrentPlayerName))
+                {
+                    <button class="rm-btn rm-btn-primary" @onclick="() => OnSaveScore.InvokeAsync()"
+                            disabled="@(!PersonalBestScore.HasValue || assesEaten > PersonalBestScore.Value ? false : true)">
+                        <i class="bi bi-floppy"></i> <span class="rm-btn-label">Save Score</span>
+                    </button>
+                }
                 <button class="rm-btn" @onclick="() => OnShowLeaderboard.InvokeAsync()">
                     <i class="bi bi-trophy"></i> <span class="rm-btn-label">Leaderboard</span>
                 </button>
@@ -222,9 +202,6 @@
                 </button>
                 <button class="rm-tab @(activeTab == 1 ? "rm-tab-active" : "")" @onclick="() => SwitchTab(1)">
                     <i class="bi bi-pie-chart-fill"></i> Breakdown
-                </button>
-                <button class="rm-tab @(activeTab == 2 ? "rm-tab-active" : "")" @onclick="() => SwitchTab(2)">
-                    <i class="bi bi-bar-chart-line-fill"></i> Global Stats
                 </button>
             </div>
 
@@ -285,7 +262,7 @@
                         <div class="rm-empty">No performance data</div>
                     }
                 }
-                else if (activeTab == 1)
+                else
                 {
                     <div class="rm-breakdown">
                         @foreach (var ass in AssTypes.OrderByDescending(a => Breakdown[a]))
@@ -313,70 +290,6 @@
                             </div>
                         }
                     </div>
-                }
-                else
-                {
-                    <!-- Global Stats tab -->
-                    @if (_statsLoading)
-                    {
-                        <div class="rm-empty">
-                            <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
-                            Loading global stats...
-                        </div>
-                    }
-                    else if (_globalStats == null)
-                    {
-                        <div class="rm-empty">Could not load global stats.</div>
-                    }
-                    else
-                    {
-                        <div class="rm-gs-grid">
-                            <div class="rm-gs-stat">
-                                <i class="bi bi-emoji-dizzy rm-gs-icon"></i>
-                                <span class="rm-gs-val">@GlobalTotalAssesEaten().ToString("N0")</span>
-                                <span class="rm-gs-lbl">Asses Eaten</span>
-                            </div>
-                            <div class="rm-gs-stat">
-                                <i class="bi bi-mouse rm-gs-icon"></i>
-                                <span class="rm-gs-val">@_globalStats.TotalClicks.ToString("N0")</span>
-                                <span class="rm-gs-lbl">Total Clicks</span>
-                            </div>
-                            <div class="rm-gs-stat">
-                                <i class="bi bi-controller rm-gs-icon"></i>
-                                <span class="rm-gs-val">@_globalStats.RoundsPlayed.ToString("N0")</span>
-                                <span class="rm-gs-lbl">Rounds Played</span>
-                            </div>
-                            <div class="rm-gs-stat">
-                                <i class="bi bi-cursor rm-gs-icon"></i>
-                                <span class="rm-gs-val">@GlobalAvgClicksPerRound().ToString("N0")</span>
-                                <span class="rm-gs-lbl">Avg Clicks/Round</span>
-                            </div>
-                        </div>
-                        <div class="rm-gs-divider"></div>
-                        <div class="rm-gs-section-label">By Ass Type</div>
-                        <div class="rm-breakdown">
-                            @foreach (var kv in _globalStats.AssTypeStats.OrderByDescending(x => x.Value))
-                            {
-                                var total = GlobalTotalAssesEaten();
-                                var pct = total > 0 ? Math.Round((double)kv.Value / total * 100, 1) : 0;
-                                var barW = total > 0 ? (double)kv.Value / total * 100 : 0;
-                                <div class="rm-bd-row">
-                                    <img src="/images/Asses/@kv.Key/entire_ass.png"
-                                         class="rm-bd-img" alt="@kv.Key" />
-                                    <div class="rm-bd-info">
-                                        <div class="rm-bd-name">@kv.Key</div>
-                                        <div class="rm-bd-bar-track">
-                                            <div class="rm-bd-bar-fill" style="width:@(barW)%"></div>
-                                        </div>
-                                    </div>
-                                    <div class="rm-bd-nums">
-                                        <span class="rm-bd-count">@kv.Value.ToString("N0")</span>
-                                        <span class="rm-bd-pct">@pct%</span>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
                 }
             </div>
 

@@ -161,16 +161,16 @@
 }
 
 /* Data values */
-.lb-crown { color: #fbbf24; font-size: 1rem; }
+.lb-medal {
+    font-size: 1.1rem;
+    line-height: 1;
+}
 
 .lb-rank-num {
     font-size: 0.75rem;
     font-weight: 700;
     color: rgba(255,255,255,0.3);
 }
-
-.lb-rank-2 { color: #9ca3af; }
-.lb-rank-3 { color: #cd7f32; }
 
 .lb-player-name {
     font-size: 0.9rem;
@@ -234,94 +234,6 @@
     opacity: 0.4;
     cursor: not-allowed;
 }
-
-/* ── Stats content ── */
-.lb-stats-content {
-    flex: 1;
-    overflow-y: auto;
-    max-height: 52vh;
-    padding: 16px;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-}
-
-.stat-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 8px;
-    padding: 14px 12px;
-    text-align: center;
-}
-
-.stat-icon {
-    font-size: 1.3rem;
-    margin-bottom: 6px;
-    display: block;
-    opacity: 0.7;
-}
-
-.stat-value {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1.2;
-}
-
-.stat-label {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-top: 3px;
-}
-
-.ass-breakdown-section {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 14px;
-}
-
-.ass-breakdown-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.ass-type-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.ass-type-icon {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    flex-shrink: 0;
-}
-
-.ass-type-name { font-weight: 600; font-size: 0.85rem; color: rgba(255,255,255,0.88); }
-.ass-type-count { font-weight: 700; font-size: 0.85rem; }
-.ass-type-info { flex: 1; }
-
-.ass-progress {
-    height: 5px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 3px;
-}
-
-.ass-progress .progress-bar {
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-    border-radius: 3px;
-    transition: width 0.5s ease;
-}
-
-.ass-pct { min-width: 42px; text-align: right; flex-shrink: 0; }
 
 /* ── Mobile ── */
 @media (max-width: 480px) {

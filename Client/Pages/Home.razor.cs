@@ -19,6 +19,8 @@ namespace BlazorApp.Client.Pages
         bool gameJustEnded; // Add this flag to prevent immediate restart
         bool gameStartTransition = false; // Drives the hint→timer tween animation
         bool hasScoreSaved; // Track if score has been saved for current game
+        bool _autoSaving = false; // True while auto-save is in progress
+        bool _pendingAutoSave = false; // Unnamed player ended game; save once they set a name
         bool playSounds = true;
         bool _dailyPanelExpanded = false;
         DailyChallengeProgress? _dailyProgress;
@@ -99,7 +101,7 @@ namespace BlazorApp.Client.Pages
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            _progressCache = await ProgressService.LoadAsync();
+            _progressCache = await ProgressService.LoadAsync(_currentPlayerName);
             _currentPlayerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
             await LoadSettings();
             ParseChallengeFromUrl();
@@ -236,6 +238,8 @@ namespace BlazorApp.Client.Pages
             GameTimeInSeconds = 60;
             gameJustEnded = false; // Reset the flag when starting a fresh game
             hasScoreSaved = false; // Reset score saved flag for new game
+            _autoSaving = false;
+            _pendingAutoSave = false;
             clicksPerSecondPolls.Clear(); // Clear previous game's polling data
             Breakdown = new()
             {
@@ -433,8 +437,9 @@ namespace BlazorApp.Client.Pages
 
                 // Assdex: track new unlocks; get next ass (uses updated cache for threshold)
                 GetNewAss();
-                _ = CollectionService.MarkUnlockedAsync(completedType);
-                _ = ProgressService.SaveAsync(_progressCache);
+                var snapshotName = _currentPlayerName; // capture before any async context switch
+                _ = CollectionService.MarkUnlockedAsync(snapshotName, completedType);
+                _ = ProgressService.SaveAsync(snapshotName, _progressCache);
 
                 if (completedType == AssTypeEnum.Golden)
                     TriggerFrenzy();
@@ -485,7 +490,7 @@ namespace BlazorApp.Client.Pages
 
         async Task ShowStatsDialog()
         {
-            if (LeaderboardStatsDialog != null) await LeaderboardStatsDialog.ShowStats();
+            if (StatsDialog != null) await StatsDialog.Show();
         }
 
         async Task SubmitGameStatsAsync()
@@ -519,27 +524,71 @@ namespace BlazorApp.Client.Pages
             _personalBestScore = null;
 
             var savedName = await SettingsService.GetLastPlayerNameAsync();
-            if (string.IsNullOrWhiteSpace(savedName)) return;
+            if (string.IsNullOrWhiteSpace(savedName))
+            {
+                // Unnamed player — show Save Score button; auto-save after they set a name
+                _pendingAutoSave = true;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
 
             try
             {
                 var playerBest = await LeaderboardService.GetPlayerBestScoreAsync(savedName);
-                bool isNewBest = playerBest == null || assesEaten > playerBest.Score;
-
                 _personalBestScore = playerBest?.Score;
-                _isPersonalBest = isNewBest;
+                _isPersonalBest = playerBest == null || assesEaten > playerBest.Score;
                 await InvokeAsync(StateHasChanged);
 
-                if (isNewBest)
-                {
-                    await Task.Delay(300);
-                    await SaveScoreDialog?.Show((double)assesEaten, totalClicks, Breakdown);
-                }
+                // Auto-save for named players
+                await Task.Delay(300);
+                await AutoSaveToLeaderboardAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Home] Auto-show save score check failed (non-critical): {ex.Message}");
+                Console.WriteLine($"[Home] Auto-save check failed (non-critical): {ex.Message}");
             }
+        }
+
+        async Task AutoSaveToLeaderboardAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_currentPlayerName)) return;
+
+            _autoSaving = true;
+            await InvokeAsync(StateHasChanged);
+
+            bool saved = false;
+            try
+            {
+                var token = await PlayerService.GetStoredTokenAsync(_currentPlayerName);
+                var entry = new LeaderboardEntry
+                {
+                    PlayerName = _currentPlayerName.Trim(),
+                    Score = assesEaten,
+                    TotalClicks = totalClicks,
+                    GameDate = DateTime.UtcNow,
+                    AssTypeBreakdown = Breakdown.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value),
+                    GameDurationSeconds = 60
+                };
+
+                await LeaderboardService.SaveScoreAsync(entry, token);
+                await LocalLeaderboardService.SaveScoreAsync(entry);
+                hasScoreSaved = true;
+                _pendingAutoSave = false;
+                saved = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Home] Auto-save failed: {ex.Message}");
+                // Fall back to manual save modal
+                await InvokeAsync(async () => await SaveScoreDialog?.Show((double)assesEaten, totalClicks, Breakdown));
+            }
+            finally
+            {
+                _autoSaving = false;
+                await InvokeAsync(StateHasChanged);
+            }
+
+            _ = saved; // suppress unused warning
         }
 
         async Task TryAgain()

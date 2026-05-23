@@ -7,14 +7,12 @@ namespace BlazorApp.Client.Components
     public partial class LeaderboardStatsModal : ComponentBase
     {
         [Inject] public ILeaderboardService LeaderboardService { get; set; } = default!;
-        [Inject] public IStatsService StatsService { get; set; } = default!;
+        [Parameter] public EventCallback OnShowStats { get; set; }
 
         public BSModal? Modal;
 
         private string activeTab = "alltime";
         private bool isLoadingLeaderboard;
-        private bool isLoadingStats;
-        private GameStats? stats;
         private string _searchText = string.Empty;
 
         // Per-period leaderboard data
@@ -40,9 +38,8 @@ namespace BlazorApp.Client.Components
 
         public async Task ShowStats()
         {
-            activeTab = "stats";
-            await Modal!.Show();
-            _ = LoadStatsAsync();
+            await Modal!.Hide();
+            await OnShowStats.InvokeAsync();
         }
 
         private async Task SwitchTab(string tab)
@@ -50,11 +47,7 @@ namespace BlazorApp.Client.Components
             activeTab = tab;
             _searchText = string.Empty;
 
-            if (tab == "stats")
-            {
-                await LoadStatsAsync();
-            }
-            else if (!_loadedPeriods.Contains(tab))
+            if (!_loadedPeriods.Contains(tab))
             {
                 await LoadPeriodAsync(tab);
             }
@@ -62,15 +55,8 @@ namespace BlazorApp.Client.Components
 
         private async Task Refresh()
         {
-            if (activeTab == "stats")
-            {
-                await LoadStatsAsync();
-            }
-            else
-            {
-                _loadedPeriods.Remove(activeTab);
-                await LoadPeriodAsync(activeTab);
-            }
+            _loadedPeriods.Remove(activeTab);
+            await LoadPeriodAsync(activeTab);
         }
 
         private async Task LoadPeriodAsync(string period)
@@ -91,41 +77,9 @@ namespace BlazorApp.Client.Components
             StateHasChanged();
         }
 
-        private async Task LoadStatsAsync()
-        {
-            isLoadingStats = true;
-            StateHasChanged();
-            try
-            {
-                stats = await StatsService.GetStatsAsync();
-            }
-            catch
-            {
-                stats = null;
-            }
-            isLoadingStats = false;
-            StateHasChanged();
-        }
-
         private async Task CloseModal()
         {
             if (Modal != null) await Modal.Hide();
         }
-
-        private string FormatTime(long seconds)
-        {
-            var ts = TimeSpan.FromSeconds(seconds);
-            if (ts.TotalDays >= 1)
-                return $"{(int)ts.TotalDays}d {ts.Hours}h {ts.Minutes}m";
-            if (ts.TotalHours >= 1)
-                return $"{(int)ts.TotalHours}h {ts.Minutes}m {ts.Seconds}s";
-            return $"{ts.Minutes}m {ts.Seconds}s";
-        }
-
-        private long GetAssTypeCount(string assType)
-            => stats?.AssTypeStats.TryGetValue(assType, out var v) == true ? v : 0;
-
-        private long TotalAssesEaten()
-            => stats?.AssTypeStats.Values.Sum() ?? 0;
     }
 }

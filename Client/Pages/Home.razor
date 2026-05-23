@@ -4,6 +4,7 @@
 @using static BlazorApp.Shared.Assets
 @inject IJSRuntime js
 @inject ILeaderboardService LeaderboardService
+@inject ILocalLeaderboardService LocalLeaderboardService
 @inject ISettingsService SettingsService
 @inject IPlayerService PlayerService
 @inject IVersionCheckService VersionCheckService
@@ -88,33 +89,33 @@
             </div>
         </div>
 
+        <button class="game-player-card @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-card--named" : "")"
+                @onclick:stopPropagation="true"
+                @onclick="ShowPlayerNameDialog">
+            <span class="game-player-card-name">
+                <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
+                @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Your Name" : _currentPlayerName)
+            </span>
+            <span class="game-player-card-pb" style="@(_personalBestScore.HasValue ? "" : "display:none")">
+                Personal Best: @((int)(_personalBestScore ?? 0))
+            </span>
+        </button>
+
         @* Stack: frenzy label (when active) + ass image *@
         <div class="game-content-stack">
             @if (gamePlaying && frenzyActive)
             {
                 <div class="frenzy-above-image @(frenzyChainLevel >= 2 ? "frenzy-chaining" : "")">
                     <div class="frenzy-top-row">
-                        <span class="frenzy-title">🔥 FRENZY!</span>
+                        <span class="frenzy-title">FRENZY</span>
                         @if (frenzyChainLevel >= 2)
                         {
                             <span class="frenzy-chain-badge" @key="frenzyChainLevel">X@(frenzyChainLevel)</span>
                         }
-                        <span class="frenzy-hold-hint">HOLD</span>
                     </div>
                     <span class="frenzy-timer">@frenzySecondsLeft</span>
                 </div>
             }
-            <button class="game-player-card @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-card--named" : "")"
-                    @onclick:stopPropagation="true"
-                    @onclick="ShowPlayerNameDialog">
-                <span class="game-player-card-name">
-                    <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
-                    @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Your Name" : _currentPlayerName)
-                </span>
-                <span class="game-player-card-pb" style="@(_personalBestScore.HasValue ? "" : "display:none")">
-                    Personal Best: @((int)(_personalBestScore ?? 0))
-                </span>
-            </button>
             
             <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
         </div>
@@ -185,21 +186,26 @@
             </div>
 
             <div class="go-actions">
-                <div class="go-save-slot">
-                    <button class="go-btn go-btn-saved" disabled style="@(hasScoreSaved ? "" : "display:none")">
-                        <i class="bi bi-check-lg"></i> Saved
-                    </button>
+                @if (string.IsNullOrEmpty(_currentPlayerName))
+                {
                     <button class="go-btn go-btn-primary" @onclick="ShowSaveScoreDialog"
-                            disabled="@(_personalBestScore.HasValue && assesEaten <= _personalBestScore.Value)"
-                            style="@(!hasScoreSaved ? "" : "display:none")">
+                            disabled="@(_personalBestScore.HasValue && assesEaten <= _personalBestScore.Value)">
                         <i class="bi bi-floppy"></i> Save Score
                     </button>
-                </div>
-                <button class="go-btn go-btn-challenge" @onclick="CopyGameOverChallengeLink">
-                    <i class="bi bi-check-lg" style="@(_gameOverChallengeCopied ? "" : "display:none")"></i>
-                    <i class="bi bi-share" style="@(!_gameOverChallengeCopied ? "" : "display:none")"></i>
-                    <span>@(_gameOverChallengeCopied ? "Copied!" : "Challenge")</span>
-                </button>
+                    <button class="go-btn go-btn-challenge" @onclick="CopyGameOverChallengeLink">
+                        <i class="bi bi-check-lg" style="@(_gameOverChallengeCopied ? "" : "display:none")"></i>
+                        <i class="bi bi-share" style="@(!_gameOverChallengeCopied ? "" : "display:none")"></i>
+                        <span>@(_gameOverChallengeCopied ? "Copied!" : "Challenge")</span>
+                    </button>
+                }
+                else
+                {
+                    <button class="go-btn go-btn-challenge go-btn-full" @onclick="CopyGameOverChallengeLink">
+                        <i class="bi bi-check-lg" style="@(_gameOverChallengeCopied ? "" : "display:none")"></i>
+                        <i class="bi bi-share" style="@(!_gameOverChallengeCopied ? "" : "display:none")"></i>
+                        <span>@(_gameOverChallengeCopied ? "Copied!" : "Challenge")</span>
+                    </button>
+                }
                 <button class="go-btn go-btn-ghost" @onclick:stopPropagation="true" @onclick="StartNewGame">
                     <i class="fas fa-rotate"></i> Play Again
                 </button>
@@ -226,11 +232,11 @@
 }
 
 <HelpModal @ref="HelpDialog" OnOpenAssDex="OpenAssDexFromHelp" OnNameSaved="OnPlayerNameChanged" CurrentName="@_currentPlayerName" />
-<AboutModal @ref="AboutDialog" />
+<AboutModal @ref="AboutDialog" OnShowStats="ShowStatsDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />
-<AssdexModal @ref="AssdexDialog" OnShowDetail="OpenAssDetail" />
-<AssDetailModal @ref="AssDetailDialog" />
+<AssdexModal @ref="AssdexDialog" OnShowDetail="OpenAssDetail" PlayerName="@_currentPlayerName" />
+<AssDetailModal @ref="AssDetailDialog" PlayerName="@_currentPlayerName" />
 <DailyModal @ref="DailyDialog" />
 <ResultsModal @ref="ResultsDialog"
               assesEaten="@assesEaten"
@@ -239,6 +245,7 @@
               AssTypes="@Breakdown.Keys.ToList()"
               Breakdown="@Breakdown"
               hasScoreSaved="@hasScoreSaved"
+              IsAutoSaving="@_autoSaving"
               IsPersonalBest="@_isPersonalBest"
               PersonalBestScore="@_personalBestScore"
               clicksPerSecondPolls="@clicksPerSecondPolls"
@@ -252,9 +259,10 @@
               OnSaveScore="ShowSaveScoreDialog"
               OnShowLeaderboard="ShowLeaderboardDialog"
               OnShowAssdex="OpenAssdexForType" />
-<LeaderboardStatsModal @ref="LeaderboardStatsDialog" />
+<LeaderboardStatsModal @ref="LeaderboardStatsDialog" OnShowStats="ShowStatsDialog" />
 <SaveScoreModal @ref="SaveScoreDialog" OnScoreSaved="OnScoreSaved" />
 <PlayerNameModal @ref="PlayerNameDialog" OnNameSaved="OnPlayerNameChanged" />
+<StatsModal @ref="StatsDialog" />
 
 @code {
     LeaderboardStatsModal? LeaderboardStatsDialog;
@@ -263,6 +271,7 @@
     AssdexModal? AssdexDialog;
     AssDetailModal? AssDetailDialog;
     DailyModal? DailyDialog;
+    StatsModal? StatsDialog;
 
     string _currentPlayerName = string.Empty;
     bool _isPersonalBest = false;
@@ -314,10 +323,14 @@
 
     async Task ShowSaveScoreDialog()
     {
-        if (!hasScoreSaved)
+        if (hasScoreSaved || _autoSaving) return;
+
+        if (string.IsNullOrWhiteSpace(_currentPlayerName))
         {
-            await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);
+            // Unnamed player — prompt for name; auto-save follows in OnPlayerNameChanged
+            await ShowPlayerNameDialog();
         }
+        // Named players are auto-saved; nothing to do here
     }
 
     async Task OnScoreSaved()
@@ -329,10 +342,14 @@
 
     bool _gameOverChallengeCopied = false;
 
-    void OnPlayerNameChanged(string name)
+    async Task OnPlayerNameChanged(string name)
     {
         _currentPlayerName = name;
         HelpDialog?.NotifyNameSaved(name);
+        // Reload progress cache scoped to the new player name
+        _progressCache = await ProgressService.LoadAsync(name);
+        if (_pendingAutoSave)
+            _ = AutoSaveToLeaderboardAsync();
         StateHasChanged();
     }
 

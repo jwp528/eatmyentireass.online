@@ -5,13 +5,13 @@ namespace BlazorApp.Client.Services
 {
     public interface ICollectionService
     {
-        Task<HashSet<AssTypeEnum>> GetUnlockedTypesAsync();
-        Task<bool> MarkUnlockedAsync(AssTypeEnum assType);
+        Task<HashSet<AssTypeEnum>> GetUnlockedTypesAsync(string playerName);
+        Task<bool> MarkUnlockedAsync(string playerName, AssTypeEnum assType);
     }
 
     public class CollectionService : ICollectionService
     {
-        private const string StorageKey = "assdex_unlocked";
+        private const string StorageKeyPrefix = "assdex_unlocked";
         private readonly ILocalStorageService _localStorage;
 
         public CollectionService(ILocalStorageService localStorage)
@@ -19,11 +19,22 @@ namespace BlazorApp.Client.Services
             _localStorage = localStorage;
         }
 
-        public async Task<HashSet<AssTypeEnum>> GetUnlockedTypesAsync()
+        private static string GetStorageKey(string playerName)
         {
+            var normalized = playerName.Trim().ToLowerInvariant();
+            return string.IsNullOrEmpty(normalized)
+                ? string.Empty
+                : $"{StorageKeyPrefix}_{normalized}";
+        }
+
+        public async Task<HashSet<AssTypeEnum>> GetUnlockedTypesAsync(string playerName)
+        {
+            var key = GetStorageKey(playerName);
+            if (string.IsNullOrEmpty(key)) return new HashSet<AssTypeEnum>();
+
             try
             {
-                var saved = await _localStorage.GetItemAsync<List<string>>(StorageKey);
+                var saved = await _localStorage.GetItemAsync<List<string>>(key);
                 if (saved == null) return new HashSet<AssTypeEnum>();
 
                 var result = new HashSet<AssTypeEnum>();
@@ -40,14 +51,17 @@ namespace BlazorApp.Client.Services
             }
         }
 
-        public async Task<bool> MarkUnlockedAsync(AssTypeEnum assType)
+        public async Task<bool> MarkUnlockedAsync(string playerName, AssTypeEnum assType)
         {
-            var unlocked = await GetUnlockedTypesAsync();
-            if (unlocked.Contains(assType)) return false; // already unlocked
+            var key = GetStorageKey(playerName);
+            if (string.IsNullOrEmpty(key)) return false;
+
+            var unlocked = await GetUnlockedTypesAsync(playerName);
+            if (unlocked.Contains(assType)) return false;
 
             unlocked.Add(assType);
-            await _localStorage.SetItemAsync(StorageKey, unlocked.Select(a => a.ToString()).ToList());
-            return true; // newly unlocked
+            await _localStorage.SetItemAsync(key, unlocked.Select(a => a.ToString()).ToList());
+            return true;
         }
     }
 }
