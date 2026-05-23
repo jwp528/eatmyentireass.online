@@ -1,0 +1,140 @@
+.gsp-loading,
+.gsp-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    padding: 1.5rem 0;
+    justify-content: center;
+}
+
+.gsp-empty i {
+    font-size: 1rem;
+}
+
+.gsp-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.gsp-card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+}
+
+.gsp-icon {
+    display: block;
+    font-size: 1.1rem;
+    color: #7986cb;
+    margin-bottom: 0.3rem;
+}
+
+.gsp-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e8eaf6;
+    line-height: 1.2;
+}
+
+.gsp-lbl {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.4);
+    margin-top: 0.2rem;
+}
+
+.gsp-section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 0.6rem;
+}
+
+.gsp-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.gsp-bd-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.gsp-bd-img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.gsp-bd-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.gsp-bd-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 0.25rem;
+}
+
+.gsp-bd-bar-track {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.gsp-bd-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5c6bc0, #7986cb);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.gsp-bd-nums {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+    flex-shrink: 0;
+    min-width: 52px;
+}
+
+.gsp-bd-count {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #e8eaf6;
+}
+
+.gsp-bd-pct {
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.4);
+}
+
+.gsp-footer {
+    text-align: center;
+    color: rgba(255,255,255,0.25);
+    font-size: 0.68rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+@@media (max-width: 480px) {
+    .gsp-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

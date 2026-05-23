@@ -1,0 +1,85 @@
+@using BlazorApp.Shared
+
+@if (IsLoading)
+{
+    <div class="gsp-loading">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        <span>Loading global stats…</span>
+    </div>
+}
+else if (Stats == null)
+{
+    <div class="gsp-empty">
+        <i class="bi bi-exclamation-triangle"></i>
+        Could not load stats. API may be unavailable.
+    </div>
+}
+else
+{
+    <div class="gsp-cards">
+        <div class="gsp-card">
+            <i class="bi bi-emoji-dizzy gsp-icon"></i>
+            <div class="gsp-val">@TotalAssesEaten().ToString("N0")</div>
+            <div class="gsp-lbl">Asses Eaten</div>
+        </div>
+        <div class="gsp-card">
+            <i class="bi bi-mouse gsp-icon"></i>
+            <div class="gsp-val">@Stats.TotalClicks.ToString("N0")</div>
+            <div class="gsp-lbl">Total Clicks</div>
+        </div>
+        <div class="gsp-card">
+            <i class="bi bi-controller gsp-icon"></i>
+            <div class="gsp-val">@Stats.RoundsPlayed.ToString("N0")</div>
+            <div class="gsp-lbl">Rounds Played</div>
+        </div>
+        <div class="gsp-card">
+            <i class="bi bi-clock gsp-icon"></i>
+            <div class="gsp-val">@FormatTime(Stats.TotalTimePlayedSeconds)</div>
+            <div class="gsp-lbl">Time Played</div>
+        </div>
+    </div>
+
+    <div class="gsp-section-label">By Ass Type</div>
+    <div class="gsp-breakdown">
+        @foreach (var kv in Stats.AssTypeStats.OrderByDescending(x => x.Value))
+        {
+            var total = TotalAssesEaten();
+            var pct = total > 0 ? Math.Round((double)kv.Value / total * 100, 1) : 0;
+            var barW = total > 0 ? (double)kv.Value / total * 100 : 0;
+            <div class="gsp-bd-row">
+                <img src="/images/Asses/@kv.Key/entire_ass.png" class="gsp-bd-img" alt="@kv.Key" />
+                <div class="gsp-bd-info">
+                    <div class="gsp-bd-name">@kv.Key</div>
+                    <div class="gsp-bd-bar-track">
+                        <div class="gsp-bd-bar-fill" style="width:@(barW)%"></div>
+                    </div>
+                </div>
+                <div class="gsp-bd-nums">
+                    <span class="gsp-bd-count">@kv.Value.ToString("N0")</span>
+                    <span class="gsp-bd-pct">@pct%</span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="gsp-footer">
+        <small>Last updated: @Stats.LastUpdated.ToString("MMM dd, yyyy HH:mm") UTC</small>
+    </div>
+}
+
+@code {
+    [Parameter] public GameStats? Stats { get; set; }
+    [Parameter] public bool IsLoading { get; set; }
+
+    private long TotalAssesEaten() => Stats?.AssTypeStats.Values.Sum() ?? 0;
+
+    private static string FormatTime(long seconds)
+    {
+        var ts = TimeSpan.FromSeconds(seconds);
+        if (ts.TotalDays >= 1)
+            return $"{(int)ts.TotalDays}d {ts.Hours}h {ts.Minutes}m";
+        if (ts.TotalHours >= 1)
+            return $"{(int)ts.TotalHours}h {ts.Minutes}m {ts.Seconds}s";
+        return $"{ts.Minutes}m {ts.Seconds}s";
+    }
+}

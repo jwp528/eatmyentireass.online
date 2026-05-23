@@ -489,7 +489,7 @@ namespace BlazorApp.Client.Pages
 
         async Task ShowStatsDialog()
         {
-            if (LeaderboardStatsDialog != null) await LeaderboardStatsDialog.ShowStats();
+            if (StatsDialog != null) await StatsDialog.Show();
         }
 
         async Task SubmitGameStatsAsync()

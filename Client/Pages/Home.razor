@@ -233,7 +233,7 @@
 }
 
 <HelpModal @ref="HelpDialog" OnOpenAssDex="OpenAssDexFromHelp" OnNameSaved="OnPlayerNameChanged" CurrentName="@_currentPlayerName" />
-<AboutModal @ref="AboutDialog" />
+<AboutModal @ref="AboutDialog" OnShowStats="ShowStatsDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />
 <AssdexModal @ref="AssdexDialog" OnShowDetail="OpenAssDetail" />
@@ -260,9 +260,10 @@
               OnSaveScore="ShowSaveScoreDialog"
               OnShowLeaderboard="ShowLeaderboardDialog"
               OnShowAssdex="OpenAssdexForType" />
-<LeaderboardStatsModal @ref="LeaderboardStatsDialog" />
+<LeaderboardStatsModal @ref="LeaderboardStatsDialog" OnShowStats="ShowStatsDialog" />
 <SaveScoreModal @ref="SaveScoreDialog" OnScoreSaved="OnScoreSaved" />
 <PlayerNameModal @ref="PlayerNameDialog" OnNameSaved="OnPlayerNameChanged" />
+<StatsModal @ref="StatsDialog" />
 
 @code {
     LeaderboardStatsModal? LeaderboardStatsDialog;
@@ -271,6 +272,7 @@
     AssdexModal? AssdexDialog;
     AssDetailModal? AssDetailDialog;
     DailyModal? DailyDialog;
+    StatsModal? StatsDialog;
 
     string _currentPlayerName = string.Empty;
     bool _isPersonalBest = false;

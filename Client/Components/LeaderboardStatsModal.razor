@@ -18,157 +18,74 @@
                 <button class="lb-tab @(activeTab == "yearly" ? "lb-tab-active" : "")" @onclick='() => SwitchTab("yearly")'>
                     <i class="bi bi-star"></i> <span class="lb-tab-label">Yearly</span>
                 </button>
-                <button class="lb-tab @(activeTab == "stats" ? "lb-tab-active" : "")" @onclick='() => SwitchTab("stats")'>
-                    <i class="bi bi-bar-chart-line"></i> <span class="lb-tab-label">Stats</span>
-                </button>
             </div>
 
-            <!-- Leaderboard tabs (All Time / Daily / Monthly / Yearly) -->
-            @if (activeTab != "stats")
+            <!-- Leaderboard content -->
+            <div class="lb-search-bar">
+                <i class="bi bi-search lb-search-icon"></i>
+                <input type="text" class="lb-search-input" placeholder="Search player…"
+                       @bind="_searchText" @bind:event="oninput" />
+            </div>
+
+            @if (isLoadingLeaderboard)
             {
-                <div class="lb-search-bar">
-                    <i class="bi bi-search lb-search-icon"></i>
-                    <input type="text" class="lb-search-input" placeholder="Search player…"
-                           @bind="_searchText" @bind:event="oninput" />
+                <div class="lb-empty">
+                    <div class="spinner-border spinner-border-sm text-warning mb-2" role="status"></div>
+                    <span>Loading scores…</span>
                 </div>
-
-                @if (isLoadingLeaderboard)
-                {
-                    <div class="lb-empty">
-                        <div class="spinner-border spinner-border-sm text-warning mb-2" role="status"></div>
-                        <span>Loading scores…</span>
-                    </div>
-                }
-                else if (!CurrentScores.Any())
-                {
-                    <div class="lb-empty">
-                        <i class="bi bi-trophy" style="font-size:2rem; opacity:0.25; display:block; margin-bottom:8px;"></i>
-                        No scores yet. Be the first!
-                    </div>
-                }
-                else if (!CurrentScoresFiltered.Any())
-                {
-                    <div class="lb-empty">
-                        <i class="bi bi-search" style="font-size:1.6rem; opacity:0.25; display:block; margin-bottom:8px;"></i>
-                        No players match "@_searchText"
-                    </div>
-                }
-                else
-                {
-                    <div class="lb-content">
-                        <!-- Header row -->
-                        <div class="lb-row lb-header-row">
-                            <div class="lb-col-rank"></div>
-                            <div class="lb-col-name">Player</div>
-                            <div class="lb-col-score">Score</div>
-                            <div class="lb-col-cps">CPS</div>
-                            <div class="lb-col-date">Date</div>
-                        </div>
-
-                        @for (int i = 0; i < CurrentScoresFiltered.Count; i++)
-                        {
-                            var entry = CurrentScoresFiltered[i];
-                            var rank = CurrentScores.IndexOf(entry) + 1;
-                            <div class="lb-row @(rank == 1 ? "lb-row-gold" : rank == 2 ? "lb-row-silver" : rank == 3 ? "lb-row-bronze" : "")">
-                                <div class="lb-col-rank">
-                                    @if (rank == 1)     { <i class="bi bi-crown-fill lb-crown"></i> }
-                                    else if (rank == 2) { <span class="lb-rank-num lb-rank-2">2</span> }
-                                    else if (rank == 3) { <span class="lb-rank-num lb-rank-3">3</span> }
-                                    else                { <span class="lb-rank-num">@rank</span> }
-                                </div>
-                                <div class="lb-col-name lb-player-name">@entry.PlayerName</div>
-                                <div class="lb-col-score lb-val-score">@((int)Math.Truncate(entry.Score))</div>
-                                <div class="lb-col-cps lb-val-cps">@entry.CPS</div>
-                                <div class="lb-col-date lb-val-date">
-                                    @entry.GameDate.ToString("MMM d")
-                                    <span class="lb-time">@entry.GameDate.ToString("HH:mm")</span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
             }
-
-            <!-- Stats tab -->
-            @if (activeTab == "stats")
+            else if (!CurrentScores.Any())
             {
-                @if (isLoadingStats)
-                {
-                    <div class="lb-empty">
-                        <div class="spinner-border spinner-border-sm text-warning mb-2" role="status"></div>
-                        <span>Loading global stats…</span>
+                <div class="lb-empty">
+                    <i class="bi bi-trophy" style="font-size:2rem; opacity:0.25; display:block; margin-bottom:8px;"></i>
+                    No scores yet. Be the first!
+                </div>
+            }
+            else if (!CurrentScoresFiltered.Any())
+            {
+                <div class="lb-empty">
+                    <i class="bi bi-search" style="font-size:1.6rem; opacity:0.25; display:block; margin-bottom:8px;"></i>
+                    No players match "@_searchText"
+                </div>
+            }
+            else
+            {
+                <div class="lb-content">
+                    <!-- Header row -->
+                    <div class="lb-row lb-header-row">
+                        <div class="lb-col-rank"></div>
+                        <div class="lb-col-name">Player</div>
+                        <div class="lb-col-score">Score</div>
+                        <div class="lb-col-cps">CPS</div>
+                        <div class="lb-col-date">Date</div>
                     </div>
-                }
-                else if (stats == null)
-                {
-                    <div class="lb-empty">
-                        <i class="bi bi-exclamation-triangle" style="font-size:1.8rem; opacity:0.4; display:block; margin-bottom:8px;"></i>
-                        Could not load stats. API may be unavailable.
-                    </div>
-                }
-                else
-                {
-                    <div class="lb-stats-content">
-                        <div class="stats-grid mb-4">
-                            <div class="stat-card">
-                                <i class="bi bi-mouse stat-icon"></i>
-                                <div class="stat-value">@stats.TotalClicks.ToString("N0")</div>
-                                <div class="stat-label">Total Clicks</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="bi bi-controller stat-icon"></i>
-                                <div class="stat-value">@stats.RoundsPlayed.ToString("N0")</div>
-                                <div class="stat-label">Rounds Played</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="bi bi-clock stat-icon"></i>
-                                <div class="stat-value">@FormatTime(stats.TotalTimePlayedSeconds)</div>
-                                <div class="stat-label">Total Time Played</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="bi bi-fire stat-icon"></i>
-                                <div class="stat-value">@TotalAssesEaten().ToString("N0")</div>
-                                <div class="stat-label">Total Asses Eaten</div>
-                            </div>
-                        </div>
 
-                        <div class="ass-breakdown-section">
-                            <h6 class="text-muted text-uppercase mb-3 small fw-bold">
-                                <i class="bi bi-pie-chart me-2"></i>By Ass Type
-                            </h6>
-                            <div class="ass-breakdown-grid">
-                                @foreach (var assType in new[] { "Cartoon", "Flat", "Hairy", "GYAT", "Golden", "Boney" })
-                                {
-                                    var count = GetAssTypeCount(assType);
-                                    var total = TotalAssesEaten();
-                                    var pct = total > 0 ? (double)count / total * 100 : 0;
-                                    <div class="ass-type-row">
-                                        <img src="/images/Asses/@assType/entire_ass.png" class="ass-type-icon" alt="@assType" />
-                                        <div class="ass-type-info flex-grow-1">
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <span class="ass-type-name">@assType</span>
-                                                <span class="ass-type-count">@count.ToString("N0")</span>
-                                            </div>
-                                            <div class="progress ass-progress">
-                                                <div class="progress-bar" style="width: @pct.ToString("F1")%"></div>
-                                            </div>
-                                        </div>
-                                        <span class="ass-pct text-muted small">@pct.ToString("F1")%</span>
-                                    </div>
-                                }
+                    @for (int i = 0; i < CurrentScoresFiltered.Count; i++)
+                    {
+                        var entry = CurrentScoresFiltered[i];
+                        var rank = CurrentScores.IndexOf(entry) + 1;
+                        <div class="lb-row @(rank == 1 ? "lb-row-gold" : rank == 2 ? "lb-row-silver" : rank == 3 ? "lb-row-bronze" : "")">
+                            <div class="lb-col-rank">
+                                @if (rank == 1)     { <span class="lb-medal">🥇</span> }
+                                else if (rank == 2) { <span class="lb-medal">🥈</span> }
+                                else if (rank == 3) { <span class="lb-medal">🥉</span> }
+                                else                { <span class="lb-rank-num">@rank</span> }
+                            </div>
+                            <div class="lb-col-name lb-player-name">@entry.PlayerName</div>
+                            <div class="lb-col-score lb-val-score">@((int)Math.Truncate(entry.Score))</div>
+                            <div class="lb-col-cps lb-val-cps">@entry.CPS</div>
+                            <div class="lb-col-date lb-val-date">
+                                @entry.GameDate.ToString("MMM d")
+                                <span class="lb-time">@entry.GameDate.ToString("HH:mm")</span>
                             </div>
                         </div>
-
-                        <div class="text-end mt-2">
-                            <small class="text-muted">Last updated: @stats.LastUpdated.ToString("MMM dd, yyyy HH:mm") UTC</small>
-                        </div>
-                    </div>
-                }
+                    }
+                </div>
             }
 
             <!-- Footer actions -->
             <div class="lb-actions">
-                <button class="lb-btn" @onclick="Refresh" disabled="@(isLoadingLeaderboard || isLoadingStats)">
+                <button class="lb-btn" @onclick="Refresh" disabled="@isLoadingLeaderboard">
                     <i class="bi bi-arrow-clockwise"></i> Refresh
                 </button>
                 <button class="lb-btn" @onclick="CloseModal">

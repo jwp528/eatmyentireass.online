@@ -26,22 +26,6 @@ namespace BlazorApp.Client.Components
             isLoading = false;
             StateHasChanged();
         }
-
-        private string FormatTime(long seconds)
-        {
-            var ts = TimeSpan.FromSeconds(seconds);
-            if (ts.TotalDays >= 1)
-                return $"{(int)ts.TotalDays}d {ts.Hours}h {ts.Minutes}m";
-            if (ts.TotalHours >= 1)
-                return $"{(int)ts.TotalHours}h {ts.Minutes}m {ts.Seconds}s";
-            return $"{ts.Minutes}m {ts.Seconds}s";
-        }
-
-        private long GetAssTypeCount(string assType)
-            => stats?.AssTypeStats.TryGetValue(assType, out var v) == true ? v : 0;
-
-        private long TotalAssesEaten()
-            => stats?.AssTypeStats.Values.Sum() ?? 0;
     }
 }
 

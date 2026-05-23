@@ -1,5 +1,7 @@
 @code{
     public BSModal? Modal;
+    [Microsoft.AspNetCore.Components.Parameter]
+    public Microsoft.AspNetCore.Components.EventCallback OnShowStats { get; set; }
 }
 
 <BSModal @ref="Modal" Id="aboutModal" IsVerticallyCentered="true" Size="ModalSize.Default">
@@ -26,6 +28,9 @@
             </div>
 
             <div class="ab-footer">
+                <button type="button" class="ab-btn ab-btn--ghost" @onclick="async () => { await Modal?.Hide(); await OnShowStats.InvokeAsync(); }">
+                    <i class="bi bi-bar-chart-line-fill"></i> Global Stats
+                </button>
                 <button type="button" class="ab-btn ab-btn--ghost" @onclick="async () => await Modal?.Hide()">Close</button>
             </div>
         </div>
