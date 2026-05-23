@@ -30,6 +30,10 @@
     user-select: none;
 }
 
+.app-bar-icon {
+    padding: 3px;
+}
+
 .app-bar-title {
     font-size: 0.95rem;
     font-weight: 600;
@@ -442,6 +446,12 @@
     color: #fff;
 }
 
+.daily-panel-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
 .daily-panel-chevron {
     font-size: 0.65rem;
     transition: transform 0.2s;
@@ -449,45 +459,62 @@
 
 .daily-panel-body {
     margin-top: 6px;
-    background: rgba(15,15,30,0.85);
+    background: rgba(15,15,30,0.9);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 10px;
-    padding: 12px 14px;
+    padding: 10px 12px;
     backdrop-filter: blur(8px);
-    min-width: 160px;
+    min-width: 220px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
-.daily-panel-title {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.45);
-    margin: 0;
+.daily-panel-loading {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
 }
 
-.daily-panel-btn {
-    background: rgba(92,107,192,0.35);
-    border: 1px solid rgba(92,107,192,0.5);
-    border-radius: 6px;
-    color: #c5cae9;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 6px 12px;
-    cursor: pointer;
+.daily-task-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    justify-content: space-between;
-    transition: background 0.15s;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.daily-panel-btn:hover {
-    background: rgba(92,107,192,0.55);
-    color: #fff;
+.daily-task-item:last-child {
+    border-bottom: none;
+}
+
+.daily-task-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    width: 22px;
+    text-align: center;
+}
+
+.daily-task-desc {
+    flex: 1;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.35;
+}
+
+.daily-task-done .daily-task-desc {
+    color: rgba(255,255,255,0.4);
+    text-decoration: line-through;
+}
+
+.daily-task-check {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    color: #a5d6a7;
+}
+
+.daily-task-check--empty {
+    color: rgba(255,255,255,0.2);
 }/* ── Frenzy: game area marker (no animation) ─────────────────────── */
 
 /* ── Challenge banner ─────────────────────────────────────────────── */
@@ -557,37 +584,54 @@
     gap: 0.6rem;
 }
 
-/* ── Player name chip above the ass ─────────────────────────────── */
-.game-player-chip {
-    display: inline-flex;
+/* ── Player name + personal best card ──────────────────────────── */
+.game-player-card {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 4px 14px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.06);
+    gap: 2px;
+    padding: 8px 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 0.78rem;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     pointer-events: all;
-    line-height: 1.4;
 }
 
-.game-player-chip:hover {
-    background: rgba(255, 255, 255, 0.11);
-    color: rgba(255, 255, 255, 0.9);
+.game-player-card:hover {
+    background: rgba(255, 255, 255, 0.09);
 }
 
-.game-player-chip--named {
-    color: #7986cb;
+.game-player-card--named {
     border-color: rgba(92, 107, 192, 0.35);
     background: rgba(92, 107, 192, 0.1);
 }
 
-.game-player-chip--named:hover {
+.game-player-card--named:hover {
     background: rgba(92, 107, 192, 0.18);
-    color: #9fa8da;
+}
+
+.game-player-card-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #c5cae9;
+    letter-spacing: 0.01em;
+}
+
+.game-player-card:not(.game-player-card--named) .game-player-card-name {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 600;
+}
+
+.game-player-card-pb {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.38);
+    letter-spacing: 0.04em;
 }
 
 /* ── Frenzy label above the ass image ───────────────────────────── */

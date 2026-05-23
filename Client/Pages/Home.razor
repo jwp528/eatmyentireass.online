@@ -65,15 +65,26 @@
 
         @* Daily Challenge collapsible panel — top-right corner *@
         <div class="daily-panel" @onclick:stopPropagation="true">
-            <button class="daily-panel-toggle" @onclick="() => _dailyPanelExpanded = !_dailyPanelExpanded" title="Daily Challenges">
+            <button class="daily-panel-toggle" @onclick="ToggleDailyPanel" title="Daily Challenges">
                 <i class="fas fa-calendar-day"></i>
+                <span class="daily-panel-label">Daily Challenges</span>
                 <i class="fas fa-chevron-down daily-panel-chevron" style="@(_dailyPanelExpanded ? "transform:rotate(180deg)" : "")"></i>
             </button>
             <div class="daily-panel-body" style="@(_dailyPanelExpanded ? "" : "display:none")">
-                <p class="daily-panel-title">Daily Challenges</p>
-                <button class="daily-panel-btn" @onclick="() => { _dailyPanelExpanded = false; _ = ShowDailyDialog(); }">
-                    View Challenges <i class="fas fa-arrow-right"></i>
-                </button>
+                <div class="daily-panel-loading" style="@(_dailyLoading ? "" : "display:none")">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                </div>
+                <div style="@(!_dailyLoading ? "" : "display:none")">
+                    @foreach (var task in _dailyProgress?.Tasks ?? new())
+                    {
+                        <div class="daily-task-item @(task.Completed ? "daily-task-done" : "")">
+                            <span class="daily-task-icon">@task.GetIcon()</span>
+                            <span class="daily-task-desc">@task.GetDescription()</span>
+                            <i class="bi bi-check-circle-fill daily-task-check" style="@(task.Completed ? "" : "display:none")"></i>
+                            <i class="bi bi-circle daily-task-check daily-task-check--empty" style="@(!task.Completed ? "" : "display:none")"></i>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
 
@@ -93,11 +104,16 @@
                     <span class="frenzy-timer">@frenzySecondsLeft</span>
                 </div>
             }
-            <button class="game-player-chip @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-chip--named" : "")"
+            <button class="game-player-card @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-card--named" : "")"
                     @onclick:stopPropagation="true"
                     @onclick="ShowPlayerNameDialog">
-                <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
-                <span>@(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Name" : _currentPlayerName)</span>
+                <span class="game-player-card-name">
+                    <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
+                    @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Your Name" : _currentPlayerName)
+                </span>
+                <span class="game-player-card-pb" style="@(_personalBestScore.HasValue ? "" : "display:none")">
+                    Personal Best: @((int)(_personalBestScore ?? 0))
+                </span>
             </button>
             
             <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
