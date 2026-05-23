@@ -235,8 +235,8 @@
 <AboutModal @ref="AboutDialog" OnShowStats="ShowStatsDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />
-<AssdexModal @ref="AssdexDialog" OnShowDetail="OpenAssDetail" />
-<AssDetailModal @ref="AssDetailDialog" />
+<AssdexModal @ref="AssdexDialog" OnShowDetail="OpenAssDetail" PlayerName="@_currentPlayerName" />
+<AssDetailModal @ref="AssDetailDialog" PlayerName="@_currentPlayerName" />
 <DailyModal @ref="DailyDialog" />
 <ResultsModal @ref="ResultsDialog"
               assesEaten="@assesEaten"
@@ -342,10 +342,12 @@
 
     bool _gameOverChallengeCopied = false;
 
-    void OnPlayerNameChanged(string name)
+    async Task OnPlayerNameChanged(string name)
     {
         _currentPlayerName = name;
         HelpDialog?.NotifyNameSaved(name);
+        // Reload progress cache scoped to the new player name
+        _progressCache = await ProgressService.LoadAsync(name);
         if (_pendingAutoSave)
             _ = AutoSaveToLeaderboardAsync();
         StateHasChanged();

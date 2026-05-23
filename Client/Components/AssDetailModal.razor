@@ -13,6 +13,9 @@
     private bool _globalLoading;
     private int _activeTab;
 
+    [Microsoft.AspNetCore.Components.Parameter]
+    public string PlayerName { get; set; } = string.Empty;
+
     private string AssName => _assType.ToString();
     private string AssImg => $"/images/Asses/{AssName}/entire_ass.png";
     private bool IsLegendary => _assType == AssTypeEnum.Golden;
@@ -38,7 +41,7 @@
         _activeTab = 0;
         _globalStats = null;
         _globalLoading = false;
-        _progress = await ProgressService.GetProgressAsync(assType);
+        _progress = await ProgressService.GetProgressAsync(PlayerName, assType);
         StateHasChanged();
         await Modal!.Show();
     }

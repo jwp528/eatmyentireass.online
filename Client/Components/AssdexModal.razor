@@ -13,6 +13,9 @@
     [Microsoft.AspNetCore.Components.Parameter]
     public Microsoft.AspNetCore.Components.EventCallback<AssTypeEnum> OnShowDetail { get; set; }
 
+    [Microsoft.AspNetCore.Components.Parameter]
+    public string PlayerName { get; set; } = string.Empty;
+
     private HashSet<AssTypeEnum> unlockedTypes = new();
     private Dictionary<AssTypeEnum, AssTypeProgress> _progressData = new();
     private bool isLoading;
@@ -39,8 +42,8 @@
     {
         isLoading = true;
         StateHasChanged();
-        unlockedTypes = await CollectionService.GetUnlockedTypesAsync();
-        _progressData = await ProgressService.LoadAsync();
+        unlockedTypes = await CollectionService.GetUnlockedTypesAsync(PlayerName);
+        _progressData = await ProgressService.LoadAsync(PlayerName);
         isLoading = false;
         StateHasChanged();
     }

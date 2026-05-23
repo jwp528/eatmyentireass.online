@@ -101,7 +101,7 @@ namespace BlazorApp.Client.Pages
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            _progressCache = await ProgressService.LoadAsync();
+            _progressCache = await ProgressService.LoadAsync(_currentPlayerName);
             _currentPlayerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
             await LoadSettings();
             ParseChallengeFromUrl();
@@ -437,8 +437,9 @@ namespace BlazorApp.Client.Pages
 
                 // Assdex: track new unlocks; get next ass (uses updated cache for threshold)
                 GetNewAss();
-                _ = CollectionService.MarkUnlockedAsync(completedType);
-                _ = ProgressService.SaveAsync(_progressCache);
+                var snapshotName = _currentPlayerName; // capture before any async context switch
+                _ = CollectionService.MarkUnlockedAsync(snapshotName, completedType);
+                _ = ProgressService.SaveAsync(snapshotName, _progressCache);
 
                 if (completedType == AssTypeEnum.Golden)
                     TriggerFrenzy();

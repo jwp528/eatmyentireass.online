@@ -25,16 +25,16 @@ namespace BlazorApp.Client.Services
 
     public interface IProgressService
     {
-        Task<Dictionary<AssTypeEnum, AssTypeProgress>> LoadAsync();
-        Task SaveAsync(Dictionary<AssTypeEnum, AssTypeProgress> progress);
-        Task<AssTypeProgress> GetProgressAsync(AssTypeEnum assType);
+        Task<Dictionary<AssTypeEnum, AssTypeProgress>> LoadAsync(string playerName);
+        Task SaveAsync(string playerName, Dictionary<AssTypeEnum, AssTypeProgress> progress);
+        Task<AssTypeProgress> GetProgressAsync(string playerName, AssTypeEnum assType);
         int GetEffectiveCompleteThreshold(AssTypeEnum assType, AssTypeProgress progress);
         double GetEffectivePoints(AssTypeEnum assType, AssTypeProgress progress);
     }
 
     public class ProgressService : IProgressService
     {
-        private const string StorageKey = "ass_type_progress_v1";
+        private const string StorageKeyPrefix = "ass_type_progress_v1";
         private readonly ILocalStorageService _localStorage;
 
         public ProgressService(ILocalStorageService localStorage)
@@ -42,11 +42,22 @@ namespace BlazorApp.Client.Services
             _localStorage = localStorage;
         }
 
-        public async Task<Dictionary<AssTypeEnum, AssTypeProgress>> LoadAsync()
+        private static string GetStorageKey(string playerName)
         {
+            var normalized = playerName.Trim().ToLowerInvariant();
+            return string.IsNullOrEmpty(normalized)
+                ? string.Empty
+                : $"{StorageKeyPrefix}_{normalized}";
+        }
+
+        public async Task<Dictionary<AssTypeEnum, AssTypeProgress>> LoadAsync(string playerName)
+        {
+            var key = GetStorageKey(playerName);
+            if (string.IsNullOrEmpty(key)) return Empty();
+
             try
             {
-                var saved = await _localStorage.GetItemAsync<Dictionary<string, AssTypeProgress>>(StorageKey);
+                var saved = await _localStorage.GetItemAsync<Dictionary<string, AssTypeProgress>>(key);
                 var result = Empty();
                 if (saved != null)
                 {
@@ -64,19 +75,22 @@ namespace BlazorApp.Client.Services
             }
         }
 
-        public async Task SaveAsync(Dictionary<AssTypeEnum, AssTypeProgress> progress)
+        public async Task SaveAsync(string playerName, Dictionary<AssTypeEnum, AssTypeProgress> progress)
         {
+            var key = GetStorageKey(playerName);
+            if (string.IsNullOrEmpty(key)) return;
+
             try
             {
                 var toSave = progress.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
-                await _localStorage.SetItemAsync(StorageKey, toSave);
+                await _localStorage.SetItemAsync(key, toSave);
             }
             catch { }
         }
 
-        public async Task<AssTypeProgress> GetProgressAsync(AssTypeEnum assType)
+        public async Task<AssTypeProgress> GetProgressAsync(string playerName, AssTypeEnum assType)
         {
-            var all = await LoadAsync();
+            var all = await LoadAsync(playerName);
             return all.TryGetValue(assType, out var p) ? p : new AssTypeProgress();
         }
 
