@@ -4,6 +4,7 @@
 @using static BlazorApp.Shared.Assets
 @inject IJSRuntime js
 @inject ILeaderboardService LeaderboardService
+@inject ILocalLeaderboardService LocalLeaderboardService
 @inject ISettingsService SettingsService
 @inject IPlayerService PlayerService
 @inject IVersionCheckService VersionCheckService
@@ -185,13 +186,16 @@
             </div>
 
             <div class="go-actions">
-                <div class="go-save-slot">
-                    <button class="go-btn go-btn-saved" disabled style="@(hasScoreSaved ? "" : "display:none")">
+            <div class="go-save-slot">
+                    <button class="go-btn go-btn-saving" disabled style="@(_autoSaving ? "" : "display:none")">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Saving...
+                    </button>
+                    <button class="go-btn go-btn-saved" disabled style="@(hasScoreSaved && !_autoSaving ? "" : "display:none")">
                         <i class="bi bi-check-lg"></i> Saved
                     </button>
                     <button class="go-btn go-btn-primary" @onclick="ShowSaveScoreDialog"
                             disabled="@(_personalBestScore.HasValue && assesEaten <= _personalBestScore.Value)"
-                            style="@(!hasScoreSaved ? "" : "display:none")">
+                            style="@(!hasScoreSaved && !_autoSaving && string.IsNullOrEmpty(_currentPlayerName) ? "" : "display:none")">
                         <i class="bi bi-floppy"></i> Save Score
                     </button>
                 </div>
@@ -239,6 +243,7 @@
               AssTypes="@Breakdown.Keys.ToList()"
               Breakdown="@Breakdown"
               hasScoreSaved="@hasScoreSaved"
+              IsAutoSaving="@_autoSaving"
               IsPersonalBest="@_isPersonalBest"
               PersonalBestScore="@_personalBestScore"
               clicksPerSecondPolls="@clicksPerSecondPolls"
@@ -314,10 +319,14 @@
 
     async Task ShowSaveScoreDialog()
     {
-        if (!hasScoreSaved)
+        if (hasScoreSaved || _autoSaving) return;
+
+        if (string.IsNullOrWhiteSpace(_currentPlayerName))
         {
-            await SaveScoreDialog?.Show(assesEaten, totalClicks, Breakdown);
+            // Unnamed player — prompt for name; auto-save follows in OnPlayerNameChanged
+            await ShowPlayerNameDialog();
         }
+        // Named players are auto-saved; nothing to do here
     }
 
     async Task OnScoreSaved()
@@ -333,6 +342,8 @@
     {
         _currentPlayerName = name;
         HelpDialog?.NotifyNameSaved(name);
+        if (_pendingAutoSave)
+            _ = AutoSaveToLeaderboardAsync();
         StateHasChanged();
     }
 

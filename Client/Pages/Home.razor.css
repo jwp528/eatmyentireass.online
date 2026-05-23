@@ -402,6 +402,13 @@
     color: #fff;
 }
 
+.go-btn-saving {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    cursor: default;
+}
+
 .go-btn-saved {
     background: rgba(76,175,80,0.25);
     border-color: rgba(76,175,80,0.45);
