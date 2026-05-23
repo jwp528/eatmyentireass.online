@@ -123,6 +123,19 @@
     line-height: 1.4;
 }
 
+/* Character counter */
+.pn-char-counter {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.3);
+    text-align: right;
+    letter-spacing: 0.04em;
+    transition: color 0.15s;
+}
+
+.pn-char-counter--limit {
+    color: #ef9a9a;
+}
+
 /* Error */
 .pn-error {
     font-size: 0.82rem;
