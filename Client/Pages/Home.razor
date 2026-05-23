@@ -168,14 +168,16 @@
             </div>
 
             <div class="go-actions">
-                <button class="go-btn go-btn-saved" disabled style="@(hasScoreSaved ? "" : "display:none")">
-                    <i class="bi bi-check-lg"></i> Saved
-                </button>
-                <button class="go-btn go-btn-primary" @onclick="ShowSaveScoreDialog"
-                        disabled="@(_personalBestScore.HasValue && assesEaten <= _personalBestScore.Value)"
-                        style="@(!hasScoreSaved ? "" : "display:none")">
-                    <i class="bi bi-floppy"></i> Save Score
-                </button>
+                <div class="go-save-slot">
+                    <button class="go-btn go-btn-saved" disabled style="@(hasScoreSaved ? "" : "display:none")">
+                        <i class="bi bi-check-lg"></i> Saved
+                    </button>
+                    <button class="go-btn go-btn-primary" @onclick="ShowSaveScoreDialog"
+                            disabled="@(_personalBestScore.HasValue && assesEaten <= _personalBestScore.Value)"
+                            style="@(!hasScoreSaved ? "" : "display:none")">
+                        <i class="bi bi-floppy"></i> Save Score
+                    </button>
+                </div>
                 <button class="go-btn go-btn-challenge" @onclick="CopyGameOverChallengeLink">
                     <i class="bi bi-check-lg" style="@(_gameOverChallengeCopied ? "" : "display:none")"></i>
                     <i class="bi bi-share" style="@(!_gameOverChallengeCopied ? "" : "display:none")"></i>
