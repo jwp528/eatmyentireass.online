@@ -195,17 +195,13 @@
 
             <!-- Actions — above tabs -->
             <div class="rm-actions">
-                <button class="rm-btn rm-btn-saving" disabled style="@(IsAutoSaving ? "" : "display:none")">
-                    <span class="spinner-border spinner-border-sm" role="status"></span> <span class="rm-btn-label">Saving...</span>
-                </button>
-                <button class="rm-btn rm-btn-saved" disabled style="@(hasScoreSaved && !IsAutoSaving ? "" : "display:none")">
-                    <i class="bi bi-check-lg"></i> <span class="rm-btn-label">Saved</span>
-                </button>
-                <button class="rm-btn rm-btn-primary" @onclick="() => OnSaveScore.InvokeAsync()"
-                        disabled="@(!PersonalBestScore.HasValue || assesEaten > PersonalBestScore.Value ? false : true)"
-                        style="@(!hasScoreSaved && !IsAutoSaving && string.IsNullOrEmpty(CurrentPlayerName) ? "" : "display:none")">
-                    <i class="bi bi-floppy"></i> <span class="rm-btn-label">Save Score</span>
-                </button>
+                @if (string.IsNullOrEmpty(CurrentPlayerName))
+                {
+                    <button class="rm-btn rm-btn-primary" @onclick="() => OnSaveScore.InvokeAsync()"
+                            disabled="@(!PersonalBestScore.HasValue || assesEaten > PersonalBestScore.Value ? false : true)">
+                        <i class="bi bi-floppy"></i> <span class="rm-btn-label">Save Score</span>
+                    </button>
+                }
                 <button class="rm-btn" @onclick="() => OnShowLeaderboard.InvokeAsync()">
                     <i class="bi bi-trophy"></i> <span class="rm-btn-label">Leaderboard</span>
                 </button>

@@ -89,6 +89,18 @@
             </div>
         </div>
 
+        <button class="game-player-card @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-card--named" : "")"
+                @onclick:stopPropagation="true"
+                @onclick="ShowPlayerNameDialog">
+            <span class="game-player-card-name">
+                <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
+                @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Your Name" : _currentPlayerName)
+            </span>
+            <span class="game-player-card-pb" style="@(_personalBestScore.HasValue ? "" : "display:none")">
+                Personal Best: @((int)(_personalBestScore ?? 0))
+            </span>
+        </button>
+
         @* Stack: frenzy label (when active) + ass image *@
         <div class="game-content-stack">
             @if (gamePlaying && frenzyActive)
@@ -105,17 +117,6 @@
                     <span class="frenzy-timer">@frenzySecondsLeft</span>
                 </div>
             }
-            <button class="game-player-card @(!string.IsNullOrWhiteSpace(_currentPlayerName) ? "game-player-card--named" : "")"
-                    @onclick:stopPropagation="true"
-                    @onclick="ShowPlayerNameDialog">
-                <span class="game-player-card-name">
-                    <i class="fas @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "fa-user-plus" : "fa-user")"></i>
-                    @(string.IsNullOrWhiteSpace(_currentPlayerName) ? "Set Your Name" : _currentPlayerName)
-                </span>
-                <span class="game-player-card-pb" style="@(_personalBestScore.HasValue ? "" : "display:none")">
-                    Personal Best: @((int)(_personalBestScore ?? 0))
-                </span>
-            </button>
             
             <AssImageDisplay piecesEaten="@piecesEaten" AssFrames="@AssFrames" CurrentAssType="@CurrentAssType" />
         </div>
@@ -186,24 +187,26 @@
             </div>
 
             <div class="go-actions">
-            <div class="go-save-slot">
-                    <button class="go-btn go-btn-saving" disabled style="@(_autoSaving ? "" : "display:none")">
-                        <span class="spinner-border spinner-border-sm" role="status"></span> Saving...
-                    </button>
-                    <button class="go-btn go-btn-saved" disabled style="@(hasScoreSaved && !_autoSaving ? "" : "display:none")">
-                        <i class="bi bi-check-lg"></i> Saved
-                    </button>
+                @if (string.IsNullOrEmpty(_currentPlayerName))
+                {
                     <button class="go-btn go-btn-primary" @onclick="ShowSaveScoreDialog"
-                            disabled="@(_personalBestScore.HasValue && assesEaten <= _personalBestScore.Value)"
-                            style="@(!hasScoreSaved && !_autoSaving && string.IsNullOrEmpty(_currentPlayerName) ? "" : "display:none")">
+                            disabled="@(_personalBestScore.HasValue && assesEaten <= _personalBestScore.Value)">
                         <i class="bi bi-floppy"></i> Save Score
                     </button>
-                </div>
-                <button class="go-btn go-btn-challenge" @onclick="CopyGameOverChallengeLink">
-                    <i class="bi bi-check-lg" style="@(_gameOverChallengeCopied ? "" : "display:none")"></i>
-                    <i class="bi bi-share" style="@(!_gameOverChallengeCopied ? "" : "display:none")"></i>
-                    <span>@(_gameOverChallengeCopied ? "Copied!" : "Challenge")</span>
-                </button>
+                    <button class="go-btn go-btn-challenge" @onclick="CopyGameOverChallengeLink">
+                        <i class="bi bi-check-lg" style="@(_gameOverChallengeCopied ? "" : "display:none")"></i>
+                        <i class="bi bi-share" style="@(!_gameOverChallengeCopied ? "" : "display:none")"></i>
+                        <span>@(_gameOverChallengeCopied ? "Copied!" : "Challenge")</span>
+                    </button>
+                }
+                else
+                {
+                    <button class="go-btn go-btn-challenge go-btn-full" @onclick="CopyGameOverChallengeLink">
+                        <i class="bi bi-check-lg" style="@(_gameOverChallengeCopied ? "" : "display:none")"></i>
+                        <i class="bi bi-share" style="@(!_gameOverChallengeCopied ? "" : "display:none")"></i>
+                        <span>@(_gameOverChallengeCopied ? "Copied!" : "Challenge")</span>
+                    </button>
+                }
                 <button class="go-btn go-btn-ghost" @onclick:stopPropagation="true" @onclick="StartNewGame">
                     <i class="fas fa-rotate"></i> Play Again
                 </button>
