@@ -1,5 +1,6 @@
 @using BlazorApp.Client.Components.Svg
 @inject BlazorApp.Client.Services.ISettingsService SettingsService
+@inject BlazorApp.Client.Services.IPlayerService PlayerService
 
 <BSModal @ref="Modal" Id="helpModal" IsVerticallyCentered="true" Size="ModalSize.Large">
     <Body>
@@ -72,28 +73,110 @@
                 </div>
             </div>
 
-            @* ── Step 4: Your Name ────────────────────────────────────────── *@
+            @* ── Step 4: Your Name (inline form) ─────────────────────────── *@
             <div class="hp-step" style="@(_step == 3 ? "" : "display:none")">
                 <p class="hp-step-title">Who Are You?</p>
-                <p class="hp-step-sub">Your name appears on the global leaderboard. Optional, but way more fun.</p>
+                <p class="hp-step-sub">Your name shows on the global leaderboard. Optional, but way more fun.</p>
 
-                <div class="hp-name-block">
-                    @if (!string.IsNullOrWhiteSpace(_displayName))
-                    {
-                        <div class="hp-name-set">
-                            <i class="bi bi-person-check-fill hp-name-check"></i>
-                            <span class="hp-name-value">@_displayName</span>
+                <div class="hp-name-form">
+
+                    @* Name input row *@
+                    <div class="hp-nf-field">
+                        <div class="hp-nf-input-row">
+                            <input type="text"
+                                   class="hp-nf-input"
+                                   value="@_nfName"
+                                   @oninput="OnNameInputChanged"
+                                   placeholder="Enter your name"
+                                   maxlength="50"
+                                   disabled="@_nfBusy" />
+                            @if (_nfState == NfState.Checking)
+                            {
+                                <span class="pn-indicator pn-checking">
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                </span>
+                            }
+                            else if (_nfState == NfState.ClaimedOwned)
+                            {
+                                <span class="pn-indicator pn-owned" title="You own this name">
+                                    <i class="bi bi-shield-check"></i>
+                                </span>
+                            }
+                            else if (_nfState == NfState.ClaimedNotOwned)
+                            {
+                                <span class="pn-indicator pn-locked" title="Name is claimed">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                            }
                         </div>
-                        <button type="button" class="hp-btn hp-btn-ghost hp-name-change-btn"
-                                @onclick="RequestSetName">Change</button>
-                    }
-                    else
+
+                        @if (_nfState == NfState.Free && !_nfShowClaimForm)
+                        {
+                            <button type="button" class="pn-link-btn" @onclick="() => { _nfShowClaimForm = true; StateHasChanged(); }">
+                                Claim this name
+                            </button>
+                        }
+                    </div>
+
+                    @* Password field — shown when name is claimed by someone else *@
+                    @if (_nfState == NfState.ClaimedNotOwned && _nfShowPasswordField)
                     {
-                        <button type="button" class="hp-btn hp-name-set-btn"
-                                @onclick="RequestSetName">
-                            <i class="bi bi-person-plus"></i> Set Your Name
-                        </button>
+                        <div class="hp-nf-field">
+                            <label class="hp-nf-label">Password</label>
+                            <input type="password"
+                                   class="hp-nf-input"
+                                   @bind="_nfPassword"
+                                   placeholder="Password for this name"
+                                   disabled="@_nfBusy" />
+                            <span class="hp-nf-caption">This name is claimed. Enter its password to use it.</span>
+                        </div>
                     }
+
+                    @* Claim form — set password for a free name *@
+                    @if (_nfShowClaimForm)
+                    {
+                        <div class="hp-nf-field">
+                            <label class="hp-nf-label">Set Password</label>
+                            <input type="password"
+                                   class="hp-nf-input"
+                                   @bind="_nfPassword"
+                                   placeholder="Min 4 characters"
+                                   disabled="@_nfBusy" />
+                        </div>
+                        <div class="hp-nf-field">
+                            <label class="hp-nf-label">Confirm Password</label>
+                            <input type="password"
+                                   class="hp-nf-input"
+                                   @bind="_nfConfirmPassword"
+                                   placeholder="Repeat password"
+                                   disabled="@_nfBusy" />
+                            <span class="hp-nf-caption">Claiming locks this name — only you can use it with your password.</span>
+                        </div>
+                    }
+
+                    @* Error message *@
+                    @if (!string.IsNullOrWhiteSpace(_nfError))
+                    {
+                        <div class="pn-error">@_nfError</div>
+                    }
+
+                    @* Busy indicator *@
+                    @if (_nfBusy)
+                    {
+                        <div class="pn-saving">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span>Working…</span>
+                        </div>
+                    }
+
+                    @* Save button *@
+                    <button type="button"
+                            class="hp-btn hp-nf-save-btn"
+                            @onclick="SaveNameAsync"
+                            disabled="@(_nfBusy || string.IsNullOrWhiteSpace(_nfName))">
+                        @(_nfBusy ? "Saving…" : _nfShowClaimForm ? "Claim & Save" : "Save Name")
+                    </button>
+
                 </div>
 
                 <button type="button" class="hp-skip-link" @onclick="() => _step = 4">
@@ -140,6 +223,7 @@
     [Parameter] public EventCallback OnOpenAssDex { get; set; }
     [Parameter] public EventCallback OnSetNameRequested { get; set; }
     [Parameter] public string CurrentName { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> OnNameSaved { get; set; }
 
     public BSModal? Modal;
 
@@ -147,33 +231,195 @@
     private int _step = 0;
     private string _displayName = string.Empty;
 
+    // ── Inline name form state ────────────────────────────────────────────
+    private enum NfState { Unknown, Checking, Free, ClaimedOwned, ClaimedNotOwned }
+    private NfState _nfState = NfState.Unknown;
+    private string _nfName = string.Empty;
+    private string _nfPassword = string.Empty;
+    private string _nfConfirmPassword = string.Empty;
+    private bool _nfShowClaimForm = false;
+    private bool _nfShowPasswordField = false;
+    private bool _nfBusy = false;
+    private string _nfError = string.Empty;
+    private CancellationTokenSource? _nfCts;
+
     protected override void OnParametersSet()
     {
         if (string.IsNullOrWhiteSpace(_displayName))
             _displayName = CurrentName ?? string.Empty;
     }
 
-    // Called by Home when the game first renders or after a name is saved
-    public void ShowIntro()
+    public async void ShowIntro()
     {
         _step = 0;
         _displayName = CurrentName ?? string.Empty;
+
+        // Pre-populate name form from settings
+        _nfName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
+        _nfPassword = string.Empty;
+        _nfConfirmPassword = string.Empty;
+        _nfShowClaimForm = false;
+        _nfShowPasswordField = false;
+        _nfBusy = false;
+        _nfError = string.Empty;
+        _nfState = NfState.Unknown;
+
         Modal?.Show();
+
+        // Kick off name check if there's already a saved name
+        if (!string.IsNullOrWhiteSpace(_nfName))
+            await NfCheckNameAsync(_nfName);
     }
 
-    // Called by Home after PlayerNameModal fires OnNameSaved
+    // Called by Home after PlayerNameModal (standalone) fires OnNameSaved
     public void NotifyNameSaved(string name)
     {
         _displayName = name;
-        // Auto-advance past the name step
         if (_step == 3) _step = 4;
         InvokeAsync(StateHasChanged);
     }
 
-    private async Task RequestSetName()
+    // ── Name form handlers ────────────────────────────────────────────────
+
+    private async Task OnNameInputChanged(ChangeEventArgs e)
     {
-        if (OnSetNameRequested.HasDelegate)
-            await OnSetNameRequested.InvokeAsync();
+        _nfName = e.Value?.ToString() ?? string.Empty;
+        _nfError = string.Empty;
+        _nfPassword = string.Empty;
+        _nfShowClaimForm = false;
+        _nfShowPasswordField = false;
+        _nfState = NfState.Unknown;
+
+        _nfCts?.Cancel();
+        _nfCts = new CancellationTokenSource();
+        var token = _nfCts.Token;
+
+        await Task.Delay(500);
+        if (token.IsCancellationRequested) return;
+
+        await NfCheckNameAsync(_nfName);
+    }
+
+    private async Task NfCheckNameAsync(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _nfState = NfState.Unknown;
+            StateHasChanged();
+            return;
+        }
+
+        _nfState = NfState.Checking;
+        StateHasChanged();
+
+        var isClaimed = await PlayerService.IsNameClaimedAsync(name);
+
+        if (!isClaimed)
+        {
+            _nfState = NfState.Free;
+        }
+        else
+        {
+            var storedToken = await PlayerService.GetStoredTokenAsync(name);
+            _nfState = string.IsNullOrWhiteSpace(storedToken)
+                ? NfState.ClaimedNotOwned
+                : NfState.ClaimedOwned;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task SaveNameAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_nfName)) return;
+
+        _nfCts?.Cancel();
+
+        // Name is claimed by someone else — need password
+        if (_nfState == NfState.ClaimedNotOwned)
+        {
+            if (!_nfShowPasswordField)
+            {
+                _nfShowPasswordField = true;
+                StateHasChanged();
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_nfPassword))
+            {
+                _nfError = "Enter the password for this name.";
+                return;
+            }
+            await NfRunVerifyAsync();
+            if (_nfState != NfState.ClaimedOwned) return;
+        }
+
+        // User chose to claim a free name
+        if (_nfShowClaimForm)
+        {
+            await NfRunClaimAsync();
+            if (_nfState != NfState.ClaimedOwned) return;
+        }
+
+        // Commit name
+        await SettingsService.SetLastPlayerNameAsync(_nfName.Trim());
+        _displayName = _nfName.Trim();
+        _step = 4;
+
+        if (OnNameSaved.HasDelegate)
+            await OnNameSaved.InvokeAsync(_nfName.Trim());
+
+        StateHasChanged();
+    }
+
+    private async Task NfRunVerifyAsync()
+    {
+        _nfBusy = true;
+        _nfError = string.Empty;
+        StateHasChanged();
+        try
+        {
+            var token = await PlayerService.VerifyNameAsync(_nfName, _nfPassword);
+            await PlayerService.StoreTokenAsync(_nfName, token);
+            _nfState = NfState.ClaimedOwned;
+            _nfPassword = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _nfError = ex.Message.Contains("429") ? "Too many attempts. Try again later." : "Incorrect password.";
+        }
+        finally
+        {
+            _nfBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task NfRunClaimAsync()
+    {
+        if (_nfPassword != _nfConfirmPassword) { _nfError = "Passwords do not match."; return; }
+        if (_nfPassword.Length < 4) { _nfError = "Password must be at least 4 characters."; return; }
+
+        _nfBusy = true;
+        _nfError = string.Empty;
+        StateHasChanged();
+        try
+        {
+            var token = await PlayerService.ClaimNameAsync(_nfName, _nfPassword);
+            await PlayerService.StoreTokenAsync(_nfName, token);
+            _nfState = NfState.ClaimedOwned;
+            _nfShowClaimForm = false;
+            _nfPassword = string.Empty;
+            _nfConfirmPassword = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _nfError = ex.Message.Contains("already claimed") ? "Name was just claimed by someone else." : ex.Message;
+        }
+        finally
+        {
+            _nfBusy = false;
+            StateHasChanged();
+        }
     }
 
     private async Task Close()
@@ -181,3 +427,4 @@
         await Modal?.Hide();
     }
 }
+

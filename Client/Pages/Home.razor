@@ -204,7 +204,7 @@
     </div>
 }
 
-<HelpModal @ref="HelpDialog" OnOpenAssDex="OpenAssDexFromHelp" OnSetNameRequested="ShowPlayerNameDialog" CurrentName="@_currentPlayerName" />
+<HelpModal @ref="HelpDialog" OnOpenAssDex="OpenAssDexFromHelp" OnNameSaved="OnPlayerNameChanged" CurrentName="@_currentPlayerName" />
 <AboutModal @ref="AboutDialog" />
 <AnniversaryModal @ref="AnniversaryDialog" />
 <UpdateModal @ref="UpdateDialog" />

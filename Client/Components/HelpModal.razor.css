@@ -324,6 +324,74 @@
     line-height: 1.5;
 }
 
+/* ── Inline name form (step 4) ──────────────────────────────────────── */
+.hp-name-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.hp-nf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.hp-nf-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+}
+
+.hp-nf-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+}
+
+.hp-nf-input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.95rem;
+    padding: 0.6rem 0.85rem;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.hp-nf-input:focus {
+    border-color: rgba(121,134,203,0.6);
+    background: rgba(255,255,255,0.09);
+}
+
+.hp-nf-input:disabled {
+    opacity: 0.5;
+}
+
+.hp-nf-input-row .pn-indicator {
+    position: absolute;
+    right: 0.65rem;
+}
+
+.hp-nf-caption {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.4;
+}
+
+.hp-nf-save-btn {
+    width: 100%;
+    padding: 0.7rem;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+}
+
 /* Primary button */
 .hp-btn {
     background: #5c6bc0;
@@ -343,6 +411,11 @@
     background: #7986cb;
 }
 
+.hp-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .hp-btn-ghost {
     background: transparent;
     border: 1px solid rgba(255,255,255,0.2);
@@ -353,3 +426,4 @@
     background: rgba(255,255,255,0.08);
     color: #fff;
 }
+
