@@ -1,7 +1,5 @@
 @using BlazorApp.Shared
 @using static BlazorApp.Shared.Assets
-@using BlazorApp.Client.Services
-@inject IStatsService StatsService
 @inject IJSRuntime Js
 @inject NavigationManager Nav
 
@@ -45,10 +43,6 @@
     public BSModal? Modal;
     private int activeTab = 0;
 
-    // Global stats (Stats tab)
-    private GameStats? _globalStats;
-    private bool _statsLoading;
-
     private double ChartMaxCps => clicksPerSecondPolls.Any()
         ? Math.Max(1, clicksPerSecondPolls.Max(p => p.clicksPerSecond) * 1.2)
         : 1;
@@ -87,12 +81,6 @@
     private async Task SwitchTab(int tab)
     {
         activeTab = tab;
-        if (tab == 2 && _globalStats == null && !_statsLoading)
-        {
-            _statsLoading = true;
-            _globalStats = await StatsService.GetStatsAsync();
-            _statsLoading = false;
-        }
     }
 }
 
@@ -215,9 +203,6 @@
                 <button class="rm-tab @(activeTab == 1 ? "rm-tab-active" : "")" @onclick="() => SwitchTab(1)">
                     <i class="bi bi-pie-chart-fill"></i> Breakdown
                 </button>
-                <button class="rm-tab @(activeTab == 2 ? "rm-tab-active" : "")" @onclick="() => SwitchTab(2)">
-                    <i class="bi bi-bar-chart-line-fill"></i> Global Stats
-                </button>
             </div>
 
             <!-- Tab content -->
@@ -277,7 +262,7 @@
                         <div class="rm-empty">No performance data</div>
                     }
                 }
-                else if (activeTab == 1)
+                else
                 {
                     <div class="rm-breakdown">
                         @foreach (var ass in AssTypes.OrderByDescending(a => Breakdown[a]))
@@ -305,11 +290,6 @@
                             </div>
                         }
                     </div>
-                }
-                else
-                {
-                    <!-- Global Stats tab -->
-                    <GlobalStatsPanel Stats="@_globalStats" IsLoading="@_statsLoading" />
                 }
             </div>
 
