@@ -6,6 +6,12 @@
         {
             "route": "/api/*",
             "allowedRoles": ["anonymous"]
+        },
+        {
+            "route": "/version.json",
+            "headers": {
+                "Cache-Control": "no-store"
+            }
         }
     ]
 }

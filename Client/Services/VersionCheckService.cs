@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 
 namespace BlazorApp.Client.Services
@@ -11,8 +12,11 @@ namespace BlazorApp.Client.Services
 
     public class VersionCheckService : IVersionCheckService
     {
-        // Bump this constant with every deployment; must match wwwroot/version.json
-        public const string AppVersion = "2.0.0";
+        public static readonly string AppVersion =
+            typeof(VersionCheckService).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                ?.InformationalVersion
+            ?? "dev";
 
         private readonly HttpClient _httpClient;
         private string? _serverVersion;
