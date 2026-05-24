@@ -16,6 +16,10 @@
 
     private async Task RefreshNow()
     {
+        // Acknowledge this version before reloading so that even if the browser serves
+        // old cached WASM again, the modal won't loop indefinitely.
+        if (!string.IsNullOrEmpty(_serverVersion))
+            await LocalStorage.SetItemAsync("emea_loaded_version", _serverVersion);
         await JS.InvokeVoidAsync("hardReload");
     }
 

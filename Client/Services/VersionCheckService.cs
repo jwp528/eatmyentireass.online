@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.JSInterop;
 
 namespace BlazorApp.Client.Services
 {
@@ -19,14 +20,16 @@ namespace BlazorApp.Client.Services
             ?? "dev";
 
         private readonly HttpClient _httpClient;
+        private readonly IJSRuntime _js;
         private string? _serverVersion;
 
         public string CurrentVersion => AppVersion;
         public string? ServerVersion => _serverVersion;
 
-        public VersionCheckService(HttpClient httpClient)
+        public VersionCheckService(HttpClient httpClient, IJSRuntime js)
         {
             _httpClient = httpClient;
+            _js = js;
         }
 
         public async Task<bool> IsUpdateAvailableAsync()
@@ -37,7 +40,21 @@ namespace BlazorApp.Client.Services
                 var json = await _httpClient.GetStringAsync($"/version.json?v={bust}");
                 var doc = JsonSerializer.Deserialize<JsonElement>(json);
                 _serverVersion = doc.GetProperty("version").GetString();
-                return _serverVersion != null && _serverVersion != AppVersion;
+
+                if (_serverVersion == null) return false;
+
+                // Best case: compiled app version matches server — no update needed.
+                if (_serverVersion == AppVersion) return false;
+
+                // Server version differs from compiled version. However, if the user
+                // already clicked "Reload Now" for this exact version, skip the modal.
+                // This prevents an infinite loop when the browser stubbornly serves old
+                // cached WASM even after a forced navigation.
+                var acknowledged = await _js.InvokeAsync<string?>(
+                    "localStorage.getItem", "emea_loaded_version");
+                if (acknowledged == _serverVersion) return false;
+
+                return true;
             }
             catch
             {
