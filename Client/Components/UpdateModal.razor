@@ -8,6 +8,9 @@
     public async Task ShowIfNeededAsync(string serverVersion)
     {
         _serverVersion = serverVersion;
+        var loadedVersion = await LocalStorage.GetItemAsync<string>("emea_loaded_version");
+        if (loadedVersion == serverVersion) return;
+
         var dismissedVersion = await LocalStorage.GetItemAsync<string>("updateDismissedVersion");
         if (dismissedVersion == serverVersion) return;
 
