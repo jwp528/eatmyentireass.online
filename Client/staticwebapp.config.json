@@ -4,14 +4,32 @@
     },
     "routes": [
         {
-            "route": "/api/*",
-            "allowedRoles": ["anonymous"]
+            "route": "/index.html",
+            "headers": {
+                "Cache-Control": "no-cache"
+            }
+        },
+        {
+            "route": "/_framework/blazor.webassembly.js",
+            "headers": {
+                "Cache-Control": "no-cache"
+            }
+        },
+        {
+            "route": "/_framework/blazor.boot.json",
+            "headers": {
+                "Cache-Control": "no-cache"
+            }
         },
         {
             "route": "/version.json",
             "headers": {
                 "Cache-Control": "no-store"
             }
+        },
+        {
+            "route": "/api/*",
+            "allowedRoles": ["anonymous"]
         }
     ]
 }
