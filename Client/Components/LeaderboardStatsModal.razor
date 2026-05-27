@@ -124,7 +124,7 @@
                 </div>
 
                 <div class="row g-2">
-                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Score</span><strong>@((int)_selectedEntry.Score).ToString("N0")</strong></div></div>
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Score</span><strong>@(((int)_selectedEntry.Score).ToString("N0"))</strong></div></div>
                     <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Total Clicks</span><strong>@_selectedEntry.TotalClicks.ToString("N0")</strong></div></div>
                     <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>CPS</span><strong>@_selectedEntry.CPS</strong></div></div>
                     <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Efficiency</span><strong>@_selectedEntry.ClickEfficiency</strong></div></div>
