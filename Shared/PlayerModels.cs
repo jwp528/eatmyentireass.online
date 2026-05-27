@@ -41,4 +41,43 @@ namespace BlazorApp.Shared
         public DateTime LastPlayed { get; set; }
         public Dictionary<string, int> AssTypeBreakdown { get; set; } = new();
     }
+
+    /// <summary>Per-type progress stored in Azure Tables (and used client-side for perk logic).</summary>
+    public class AssTypeProgress
+    {
+        public int Eaten { get; set; }
+        public long ClicksUsed { get; set; }
+
+        public bool HasPerk10 => Eaten >= 10;
+        public bool HasPerk25 => Eaten >= 25;
+        public bool HasPerk50 => Eaten >= 50;
+        public bool HasPerk100 => Eaten >= 100;
+
+        public int NextMilestone => Eaten switch
+        {
+            < 10 => 10,
+            < 25 => 25,
+            < 50 => 50,
+            < 100 => 100,
+            _ => 0
+        };
+    }
+
+    /// <summary>Request body for saving player progress to Azure Tables.</summary>
+    public class PlayerProgressRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? AuthToken { get; set; }
+        /// <summary>Keys are AssTypeEnum names; values are progress. Server merges with MAX semantics.</summary>
+        public Dictionary<string, AssTypeProgress> Progress { get; set; } = new();
+    }
+
+    /// <summary>Request body for saving Assdex collection to Azure Tables.</summary>
+    public class PlayerCollectionRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? AuthToken { get; set; }
+        /// <summary>AssTypeEnum names that are unlocked. Server unions with existing set.</summary>
+        public List<string> UnlockedTypes { get; set; } = new();
+    }
 }

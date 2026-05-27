@@ -346,6 +346,12 @@
     {
         _currentPlayerName = name;
         HelpDialog?.NotifyNameSaved(name);
+
+        // Always attempt migration: handles anon→named, named→claimed, and named→re-verified.
+        // The services are no-ops when there is nothing to migrate.
+        await ProgressService.MigrateFromAnonymousAsync(name);
+        await CollectionService.MigrateFromAnonymousAsync(name);
+
         // Reload progress cache scoped to the new player name
         _progressCache = await ProgressService.LoadAsync(name);
         if (_pendingAutoSave)

@@ -203,8 +203,22 @@ namespace BlazorApp.Client.Pages
 
         AssTypeEnum PickNextAssType()
         {
-            // ~2% chance of Golden
-            if (Random.Shared.Next(50) == 0)
+            // Exponential decay on golden chance above 50 CPS:
+            // 50 CPS → 2%, 75 CPS → 0.05%, 100+ CPS → 0%
+            // k = ln(0.02 / 0.0005) / 25 ≈ 0.14756
+            double goldenChance = 0.02;
+            double cps = CurrentClicksPerSecond;
+            if (cps >= 100)
+            {
+                goldenChance = 0;
+            }
+            else if (cps > 50)
+            {
+                const double k = 0.14756;
+                goldenChance = 0.02 * Math.Exp(-k * (cps - 50));
+            }
+
+            if (Random.Shared.NextDouble() < goldenChance)
                 return AssTypeEnum.Golden;
 
             // Build weighted pool for non-golden types

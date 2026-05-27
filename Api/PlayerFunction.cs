@@ -8,6 +8,7 @@ using BlazorApp.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using static BlazorApp.Shared.Assets;
 
 namespace Api
 {
@@ -499,6 +500,325 @@ namespace Api
             var res = req.CreateResponse(HttpStatusCode.OK);
             AddCorsHeaders(res);
             return res;
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // Progress endpoints
+        // ──────────────────────────────────────────────────────────────────────
+
+        [Function("GetPlayerProgress")]
+        public async Task<HttpResponseData> GetPlayerProgress(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "options", Route = "player/progress")] HttpRequestData req)
+        {
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            var name = GetQueryParam(req.Url, "name", string.Empty);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("name is required");
+                return bad;
+            }
+
+            try
+            {
+                var normalized = PlayerNameHelper.Normalize(name);
+                var table = await GetTableAsync();
+                var entity = await TryGetRowAsync(table, "progress", normalized);
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+
+                if (entity == null)
+                {
+                    await response.WriteAsJsonAsync(new Dictionary<string, AssTypeProgress>());
+                    return response;
+                }
+
+                var json = entity.GetString("ProgressData") ?? "{}";
+                Dictionary<string, AssTypeProgress> progress;
+                try { progress = JsonSerializer.Deserialize<Dictionary<string, AssTypeProgress>>(json, _jsonOptions) ?? new(); }
+                catch { progress = new(); }
+
+                await response.WriteAsJsonAsync(progress);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting progress for {Name}", name);
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error getting progress");
+                return error;
+            }
+        }
+
+        [Function("SavePlayerProgress")]
+        public async Task<HttpResponseData> SavePlayerProgress(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options", Route = "player/progress")] HttpRequestData req)
+        {
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            PlayerProgressRequest? body;
+            try
+            {
+                var json = await new StreamReader(req.Body).ReadToEndAsync();
+                body = JsonSerializer.Deserialize<PlayerProgressRequest>(json, _jsonOptions);
+            }
+            catch
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("Invalid request body");
+                return bad;
+            }
+
+            if (body == null || string.IsNullOrWhiteSpace(body.Name))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("Name is required");
+                return bad;
+            }
+
+            var normalized = PlayerNameHelper.Normalize(body.Name);
+            var playersTable = _tableClient.Value;
+            await playersTable.CreateIfNotExistsAsync();
+
+            var authResult = await VerifyTokenAsync(playersTable, normalized, body.AuthToken);
+            if (authResult != TokenVerifyResult.Valid)
+            {
+                var denied = req.CreateResponse(HttpStatusCode.Unauthorized);
+                AddCorsHeaders(denied);
+                await denied.WriteStringAsync("Valid authentication required");
+                return denied;
+            }
+
+            // Validate payload: keys must be valid AssTypeEnum names, values non-negative
+            var validKeys = Enum.GetNames<AssTypeEnum>().ToHashSet();
+            var incoming = body.Progress
+                .Where(kv => validKeys.Contains(kv.Key) && kv.Value.Eaten >= 0 && kv.Value.ClicksUsed >= 0)
+                .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+            try
+            {
+                var table = await GetTableAsync();
+                var existing = await TryGetRowAsync(table, "progress", normalized);
+
+                Dictionary<string, AssTypeProgress> merged;
+                if (existing != null)
+                {
+                    var existingJson = existing.GetString("ProgressData") ?? "{}";
+                    try { merged = JsonSerializer.Deserialize<Dictionary<string, AssTypeProgress>>(existingJson, _jsonOptions) ?? new(); }
+                    catch { merged = new(); }
+
+                    // MAX merge — never decrease counts
+                    foreach (var kv in incoming)
+                    {
+                        if (merged.TryGetValue(kv.Key, out var ex))
+                        {
+                            merged[kv.Key] = new AssTypeProgress
+                            {
+                                Eaten = Math.Max(ex.Eaten, kv.Value.Eaten),
+                                ClicksUsed = Math.Max(ex.ClicksUsed, kv.Value.ClicksUsed)
+                            };
+                        }
+                        else
+                        {
+                            merged[kv.Key] = kv.Value;
+                        }
+                    }
+                }
+                else
+                {
+                    merged = incoming;
+                }
+
+                var entity = new TableEntity("progress", normalized)
+                {
+                    ["ProgressData"] = JsonSerializer.Serialize(merged, _jsonOptions),
+                    ["LastUpdatedUtc"] = DateTimeOffset.UtcNow
+                };
+                await table.UpsertEntityAsync(entity);
+
+                _logger.LogInformation("Progress saved for {Name}", normalized);
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+                await response.WriteStringAsync("Progress saved");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving progress for {Name}", normalized);
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error saving progress");
+                return error;
+            }
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // Collection (Assdex) endpoints
+        // ──────────────────────────────────────────────────────────────────────
+
+        [Function("GetPlayerCollection")]
+        public async Task<HttpResponseData> GetPlayerCollection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "options", Route = "player/collection")] HttpRequestData req)
+        {
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            var name = GetQueryParam(req.Url, "name", string.Empty);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("name is required");
+                return bad;
+            }
+
+            try
+            {
+                var normalized = PlayerNameHelper.Normalize(name);
+                var table = await GetTableAsync();
+                var entity = await TryGetRowAsync(table, "collection", normalized);
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+
+                if (entity == null)
+                {
+                    await response.WriteAsJsonAsync(new List<string>());
+                    return response;
+                }
+
+                var json = entity.GetString("UnlockedTypes") ?? "[]";
+                List<string> types;
+                try { types = JsonSerializer.Deserialize<List<string>>(json, _jsonOptions) ?? new(); }
+                catch { types = new(); }
+
+                await response.WriteAsJsonAsync(types);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting collection for {Name}", name);
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error getting collection");
+                return error;
+            }
+        }
+
+        [Function("SavePlayerCollection")]
+        public async Task<HttpResponseData> SavePlayerCollection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options", Route = "player/collection")] HttpRequestData req)
+        {
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+                return CorsOptions(req);
+
+            PlayerCollectionRequest? body;
+            try
+            {
+                var json = await new StreamReader(req.Body).ReadToEndAsync();
+                body = JsonSerializer.Deserialize<PlayerCollectionRequest>(json, _jsonOptions);
+            }
+            catch
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("Invalid request body");
+                return bad;
+            }
+
+            if (body == null || string.IsNullOrWhiteSpace(body.Name))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(bad);
+                await bad.WriteStringAsync("Name is required");
+                return bad;
+            }
+
+            var normalized = PlayerNameHelper.Normalize(body.Name);
+            var playersTable = _tableClient.Value;
+            await playersTable.CreateIfNotExistsAsync();
+
+            var authResult = await VerifyTokenAsync(playersTable, normalized, body.AuthToken);
+            if (authResult != TokenVerifyResult.Valid)
+            {
+                var denied = req.CreateResponse(HttpStatusCode.Unauthorized);
+                AddCorsHeaders(denied);
+                await denied.WriteStringAsync("Valid authentication required");
+                return denied;
+            }
+
+            // Validate: only accept known AssTypeEnum names
+            var validKeys = Enum.GetNames<AssTypeEnum>().ToHashSet();
+            var incoming = body.UnlockedTypes.Where(validKeys.Contains).ToHashSet();
+
+            try
+            {
+                var table = await GetTableAsync();
+                var existing = await TryGetRowAsync(table, "collection", normalized);
+
+                HashSet<string> merged;
+                if (existing != null)
+                {
+                    var existingJson = existing.GetString("UnlockedTypes") ?? "[]";
+                    try
+                    {
+                        var existingList = JsonSerializer.Deserialize<List<string>>(existingJson, _jsonOptions) ?? new();
+                        merged = existingList.Where(validKeys.Contains).ToHashSet();
+                    }
+                    catch { merged = new(); }
+
+                    // UNION — never remove unlocked types
+                    merged.UnionWith(incoming);
+                }
+                else
+                {
+                    merged = incoming;
+                }
+
+                var entity = new TableEntity("collection", normalized)
+                {
+                    ["UnlockedTypes"] = JsonSerializer.Serialize(merged.ToList(), _jsonOptions),
+                    ["LastUpdatedUtc"] = DateTimeOffset.UtcNow
+                };
+                await table.UpsertEntityAsync(entity);
+
+                _logger.LogInformation("Collection saved for {Name}: {Count} types", normalized, merged.Count);
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(response);
+                await response.WriteStringAsync("Collection saved");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving collection for {Name}", normalized);
+                var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+                AddCorsHeaders(error);
+                await error.WriteStringAsync("Error saving collection");
+                return error;
+            }
+        }
+
+        private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+        private static async Task<TableEntity?> TryGetRowAsync(TableClient table, string partitionKey, string rowKey)
+        {
+            try
+            {
+                var response = await table.GetEntityAsync<TableEntity>(partitionKey, rowKey);
+                return response.Value;
+            }
+            catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+            {
+                return null;
+            }
         }
 
         private static void AddCorsHeaders(HttpResponseData response)

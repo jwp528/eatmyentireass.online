@@ -178,7 +178,7 @@
                     <button type="button"
                             class="hp-btn hp-nf-save-btn"
                             @onclick="SaveNameAsync"
-                            disabled="@(_nfBusy || string.IsNullOrWhiteSpace(_nfName))">
+                            disabled="@(_nfBusy || string.IsNullOrWhiteSpace(_nfName) || _nfState == NfState.Checking || _nfState == NfState.Unknown)">
                         @(_nfBusy ? "Saving…" : _nfShowClaimForm ? "Claim & Save" : "Save Name")
                     </button>
 
