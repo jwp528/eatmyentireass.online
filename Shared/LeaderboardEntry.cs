@@ -11,6 +11,8 @@ namespace BlazorApp.Shared
         public DateTime GameDate { get; set; }
         public Dictionary<string, int> AssTypeBreakdown { get; set; } = new();
         public int GameDurationSeconds { get; set; } = 60;
+        public int? FrenzyCount { get; set; }
+        public int? PeakFrenzyChain { get; set; }
         public double ClickEfficiency => TotalClicks > 0 ? Math.Round(Score / TotalClicks, 3) : 0;
         public double CPS => GameDurationSeconds > 0 ? Math.Round((double)TotalClicks / GameDurationSeconds, 2) : 0;
     }

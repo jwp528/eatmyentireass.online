@@ -112,6 +112,8 @@
 .lb-header-row .lb-col-name,
 .lb-header-row .lb-col-score,
 .lb-header-row .lb-col-cps,
+.lb-header-row .lb-col-frenzies,
+.lb-header-row .lb-col-chain,
 .lb-header-row .lb-col-date {
     font-size: 0.7rem;
     font-weight: 700;
@@ -142,12 +144,24 @@
 }
 
 .lb-col-score {
-    width: 56px;
+    width: 72px;
     flex-shrink: 0;
     text-align: right;
 }
 
 .lb-col-cps {
+    width: 48px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.lb-col-frenzies {
+    width: 48px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.lb-col-chain {
     width: 48px;
     flex-shrink: 0;
     text-align: right;
@@ -188,6 +202,18 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: #fbbf24;
+}
+
+.lb-val-frenzies {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fb923c;
+}
+
+.lb-val-chain {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #a78bfa;
 }
 
 .lb-val-date {
@@ -239,8 +265,10 @@
 @media (max-width: 480px) {
     .lb-tab { padding: 10px 12px; font-size: 0.8rem; gap: 4px; }
     .lb-col-cps { display: none; }
+    .lb-col-frenzies { display: none; }
+    .lb-col-chain { display: none; }
     .lb-col-date { width: 56px; }
-    .lb-col-score { width: 50px; }
+    .lb-col-score { width: 56px; }
     .lb-player-name { font-size: 0.85rem; }
     .lb-val-score { font-size: 0.88rem; }
 }

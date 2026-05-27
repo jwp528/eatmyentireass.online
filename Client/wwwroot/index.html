@@ -192,9 +192,28 @@
         };
 
         window.playSound = (src, volume) => {
-            console.log(`playing sound ${src}`);
             var audio = new Audio(src);
-            audio.play();
+            audio.volume = volume ?? 1;
+            audio.play().catch(() => {});
+        }
+
+        // Bite sound: throttled + pooled to prevent audio pile-up at high CPS
+        const _biteAudioPool = {};
+        const _biteLastPlayed = {};
+        const BITE_COOLDOWN_MS = 80;
+
+        window.playBiteSound = (src, volume) => {
+            const now = Date.now();
+            if (_biteLastPlayed[src] && (now - _biteLastPlayed[src]) < BITE_COOLDOWN_MS) return;
+            _biteLastPlayed[src] = now;
+
+            if (!_biteAudioPool[src]) {
+                _biteAudioPool[src] = new Audio(src);
+            }
+            const audio = _biteAudioPool[src];
+            audio.volume = volume ?? 1;
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
         }
 
         window.copyToClipboard = (text) => navigator.clipboard.writeText(text);

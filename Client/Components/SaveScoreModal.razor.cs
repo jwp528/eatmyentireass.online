@@ -25,6 +25,8 @@ namespace BlazorApp.Client.Components
         private string errorMessage = string.Empty;
         private bool isHighScore = false;
         private int playerRank = 0;
+        private int _frenzyCount = 0;
+        private int _peakFrenzyChain = 0;
 
         // Name claiming state
         private enum NameState { Unknown, Checking, Free, ClaimedOwned, ClaimedNotOwned }
@@ -37,11 +39,13 @@ namespace BlazorApp.Client.Components
         private bool _showClaimForm = false;
         private bool _showPasswordField = false;
 
-        public async Task Show(double score, int totalClicks, Dictionary<AssTypeEnum, int> breakdown)
+        public async Task Show(double score, int totalClicks, Dictionary<AssTypeEnum, int> breakdown, int frenzyCount = 0, int peakFrenzyChain = 0)
         {
             Score = score;
             TotalClicks = totalClicks;
             AssBreakdown = breakdown;
+            _frenzyCount = frenzyCount;
+            _peakFrenzyChain = peakFrenzyChain;
             errorMessage = string.Empty;
             isSaving = false;
             password = string.Empty;
@@ -237,7 +241,9 @@ namespace BlazorApp.Client.Components
                     TotalClicks = TotalClicks,
                     GameDate = DateTime.UtcNow,
                     AssTypeBreakdown = AssBreakdown.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value),
-                    GameDurationSeconds = 60
+                    GameDurationSeconds = 60,
+                    FrenzyCount = _frenzyCount,
+                    PeakFrenzyChain = _peakFrenzyChain
                 };
 
                 await SharedLeaderboardService.SaveScoreAsync(entry, authToken);
@@ -266,7 +272,9 @@ namespace BlazorApp.Client.Components
                         TotalClicks = TotalClicks,
                         GameDate = DateTime.UtcNow,
                         AssTypeBreakdown = AssBreakdown.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value),
-                        GameDurationSeconds = 60
+                        GameDurationSeconds = 60,
+                        FrenzyCount = _frenzyCount,
+                        PeakFrenzyChain = _peakFrenzyChain
                     };
                     await LocalLeaderboardService.SaveScoreAsync(entry);
                     errorMessage += " Score saved locally as backup.";
