@@ -73,7 +73,11 @@
                                 else if (rank == 3) { <span class="lb-medal">🥉</span> }
                                 else                { <span class="lb-rank-num">@rank</span> }
                             </div>
-                            <div class="lb-col-name lb-player-name">@entry.PlayerName</div>
+                            <div class="lb-col-name">
+                                <button type="button" class="lb-player-btn lb-player-name" @onclick="() => ShowEntryDetails(entry, rank)">
+                                    @entry.PlayerName
+                                </button>
+                            </div>
                             <div class="lb-col-score lb-val-score">@(((int)Math.Truncate(entry.Score)).ToString("N0"))</div>
                             <div class="lb-col-cps lb-val-cps">@entry.CPS</div>
                             <div class="lb-col-frenzies lb-val-frenzies">@(entry.FrenzyCount.HasValue ? entry.FrenzyCount.Value.ToString() : "-")</div>
@@ -98,5 +102,70 @@
             </div>
 
         </div>
+    </Body>
+</BSModal>
+
+<BSModal @ref="DetailsModal" Id="leaderboardGameDetailsModal" IsVerticallyCentered="true" Size="ModalSize.Large">
+    <Body>
+        @if (_selectedEntry != null)
+        {
+            <div class="lb-detail-shell">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                    <div>
+                        <div class="lb-detail-title">Game Details</div>
+                        <div class="lb-detail-subtitle">
+                            <span class="lb-detail-rank">#@_selectedRank</span>
+                            @_selectedEntry.PlayerName
+                        </div>
+                    </div>
+                    <button type="button" class="lb-btn lb-btn-icon" @onclick="CloseDetailsModal" aria-label="Close game details">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Score</span><strong>@((int)_selectedEntry.Score).ToString("N0")</strong></div></div>
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Total Clicks</span><strong>@_selectedEntry.TotalClicks.ToString("N0")</strong></div></div>
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>CPS</span><strong>@_selectedEntry.CPS</strong></div></div>
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Efficiency</span><strong>@_selectedEntry.ClickEfficiency</strong></div></div>
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Frenzies</span><strong>@(_selectedEntry.FrenzyCount?.ToString() ?? "-")</strong></div></div>
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Peak Chain</span><strong>@(_selectedEntry.PeakFrenzyChain?.ToString() ?? "-")</strong></div></div>
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Duration</span><strong>@_selectedEntry.GameDurationSeconds s</strong></div></div>
+                    <div class="col-6 col-md-8"><div class="lb-detail-stat"><span>Played At</span><strong>@_selectedEntry.GameDate.ToString("MMM d, yyyy HH:mm")</strong></div></div>
+                </div>
+
+                <div class="lb-detail-section-title">Breakdown</div>
+                @{
+                    var breakdownItems = SelectedBreakdown;
+                }
+                @if (breakdownItems.Any())
+                {
+                    var totalBreakdown = breakdownItems.Sum(x => x.Value);
+                    <div class="lb-detail-breakdown">
+                        @foreach (var item in breakdownItems)
+                        {
+                            var percent = totalBreakdown > 0 ? Math.Round((double)item.Value * 100 / totalBreakdown, 1) : 0;
+                            <div class="lb-detail-row">
+                                <div class="lb-detail-type">@item.Key</div>
+                                <div class="progress lb-detail-progress">
+                                    <div class="progress-bar lb-detail-progress-bar" role="progressbar" style="width:@percent%"></div>
+                                </div>
+                                <div class="lb-detail-value">@item.Value <span>@percent%</span></div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="lb-empty lb-detail-empty">No per-type breakdown was captured for this game.</div>
+                }
+
+                <div class="lb-actions lb-detail-actions">
+                    <button class="lb-btn" @onclick="CloseDetailsModal">
+                        <i class="bi bi-x-lg"></i> Close
+                    </button>
+                </div>
+            </div>
+        }
     </Body>
 </BSModal>
