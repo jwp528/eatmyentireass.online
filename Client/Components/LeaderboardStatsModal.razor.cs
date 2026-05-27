@@ -10,10 +10,13 @@ namespace BlazorApp.Client.Components
         [Parameter] public EventCallback OnShowStats { get; set; }
 
         public BSModal? Modal;
+        public BSModal? DetailsModal;
 
         private string activeTab = "alltime";
         private bool isLoadingLeaderboard;
         private string _searchText = string.Empty;
+        private LeaderboardEntry? _selectedEntry;
+        private int _selectedRank;
 
         // Per-period leaderboard data
         private readonly Dictionary<string, List<LeaderboardEntry>> _periodScores = new();
@@ -28,6 +31,12 @@ namespace BlazorApp.Client.Components
             string.IsNullOrWhiteSpace(_searchText)
                 ? CurrentScores
                 : CurrentScores.Where(e => e.PlayerName.Contains(_searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        private IReadOnlyList<KeyValuePair<string, int>> SelectedBreakdown =>
+            (_selectedEntry?.AssTypeBreakdown ?? new Dictionary<string, int>())
+                .OrderByDescending(x => x.Value)
+                .ThenBy(x => x.Key)
+                .ToList();
 
         public async Task ShowLeaderboard()
         {
@@ -80,6 +89,18 @@ namespace BlazorApp.Client.Components
         private async Task CloseModal()
         {
             if (Modal != null) await Modal.Hide();
+        }
+
+        private async Task ShowEntryDetails(LeaderboardEntry entry, int rank)
+        {
+            _selectedEntry = entry;
+            _selectedRank = rank;
+            if (DetailsModal != null) await DetailsModal.Show();
+        }
+
+        private async Task CloseDetailsModal()
+        {
+            if (DetailsModal != null) await DetailsModal.Hide();
         }
     }
 }
