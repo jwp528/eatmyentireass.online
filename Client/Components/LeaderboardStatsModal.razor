@@ -57,6 +57,8 @@
                         <div class="lb-col-name">Player</div>
                         <div class="lb-col-score">Score</div>
                         <div class="lb-col-cps">CPS</div>
+                        <div class="lb-col-frenzies">Frnzy</div>
+                        <div class="lb-col-chain">Chain</div>
                         <div class="lb-col-date">Date</div>
                     </div>
 
@@ -72,8 +74,10 @@
                                 else                { <span class="lb-rank-num">@rank</span> }
                             </div>
                             <div class="lb-col-name lb-player-name">@entry.PlayerName</div>
-                            <div class="lb-col-score lb-val-score">@((int)Math.Truncate(entry.Score))</div>
+                            <div class="lb-col-score lb-val-score">@(((int)Math.Truncate(entry.Score)).ToString("N0"))</div>
                             <div class="lb-col-cps lb-val-cps">@entry.CPS</div>
+                            <div class="lb-col-frenzies lb-val-frenzies">@(entry.FrenzyCount.HasValue ? entry.FrenzyCount.Value.ToString() : "-")</div>
+                            <div class="lb-col-chain lb-val-chain">@(entry.PeakFrenzyChain.HasValue ? entry.PeakFrenzyChain.Value.ToString() : "-")</div>
                             <div class="lb-col-date lb-val-date">
                                 @entry.GameDate.ToString("MMM d")
                                 <span class="lb-time">@entry.GameDate.ToString("HH:mm")</span>

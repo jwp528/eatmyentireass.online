@@ -101,8 +101,8 @@ namespace BlazorApp.Client.Pages
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            _progressCache = await ProgressService.LoadAsync(_currentPlayerName);
             _currentPlayerName = await SettingsService.GetLastPlayerNameAsync() ?? string.Empty;
+            _progressCache = await ProgressService.LoadAsync(_currentPlayerName);
             await LoadSettings();
             ParseChallengeFromUrl();
         }
@@ -452,7 +452,7 @@ namespace BlazorApp.Client.Pages
 
                 if (playSounds)
                 {
-                    await js.InvokeVoidAsync("playSound", sound, volume);
+                    await js.InvokeVoidAsync("playBiteSound", sound, volume);
                 }
             }
 
@@ -567,7 +567,9 @@ namespace BlazorApp.Client.Pages
                     TotalClicks = totalClicks,
                     GameDate = DateTime.UtcNow,
                     AssTypeBreakdown = Breakdown.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value),
-                    GameDurationSeconds = 60
+                    GameDurationSeconds = 60,
+                    FrenzyCount = frenzyCount,
+                    PeakFrenzyChain = _peakChainLevel
                 };
 
                 await LeaderboardService.SaveScoreAsync(entry, token);
@@ -580,7 +582,7 @@ namespace BlazorApp.Client.Pages
             {
                 Console.WriteLine($"[Home] Auto-save failed: {ex.Message}");
                 // Fall back to manual save modal
-                await InvokeAsync(async () => await SaveScoreDialog?.Show((double)assesEaten, totalClicks, Breakdown));
+                await InvokeAsync(async () => await SaveScoreDialog?.Show((double)assesEaten, totalClicks, Breakdown, frenzyCount, _peakChainLevel));
             }
             finally
             {
