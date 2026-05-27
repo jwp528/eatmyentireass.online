@@ -3,6 +3,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var storage = builder.AddAzureStorage("storage").RunAsEmulator(e =>
 {
     e.WithLifetime(ContainerLifetime.Persistent);
+    e.WithDataVolume("emea-azurite-data");
 });
 
 builder.AddAzureFunctionsProject<Projects.Api>("api")

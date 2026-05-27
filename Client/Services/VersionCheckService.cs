@@ -46,13 +46,21 @@ namespace BlazorApp.Client.Services
                 // Best case: compiled app version matches server — no update needed.
                 if (_serverVersion == AppVersion) return false;
 
-                // Server version differs from compiled version. However, if the user
-                // already clicked "Reload Now" for this exact version, skip the modal.
-                // This prevents an infinite loop when the browser stubbornly serves old
-                // cached WASM even after a forced navigation.
                 var acknowledged = await _js.InvokeAsync<string?>(
                     "localStorage.getItem", "emea_loaded_version");
                 if (acknowledged == _serverVersion) return false;
+
+                var dismissed = await _js.InvokeAsync<string?>(
+                    "localStorage.getItem", "updateDismissedVersion");
+                if (dismissed == _serverVersion) return false;
+
+                // First visit: neither key exists yet — accept the current version silently
+                // so the dialog doesn't fire on a fresh install.
+                if (acknowledged == null && dismissed == null)
+                {
+                    await _js.InvokeVoidAsync("localStorage.setItem", "emea_loaded_version", _serverVersion);
+                    return false;
+                }
 
                 return true;
             }
