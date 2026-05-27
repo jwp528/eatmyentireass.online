@@ -124,7 +124,7 @@
                 </div>
 
                 <div class="row g-2">
-                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Score</span><strong>@Math.Truncate(_selectedEntry.Score).ToString("N0")</strong></div></div>
+                    <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Score</span><strong>@((int)_selectedEntry.Score).ToString("N0")</strong></div></div>
                     <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Total Clicks</span><strong>@_selectedEntry.TotalClicks.ToString("N0")</strong></div></div>
                     <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>CPS</span><strong>@_selectedEntry.CPS</strong></div></div>
                     <div class="col-6 col-md-4"><div class="lb-detail-stat"><span>Efficiency</span><strong>@_selectedEntry.ClickEfficiency</strong></div></div>
@@ -135,13 +135,16 @@
                 </div>
 
                 <div class="lb-detail-section-title">Breakdown</div>
-                @if (SelectedBreakdown.Any())
+                @{
+                    var breakdownItems = SelectedBreakdown;
+                }
+                @if (breakdownItems.Any())
                 {
-                    var totalBreakdown = SelectedBreakdown.Sum(x => x.Value);
+                    var totalBreakdown = breakdownItems.Sum(x => x.Value);
                     <div class="lb-detail-breakdown">
-                        @foreach (var item in SelectedBreakdown)
+                        @foreach (var item in breakdownItems)
                         {
-                            var percent = totalBreakdown > 0 ? Math.Round(item.Value * 100d / totalBreakdown, 1) : 0;
+                            var percent = totalBreakdown > 0 ? Math.Round((double)item.Value * 100 / totalBreakdown, 1) : 0;
                             <div class="lb-detail-row">
                                 <div class="lb-detail-type">@item.Key</div>
                                 <div class="progress lb-detail-progress">

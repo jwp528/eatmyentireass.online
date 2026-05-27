@@ -207,6 +207,18 @@
 
 .lb-player-btn:hover {
     color: #fbbf24;
+    text-decoration: underline;
+}
+
+.lb-player-btn:focus {
+    outline: none;
+}
+
+.lb-player-btn:focus-visible {
+    outline: 2px solid rgba(121,134,203,0.9);
+    outline-offset: 2px;
+    border-radius: 4px;
+    text-decoration: underline;
 }
 
 .lb-val-score {
